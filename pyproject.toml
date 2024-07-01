@@ -20,6 +20,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["black", "pytest"]
 
+[project.scripts]
+pulseforge = "pulseforge._cli:cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]

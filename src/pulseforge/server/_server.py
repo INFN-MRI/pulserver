@@ -1,6 +1,6 @@
 """Main sequence design server app."""
 
-__all__ = ["start_server"]
+__all__ = ["start_server", "load_plugins"]
 
 import importlib.util
 import yaml
@@ -91,7 +91,7 @@ def setup_function_logger(function_name):
     return function_logger
 
 
-def load_plugins(logger):
+def load_plugins(logger=None):
     # Get plugin path
     PLUGIN_DIR = _get_plugin_dir()
 
@@ -106,7 +106,8 @@ def load_plugins(logger):
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 plugins[module_name] = module
-                logger.debug(f"Loaded plugin: {module_name} from {filepath}")
+                if logger is not None:
+                    logger.debug(f"Loaded plugin: {module_name} from {filepath}")
     return plugins
 
 
