@@ -1,0 +1,6 @@
+pypulseq@ git+https://github.com/mcencini/pypulseq.git@gehc
+pulpy@ git+https://github.com/mcencini/pulpy.git@master
+
+[dev]
+black
+pytest

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pulseforge"
+version = "0.0.1.alpha"
+authors = [{name = "Matteo Cencini", email = "matteo.cencini@gmail.com"}]
+description = "A PyPulseq-based client/server MR sequence design toolbox."
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["MRI", "GEHC", "Pulseq", "TOPPE"]
+license = {text = "MIT"}
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = [
+   "pypulseq@git+https://github.com/mcencini/pypulseq.git@gehc", # until next pypulseq release
+   "pulpy@git+https://github.com/mcencini/pulpy.git@master", # until stable pulpy release
+]
+
+[project.optional-dependencies]
+dev = ["black", "pytest"]
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pulseforge*"]
+exclude = ["pulseforge.tests*"]
+namespaces = false
