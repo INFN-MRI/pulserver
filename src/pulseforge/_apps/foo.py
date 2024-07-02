@@ -1,5 +1,6 @@
 """A demo function."""
 
+
 def foo(arg1, arg2):
     """
     A function.

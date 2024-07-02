@@ -1,5 +1,6 @@
 """Another demo function."""
 
+
 def bar(arg1, arg2):
     """
     Another function.
@@ -12,4 +13,3 @@ def bar(arg1, arg2):
         Another parameter.
 
     """
-

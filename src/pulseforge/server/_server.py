@@ -11,11 +11,16 @@ import socket
 
 from datetime import datetime
 
+# Location of home
+HOME_DIR = pathlib.Path.home()
+
 
 # Load configuration
 def _get_config():
     # Read environment variables
-    CONFIG_FILE_PATH = os.getenv("PULSEFORGE_CONFIG", None)
+    CONFIG_FILE_PATH = os.getenv(
+        "PULSEFORGE_CONFIG", os.path.join(HOME_DIR, "pulseforge_config.yaml")
+    )
     MR_SCANNER_ADDRESS = os.getenv("PULSEFORGE_SCANNER_ADDRESS", None)
     MR_SCANNER_PORT = os.getenv("PULSEFORGE_SCANNER_PORT", None)
     RECON_SERVER_ADDRESS = os.getenv("PULSEFORGE_RECON_SERVER_ADDRESS", None)
@@ -54,7 +59,6 @@ def _get_log_dir():
     # Get environment variable
     LOG_DIR = os.getenv("PULSEFORGE_LOG", None)
     if LOG_DIR is None:  # Default to user HOME folder
-        HOME_DIR = pathlib.Path.home()
         LOG_DIR = os.path.join(HOME_DIR, "log")
 
     # Ensure log directory exists
@@ -102,7 +106,7 @@ def load_plugins(logger=None):
             if filename.endswith(".py"):
                 filepath = os.path.join(directory, filename)
                 module_name = filename[:-3]
-                func_name = module_name 
+                func_name = module_name
                 # do the import
                 spec = importlib.util.spec_from_file_location(module_name, filepath)
                 module = importlib.util.module_from_spec(spec)
@@ -110,7 +114,9 @@ def load_plugins(logger=None):
                 try:
                     func = getattr(module, func_name)
                 except Exception:
-                    logger.error(f"Plugin function  {func_name} must have the same name as its module {module_name}.")
+                    logger.error(
+                        f"Plugin function  {func_name} must have the same name as its module {module_name}."
+                    )
                     raise ImportError
                 plugins[module_name] = func
                 if logger is not None:
