@@ -102,10 +102,17 @@ def load_plugins(logger=None):
             if filename.endswith(".py"):
                 filepath = os.path.join(directory, filename)
                 module_name = filename[:-3]
+                func_name = module_name 
+                # do the import
                 spec = importlib.util.spec_from_file_location(module_name, filepath)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                plugins[module_name] = module
+                try:
+                    func = getattr(module, func_name)
+                except Exception:
+                    logger.error(f"Plugin function  {func_name} must have the same name as its module {module_name}.")
+                    raise ImportError
+                plugins[module_name] = func
                 if logger is not None:
                     logger.debug(f"Loaded plugin: {module_name} from {filepath}")
     return plugins

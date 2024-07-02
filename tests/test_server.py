@@ -26,17 +26,21 @@ logger.setLevel(logging.DEBUG)
 def create_mock_plugins():
     with tempfile.TemporaryDirectory() as tempdir:
         # Create mock plugin files
-        plugin_code = """
-def test_func():
+        plugin1_code = """
+def plugin1():
+    return "Hello, world!"
+"""
+        plugin2_code = """
+def plugin2():
     return "Hello, world!"
 """
         plugin1_path = os.path.join(tempdir, "plugin1.py")
         with open(plugin1_path, "w") as f:
-            f.write(plugin_code)
+            f.write(plugin1_code)
 
         plugin2_path = os.path.join(tempdir, "plugin2.py")
         with open(plugin2_path, "w") as f:
-            f.write(plugin_code)
+            f.write(plugin2_code)
 
         yield tempdir
 
@@ -53,8 +57,8 @@ def test_load_plugins(create_mock_plugins, caplog):
         assert "plugin2" in plugins
 
         # Check that the functions in the plugins work correctly
-        assert plugins["plugin1"].test_func() == "Hello, world!"
-        assert plugins["plugin2"].test_func() == "Hello, world!"
+        assert plugins["plugin1"]() == "Hello, world!"
+        assert plugins["plugin2"]() == "Hello, world!"
 
         # Verify that the debug log was called correctly
         expected_log_message1 = (

@@ -1,6 +1,6 @@
 """Another demo function."""
 
-def foo(arg1, arg2):
+def bar(arg1, arg2):
     """
     Another function.
 

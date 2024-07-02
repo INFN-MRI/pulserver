@@ -44,8 +44,10 @@ def apps(name):
     # Load plugin list
     plugins = server.load_plugins()
     if name is None:
-        for fun in plugins:
-            click.echo(fun)
+        for fun in plugins.values():
+            name = fun.__name__
+            summary = fun.__doc__.split("\n")[1]
+            click.echo(name + "\t" + summary)
     else:
         click.echo(plugins[name].__doc__)
     
