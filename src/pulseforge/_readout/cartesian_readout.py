@@ -6,7 +6,7 @@ import numpy as np
 
 import pypulseq as pp
 
-from .._segment import PulseqBlock
+from .._block import PulseqBlock
 
 
 class CartesianReadout2D(PulseqBlock):
@@ -79,7 +79,7 @@ class CartesianReadout2D(PulseqBlock):
             gflyback = pp.make_trapezoid("x", area=-gread.area, system=sys)
 
         # phase encoding gradient
-        gyphase = pp.make_trapezoid(channel="y", area=-dky * ny, system=sys)
+        gyphase = pp.make_trapezoid(channel="y", area=dky * ny, system=sys)
 
         # set list of blocks
         self.add_block("phase_encoding", gx=gxphase, gy=gyphase)
@@ -209,8 +209,8 @@ class CartesianReadout3D(CartesianReadout2D):
             gflyback = pp.make_trapezoid("x", area=-gread.area, system=sys)
 
         # phase encoding gradient
-        gyphase = pp.make_trapezoid(channel="y", area=-dky * ny, system=sys)
-        gzphase = pp.make_trapezoid(channel="z", area=-dkz * ny, system=sys)
+        gyphase = pp.make_trapezoid(channel="y", area=dky * ny, system=sys)
+        gzphase = pp.make_trapezoid(channel="z", area=dkz * ny, system=sys)
 
         # set list of blocks
         self.add_block("phase_encoding", gx=gxphase, gy=gyphase, gz=gzphase)

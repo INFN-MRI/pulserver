@@ -1,7 +1,23 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 28 13:55:08 2024
+"""Spiral readout creation subroutines."""
 
-@author: mcencini
-"""
+__all__ = ["SpiralReadout", "StackOfSpiralsReadout"]
+
+import numpy as np
+
+import pypulseq as pp
+import pulpy.grad as pg
+
+from .._block import PulseqBlock
+
+
+class SpiralReadout(PulseqBlock):
+    pass
+
+
+class StackOfSpiralsReadout(PulseqBlock):
+    pass
+
+
+
+
+
