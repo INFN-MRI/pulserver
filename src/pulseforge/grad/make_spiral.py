@@ -75,7 +75,7 @@ def make_spiral(
 
     """
     # system defaults
-    if system == None:
+    if system is None:
         system = pp.Opts.default
 
     if max_grad <= 0:

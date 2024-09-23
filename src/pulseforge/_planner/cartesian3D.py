@@ -80,9 +80,9 @@ class CaipirinhaSampling:
         n = idx % self._nmax
         return self._scale_y[n], self._scale_z[n]
 
-    def update_hdr(self, hdr, idx):
-        n = idx % self._nmax
-        iy, iz = self._iy[n], self._iz[n]
+    # def update_hdr(self, hdr, idx):
+    #     n = idx % self._nmax
+    #     iy, iz = self._iy[n], self._iz[n]
 
 
 class PoissonSampling:

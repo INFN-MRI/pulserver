@@ -157,7 +157,7 @@ def SPGR3D(
     )
 
     # construct sequence
-    seq.new_section(title="ss_prep")
+    seq.section(title="ss_prep")
     for n in range(dummy_scans):
         rf_phase = rf_phases()
         seq.add_block("excitation")
@@ -167,7 +167,7 @@ def SPGR3D(
         seq.add_block("g_phase", gy_amp=0.0, gz_amp=0.0)
         seq.add_block("g_spoil")
 
-    seq.new_section(title="scan_loop")
+    seq.section(title="scan_loop")
     for n in range(imaging_scans):
         rf_phase = rf_phases()
         seq.add_block("excitation")

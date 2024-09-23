@@ -2,10 +2,6 @@
 
 __all__ = ["SpiralReadout", "StackOfSpiralsReadout"]
 
-import numpy as np
-
-import pypulseq as pp
-import pulpy.grad as pg
 
 from .._block import PulseqBlock
 
