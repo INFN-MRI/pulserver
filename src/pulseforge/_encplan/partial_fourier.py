@@ -6,7 +6,8 @@ import warnings
 
 import numpy as np
 
-def partial_fourier(shape,  undersampling):
+
+def partial_fourier(shape, undersampling):
     """
     Generate sampling pattern for Partial Fourier accelerated acquisition.
 
@@ -14,7 +15,7 @@ def partial_fourier(shape,  undersampling):
     ----------
     shape : int
         Image shape along partial fourier axis.
-    undersampling : 
+    undersampling :
         Target undersampling factor. Must be > 0.5 (suggested > 0.7)
         and <= 1 (=1: no PF).
 
@@ -31,7 +32,7 @@ def partial_fourier(shape,  undersampling):
             f" {undersampling}"
         )
     if undersampling == 1:
-        warnings.warn("Undersampling factor set to 1 - no acceleration")        
+        warnings.warn("Undersampling factor set to 1 - no acceleration")
     if undersampling < 0.7:
         warnings.warn(
             f"Undersampling factor = {undersampling} < 0.7 - phase errors will"
@@ -47,4 +48,3 @@ def partial_fourier(shape,  undersampling):
     mask[edge:] = 0
 
     return mask
-

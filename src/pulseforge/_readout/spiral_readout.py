@@ -16,8 +16,3 @@ class SpiralReadout(PulseqBlock):
 
 class StackOfSpiralsReadout(PulseqBlock):
     pass
-
-
-
-
-
