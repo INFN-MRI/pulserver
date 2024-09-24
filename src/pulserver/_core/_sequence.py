@@ -3,7 +3,7 @@
 __all__ = ["Sequence"]
 
 from copy import copy
-from typing import SimpleNamespace
+from types import SimpleNamespace
 
 import numpy as np
 import pypulseq as pp
@@ -39,7 +39,6 @@ class Sequence:
             self._event_library = {"delay": PulseqBlock(ID=0)}
 
         self._sections_edges = []
-
 
     def register_event(
         self,
@@ -86,9 +85,8 @@ class Sequence:
             _current_seqlength = len(self._sequence.block_events)
         else:
             _current_seqlength = len(self._loop)
-        self._sections_edges.append(_current_seqlength)            
-        
-        
+        self._sections_edges.append(_current_seqlength)
+
     def add_block(
         self,
         event: str,
@@ -173,7 +171,6 @@ class Sequence:
                 block_duration,
             ] + rotmat
             self._loop.append(loop_row)
-
 
     def export(self):
         if self._format == "pulseq":

@@ -10,12 +10,12 @@ from datetime import datetime
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from pulseforge.server._server import load_plugins
-from pulseforge.server._server import parse_request
-from pulseforge.server._server import setup_function_logger
-from pulseforge.server._server import send_to_recon_server
-from pulseforge.server._server import handle_client_connection
-from pulseforge.server import start_server
+from pulserver.server._server import load_plugins
+from pulserver.server._server import parse_request
+from pulserver.server._server import setup_function_logger
+from pulserver.server._server import send_to_recon_server
+from pulserver.server._server import handle_client_connection
+from pulserver.server import start_server
 
 # Create a logger for the function (this is just to match the function's logging behavior)
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def plugin2():
 
 def test_load_plugins(create_mock_plugins, caplog):
     plugin_dir = create_mock_plugins
-    os.environ["PULSEFORGE_PLUGINS"] = plugin_dir
+    os.environ["PULSERVER_PLUGINS"] = plugin_dir
 
     with caplog.at_level(logging.DEBUG):
         plugins = load_plugins(logger)
@@ -187,7 +187,7 @@ def sample_config():
 
 
 # Test for send_to_recon_server with valid config
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_valid_config(mock_socket, sample_config):
     # Create a mock socket instance
     mock_socket_instance = MagicMock()
@@ -212,7 +212,7 @@ def test_send_to_recon_server_with_valid_config(mock_socket, sample_config):
 
 
 # Test for send_to_recon_server with missing address in config
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_missing_address(mock_socket):
     config = {"recon_server_port": RECON_SERVER_PORT}
     # Call the function with missing address in config
@@ -224,7 +224,7 @@ def test_send_to_recon_server_with_missing_address(mock_socket):
 
 
 # Test for send_to_recon_server with missing port in config
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_missing_port(mock_socket):
     config = {"recon_server_address": RECON_SERVER_ADDRESS}
     # Call the function with missing port in config
@@ -236,7 +236,7 @@ def test_send_to_recon_server_with_missing_port(mock_socket):
 
 
 # Test for send_to_recon_server with missing address and port in config
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_missing_address_and_port(mock_socket):
     config = {}
     # Call the function with missing address and port in config
@@ -248,7 +248,7 @@ def test_send_to_recon_server_with_missing_address_and_port(mock_socket):
 
 
 # Test for send_to_recon_server with invalid config types
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_invalid_config_types(mock_socket):
     config = {
         "recon_server_address": None,  # Invalid address
@@ -263,7 +263,7 @@ def test_send_to_recon_server_with_invalid_config_types(mock_socket):
 
 
 # Test for send_to_recon_server with empty buffer
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_empty_buffer(mock_socket, sample_config):
     # Create a mock socket instance
     mock_socket_instance = MagicMock()
@@ -288,7 +288,7 @@ def test_send_to_recon_server_with_empty_buffer(mock_socket, sample_config):
 
 
 # Test for send_to_recon_server with a valid configuration but no buffer
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server.socket.socket")
 def test_send_to_recon_server_with_no_buffer(mock_socket, sample_config):
     # Create a mock socket instance
     mock_socket_instance = MagicMock()
@@ -329,8 +329,8 @@ def main_logger():
     return MagicMock()
 
 
-@patch("pulseforge.server._server.setup_function_logger")
-@patch("pulseforge.server._server.send_to_recon_server")
+@patch("pulserver.server._server.setup_function_logger")
+@patch("pulserver.server._server.send_to_recon_server")
 def test_handle_client_connection_valid_function(
     mock_send_to_recon_server,
     mock_setup_function_logger,
@@ -368,8 +368,8 @@ def test_handle_client_connection_valid_function(
     mock_send_to_recon_server.assert_called_once_with(b"optional_buffer", sample_config)
 
 
-@patch("pulseforge.server._server.setup_function_logger")
-@patch("pulseforge.server._server.send_to_recon_server")
+@patch("pulserver.server._server.setup_function_logger")
+@patch("pulserver.server._server.send_to_recon_server")
 def test_handle_client_connection_function_not_found(
     mock_send_to_recon_server,
     mock_setup_function_logger,
@@ -396,8 +396,8 @@ def test_handle_client_connection_function_not_found(
     mock_setup_function_logger.assert_not_called()
 
 
-@patch("pulseforge.server._server.setup_function_logger")
-@patch("pulseforge.server._server.send_to_recon_server")
+@patch("pulserver.server._server.setup_function_logger")
+@patch("pulserver.server._server.send_to_recon_server")
 def test_handle_client_connection_no_optional_buffer(
     mock_send_to_recon_server,
     mock_setup_function_logger,
@@ -441,11 +441,11 @@ def test_handle_client_connection_no_optional_buffer(
     mock_send_to_recon_server.assert_not_called()
 
 
-@patch("pulseforge.server._server._get_config")
-@patch("pulseforge.server._server.setup_main_logger")
-@patch("pulseforge.server._server.load_plugins")
-@patch("pulseforge.server._server.handle_client_connection")
-@patch("pulseforge.server._server.socket.socket")
+@patch("pulserver.server._server._get_config")
+@patch("pulserver.server._server.setup_main_logger")
+@patch("pulserver.server._server.load_plugins")
+@patch("pulserver.server._server.handle_client_connection")
+@patch("pulserver.server._server.socket.socket")
 def test_start_server(
     mock_socket,
     mock_handle_client_connection,

@@ -22,4 +22,4 @@ tmp/
 docs/generated/
 docs_build/
 
-src/pulseforge/_version.py
+src/pulserver/_version.py

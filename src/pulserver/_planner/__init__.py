@@ -16,5 +16,5 @@ from .phase_cycling import RfPhaseCycle  # noqa
 # Cartesian
 from .cartesian3D import CaipirinhaSampling  # noqa
 
-__all__.extend("RfPhaseCycle")
-__all__.extend("CaipirinhaSampling")
+__all__.append("RfPhaseCycle")
+__all__.append("CaipirinhaSampling")

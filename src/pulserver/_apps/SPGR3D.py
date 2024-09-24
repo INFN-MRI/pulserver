@@ -9,7 +9,7 @@ import numpy as np
 import pypulseq as pp
 
 
-from pulseforge import Sequence, RfPhaseCycle
+from pulserver import Sequence, RfPhaseCycle
 
 
 def SPGR3D(

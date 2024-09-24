@@ -301,7 +301,7 @@ class Ceq:
 def _build_segments(loop, sections_edges):
     hasrot = np.ascontiguousarray(loop[:, -1]).astype(int)
     parent_block_id = np.ascontiguousarray(loop[:, 1]).astype(int) * hasrot
-    
+
     # build section edges
     if not sections_edges:
         sections_edges = [0]
@@ -310,22 +310,20 @@ def _build_segments(loop, sections_edges):
     # loop over sections and find segment definitions
     segment_id = np.zeros(loop.shape[0], dtype=np.float32)
     seg_definitions = []
-    
+
     # fill sections from 0 to n-1
     n_sections = len(sections_edges)
-    for n in range(n_sections-1):
+    for n in range(n_sections - 1):
         section_start, section_end = sections_edges[n]
         _seg_definition = _autoseg.find_segment_definitions(
             parent_block_id[section_start:section_end]
         )
         _seg_definition = _autoseg.split_rotated_segments(_seg_definition)
         seg_definitions.extend(_seg_definition)
-        
+
     # fill last section
     section_start = sections_edges[-1][0]
-    _seg_definition = _autoseg.find_segment_definitions(
-        parent_block_id[section_start:]
-    )
+    _seg_definition = _autoseg.find_segment_definitions(parent_block_id[section_start:])
     _seg_definition = _autoseg.split_rotated_segments(_seg_definition)
     seg_definitions.extend(_seg_definition)
 

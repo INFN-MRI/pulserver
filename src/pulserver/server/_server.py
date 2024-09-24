@@ -19,12 +19,12 @@ HOME_DIR = pathlib.Path.home()
 def _get_config():
     # Read environment variables
     CONFIG_FILE_PATH = os.getenv(
-        "PULSEFORGE_CONFIG", os.path.join(HOME_DIR, "pulseforge_config.yaml")
+        "PULSERVER_CONFIG", os.path.join(HOME_DIR, "pulserver_config.yaml")
     )
-    MR_SCANNER_ADDRESS = os.getenv("PULSEFORGE_SCANNER_ADDRESS", None)
-    MR_SCANNER_PORT = os.getenv("PULSEFORGE_SCANNER_PORT", None)
-    RECON_SERVER_ADDRESS = os.getenv("PULSEFORGE_RECON_SERVER_ADDRESS", None)
-    RECON_SERVER_PORT = os.getenv("PULSEFORGE_RECON_SERVER_PORT", None)
+    MR_SCANNER_ADDRESS = os.getenv("PULSERVER_SCANNER_ADDRESS", None)
+    MR_SCANNER_PORT = os.getenv("PULSERVER_SCANNER_PORT", None)
+    RECON_SERVER_ADDRESS = os.getenv("PULSERVER_RECON_SERVER_ADDRESS", None)
+    RECON_SERVER_PORT = os.getenv("PULSERVER_RECON_SERVER_PORT", None)
 
     # Populate config dict
     if CONFIG_FILE_PATH is not None:  # Priority to config.yaml
@@ -47,7 +47,7 @@ def _get_plugin_dir():
     PLUGIN_DIR = [os.path.join(PKG_DIR, "_apps")]
 
     # Add custom design functions
-    CUSTOM_PLUGINS = os.getenv("PULSEFORGE_PLUGINS", None)
+    CUSTOM_PLUGINS = os.getenv("PULSERVER_PLUGINS", None)
     if CUSTOM_PLUGINS:
         PLUGIN_DIR.append(os.path.realpath(CUSTOM_PLUGINS))
 
@@ -57,7 +57,7 @@ def _get_plugin_dir():
 # Logs
 def _get_log_dir():
     # Get environment variable
-    LOG_DIR = os.getenv("PULSEFORGE_LOG", None)
+    LOG_DIR = os.getenv("PULSERVER_LOG", None)
     if LOG_DIR is None:  # Default to user HOME folder
         LOG_DIR = os.path.join(HOME_DIR, "log")
 

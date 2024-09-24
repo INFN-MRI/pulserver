@@ -4,7 +4,7 @@ requires = ["setuptools", "setuptools_scm[toml]", "wheel"]
 
 
 [project]
-name = "pulseforge"
+name = "pulserver"
 description = "A PyPulseq-based client/server MR sequence design toolbox."
 readme = "README.rst"
 
@@ -46,6 +46,7 @@ dependencies = [
 "pypulseq",
 "pulpy",
 "ismrmrd",
+"ipywidgets",
 ]
 
 
@@ -56,15 +57,15 @@ doc = ["sphinx", "pydata-sphinx-theme", "sphinx-gallery", "matplotlib", "mrtwin"
 # List URLs that are relevant to your project
 # This field corresponds to the "Project-URL" and "Home-Page" metadata fields:
 [project.urls]  # Optional
-"Homepage" = "https://github.com/INFN-MRI/pulseforge"
-"Bug Reports" = "https://github.com/INFN-MRI/pulseforge/issues"
-"Source" = "https://github.com/INFN-MRI/pulseforge"
+"Homepage" = "https://github.com/INFN-MRI/pulserver"
+"Bug Reports" = "https://github.com/INFN-MRI/pulserver/issues"
+"Source" = "https://github.com/INFN-MRI/pulserver"
 
 [tool.setuptools.packages.find]
 where=["src"]
 
 [tool.setuptools_scm]
-write_to = "src/pulseforge/_version.py"
+write_to = "src/pulserver/_version.py"
 version_scheme = "python-simplified-semver"
 local_scheme="no-local-version"
 fallback_version="v99-dev"
