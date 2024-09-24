@@ -31,13 +31,12 @@ class Sequence:
         else:
             self._loop = []
 
-        self._event_id = {"delay": 0}
-
         if self._format == "pulseq":
-            self._event_library = {"delay": {}}
+            self._block_library = {"delay": {}}
         else:
-            self._event_library = {"delay": PulseqBlock(ID=0)}
+            self._block_library = {"delay": PulseqBlock(ID=0)}
 
+        self._section_labels = []
         self._sections_edges = []
 
     def register_event(
@@ -57,7 +56,7 @@ class Sequence:
             ), "Please define all the events before building the loop."
         else:
             assert (
-                self._sequence.n_max == 0
+                len(self._loop) == 0
             ), "Please define all the events before building the loop."
         if rf is not None and adc is not None:
             VALID_BLOCK = False
@@ -67,7 +66,7 @@ class Sequence:
 
         # update event library
         if self._format == "pulseq":
-            self._event_library[name] = {
+            self._block_library[name] = {
                 "rf": rf,
                 "gx": gx,
                 "gy": gy,
@@ -76,11 +75,13 @@ class Sequence:
                 "trig": trig,
             }
         else:
-            ID = len(self._event_library)
-            self._event_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig)
-            self._event_id[name] = ID
+            ID = len(self._block_library)
+            self._block_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig)
 
-    def section(self, section_name: str):
+    def section(self, name: str):
+        assert (
+            name not in self._section_labels
+        ), f"Section {name} already exists - please use another name."
         if self._format == "pulseq":
             _current_seqlength = len(self._sequence.block_events)
         else:
@@ -89,7 +90,7 @@ class Sequence:
 
     def add_block(
         self,
-        event: str,
+        name: str,
         gx_amp: float = 1.0,
         gy_amp: float = 1.0,
         gz_amp: float = 1.0,
@@ -100,31 +101,32 @@ class Sequence:
         delay: float | None = None,
         rotmat: np.ndarray | None = None,
     ):
+        assert name in self._block_library.keys(), f"Requested block {name} not found!"
         if self._format == "pulseq":
-            current_event = copy(self.event_library[event])
+            current_block = copy(self._block_library[name])
 
             # scale RF pulse and apply phase modulation / frequency offset
-            if current_event["rf"] is not None:
-                current_event["rf"].signal *= rf_amp
-                current_event["rf"].phase_offset += rf_phase
-                current_event["rf"].freq_offset += rf_freq
+            if current_block["rf"] is not None:
+                current_block["rf"].signal *= rf_amp
+                current_block["rf"].phase_offset = rf_phase
+                current_block["rf"].freq_offset += rf_freq
 
             # apply phase modulation to ADC
-            if current_event["adc"] is not None:
-                current_event["adc"].phase_offset += adc_phase
+            if current_block["adc"] is not None:
+                current_block["adc"].phase_offset = adc_phase
 
             # scale gradients
-            if current_event["gx"] is not None:
-                current_event["gx"] = pp.scale_grad(
-                    grad=current_event["gx"], scale=gx_amp
+            if current_block["gx"] is not None:
+                current_block["gx"] = pp.scale_grad(
+                    grad=current_block["gx"], scale=gx_amp
                 )
-            if current_event["gy"] is not None:
-                current_event["gy"] = pp.scale_grad(
-                    grad=current_event["gy"], scale=gy_amp
+            if current_block["gy"] is not None:
+                current_block["gy"] = pp.scale_grad(
+                    grad=current_block["gy"], scale=gy_amp
                 )
-            if current_event["gz"] is not None:
-                current_event["gz"] = pp.scale_grad(
-                    grad=current_event["gz"], scale=gy_amp
+            if current_block["gz"] is not None:
+                current_block["gz"] = pp.scale_grad(
+                    grad=current_block["gz"], scale=gy_amp
                 )
 
             # rotate gradients
@@ -132,44 +134,50 @@ class Sequence:
                 # extract gradient waveforms from current event
                 current_grad = {}
                 for ch in ["gx", "gy", "gz"]:
-                    if ch in current_event:
-                        current_grad[ch] = current_event[ch]
+                    if ch in current_block:
+                        current_grad[ch] = current_block[ch]
 
                 # actual rotation
-                current_grad = _pp_rotate(current_grad, rotmat)
+                current_block = _pp_rotate(current_block, rotmat)
 
                 # replace rotated gradients in current event
                 for ch in ["gx", "gy", "gz"]:
-                    if ch in current_event:
-                        current_event[ch] = current_grad[ch]
+                    if ch in current_block:
+                        current_block[ch] = current_grad[ch]
 
             # update sequence structure
-            if delay is None:
-                self._sequence.add_block(*current_event.values())
+            if delay is not None:
+                self._sequence.add_block(pp.make_delay(delay), *current_block.values())
             else:
-                self._sequence.add_block(pp.make_delay(delay), *current_event.values())
+                self._sequence.add_block(*current_block.values())
 
         else:
-            parent_block_id = self._event_id[event]
-            block_duration = self._event_duration[event]
+            parent_block_id = self._block_library[name].ID
+            block_duration = self._block_library[name].duration
             if delay is not None:
-                block_duration += delay
+                block_duration = max(delay, block_duration)
             if rotmat is None:
                 rotmat = np.eye(3, dtype=np.float32).ravel().tolist()
+                hasrot = [1]
             else:
                 rotmat = rotmat.ravel().tolist()
-            loop_row = [
-                -1,
-                parent_block_id,
-                rf_amp,
-                rf_phase,
-                rf_freq,
-                gx_amp,
-                gy_amp,
-                gz_amp,
-                adc_phase,
-                block_duration,
-            ] + rotmat
+                hasrot = [-1]
+            loop_row = (
+                [
+                    -1,
+                    parent_block_id,
+                    rf_amp,
+                    rf_phase,
+                    rf_freq,
+                    gx_amp,
+                    gy_amp,
+                    gz_amp,
+                    adc_phase,
+                    block_duration,
+                ]
+                + rotmat
+                + hasrot
+            )
             self._loop.append(loop_row)
 
     def export(self):
@@ -178,7 +186,7 @@ class Sequence:
 
         # prepare Ceq structure
         self._sequence = Ceq(
-            list(self._event_library.values()),
+            list(self._block_library.values()),
             self._loop,
             self._sections_edges,
         )

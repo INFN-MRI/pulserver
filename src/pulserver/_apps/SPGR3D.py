@@ -2,7 +2,7 @@
 
 __all__ = ["SPGR3D"]
 
-from typing import Iterable
+from collections.abc import Iterable
 
 
 import numpy as np
@@ -157,7 +157,7 @@ def SPGR3D(
     )
 
     # construct sequence
-    seq.section(title="ss_prep")
+    seq.section(name="ss_prep")
     for n in range(dummy_scans):
         rf_phase = rf_phases()
         seq.add_block("excitation")
@@ -167,7 +167,7 @@ def SPGR3D(
         seq.add_block("g_phase", gy_amp=0.0, gz_amp=0.0)
         seq.add_block("g_spoil")
 
-    seq.section(title="scan_loop")
+    seq.section(name="scan_loop")
     for n in range(imaging_scans):
         rf_phase = rf_phases()
         seq.add_block("excitation")

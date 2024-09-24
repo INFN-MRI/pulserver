@@ -4,7 +4,6 @@ __all__ = ["Ceq", "PulseqBlock"]
 
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Union
 
 import struct
 import numpy as np
@@ -13,7 +12,7 @@ import pypulseq as pp
 from . import _autoseg
 
 CHANNEL_ENUM = {"osc0": 0, "osc1": 1, "ext1": 2}
-SEGMENT_RINGDOWN_TIME = 116 * 1e-6
+SEGMENT_RINGDOWN_TIME = 116 * 1e-6  # TODO: doesn't have to be hardcoded
 
 
 @dataclass
@@ -103,7 +102,7 @@ class PulseqGrad:
     type: int
     amplitude: float
     delay: float
-    shape: Union[PulseqShapeArbitrary, PulseqShapeTrap]
+    shape: PulseqShapeArbitrary | PulseqShapeTrap
 
     def to_bytes(self) -> bytes:
         return (
@@ -327,7 +326,7 @@ def _build_segments(loop, sections_edges):
     _seg_definition = _autoseg.split_rotated_segments(_seg_definition)
     seg_definitions.extend(_seg_definition)
 
-    # for each event, find the segment it belongs to
+    # for each block, find the segment it belongs to
     for n in range(len(seg_definitions)):
         idx = _autoseg.find_segments(parent_block_id, seg_definitions[n])
         segment_id[idx] = n

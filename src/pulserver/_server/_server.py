@@ -28,7 +28,7 @@ def _get_config():
 
     # Populate config dict
     if CONFIG_FILE_PATH is not None:  # Priority to config.yaml
-        with open(CONFIG_FILE_PATH, "r") as config_file:
+        with open(CONFIG_FILE_PATH) as config_file:
             config = yaml.safe_load(config_file)
     else:  # Directly read from environment variables.
         config = {}

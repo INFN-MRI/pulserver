@@ -27,7 +27,8 @@ def make_spiral(
     """
     Create a spiral gradient event.
 
-    See also:
+    See Also
+    --------
     - `pypulseq.Sequence.sequence.Sequence.add_block()`
     - `pypulseq.make_arbitrary_grad.make_arbitrary_grad()`
 

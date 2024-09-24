@@ -2,7 +2,7 @@
 
 __all__ = []
 
-from . import server  # noqa
+from . import _server  # noqa
 
 # from . import _readout
 from . import _planner

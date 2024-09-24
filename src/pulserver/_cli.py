@@ -4,7 +4,7 @@ import os
 
 import click
 
-from . import server
+from . import _server
 
 
 @click.group()
@@ -39,7 +39,7 @@ def start(
             os.environ["PULSEFORGE_RECON_SERVER_PORT"] = recon_server_port
 
     # start the server
-    server.start_server()
+    _server.start_server()
 
 
 @click.command()
@@ -53,7 +53,7 @@ def apps(name):
     Design function documentations
     """
     # Load plugin list
-    plugins = server.load_plugins()
+    plugins = _server.load_plugins()
     if name is None:
         for fun in plugins.values():
             name = fun.__name__
