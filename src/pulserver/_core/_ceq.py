@@ -273,6 +273,7 @@ class Ceq:
         self.n_max = loop.shape[0]
         self.n_parent_blocks = len(parent_blocks)
         self.n_segments = len(segments)
+        self.parent_blocks = parent_blocks
         self.segments = segments
         self.n_columns_in_loop_array = loop.shape[1] - 1  # discard "hasrot"
         self.loop = loop[:, :-1]

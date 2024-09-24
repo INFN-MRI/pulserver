@@ -2,7 +2,7 @@
 
 __all__ = ["Sequence"]
 
-from copy import copy
+from copy import deepcopy
 from types import SimpleNamespace
 
 import numpy as np
@@ -39,7 +39,7 @@ class Sequence:
         self._section_labels = []
         self._sections_edges = []
 
-    def register_event(
+    def register_block(
         self,
         name: str,
         rf: SimpleNamespace | None = None,
@@ -63,17 +63,34 @@ class Sequence:
         else:
             VALID_BLOCK = True
         assert VALID_BLOCK, "Error! A block cannot contain both a RF and ADC event."
+        if gx is not None:
+            assert (
+                gx.channel == "x"
+            ), f"x-gradient waveform is directed towards {gx.channel}"
+        if gy is not None:
+            assert (
+                gy.channel == "y"
+            ), f"y-gradient waveform is directed towards {gy.channel}"
+        if gz is not None:
+            assert (
+                gz.channel == "z"
+            ), f"z-gradient waveform is directed towards {gz.channel}"
 
-        # update event library
+        # update block library
         if self._format == "pulseq":
-            self._block_library[name] = {
-                "rf": rf,
-                "gx": gx,
-                "gy": gy,
-                "gz": gz,
-                "adc": adc,
-                "trig": trig,
-            }
+            self._block_library[name] = {}
+            if rf is not None:
+                self._block_library[name]["rf"] = deepcopy(rf)
+            if gx is not None:
+                self._block_library[name]["gx"] = deepcopy(gx)
+            if gy is not None:
+                self._block_library[name]["gy"] = deepcopy(gy)
+            if gz is not None:
+                self._block_library[name]["gz"] = deepcopy(gz)
+            if adc is not None:
+                self._block_library[name]["adc"] = deepcopy(adc)
+            if trig is not None:
+                self._block_library[name]["trig"] = deepcopy(trig)
         else:
             ID = len(self._block_library)
             self._block_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig)
@@ -101,30 +118,30 @@ class Sequence:
         delay: float | None = None,
         rotmat: np.ndarray | None = None,
     ):
-        assert name in self._block_library.keys(), f"Requested block {name} not found!"
+        assert name in self._block_library, f"Requested block {name} not found!"
         if self._format == "pulseq":
-            current_block = copy(self._block_library[name])
+            current_block = deepcopy(self._block_library[name])
 
             # scale RF pulse and apply phase modulation / frequency offset
-            if current_block["rf"] is not None:
+            if "rf" in current_block:
                 current_block["rf"].signal *= rf_amp
                 current_block["rf"].phase_offset = rf_phase
                 current_block["rf"].freq_offset += rf_freq
 
             # apply phase modulation to ADC
-            if current_block["adc"] is not None:
+            if "adc" in current_block:
                 current_block["adc"].phase_offset = adc_phase
 
             # scale gradients
-            if current_block["gx"] is not None:
+            if "gx" in current_block:
                 current_block["gx"] = pp.scale_grad(
                     grad=current_block["gx"], scale=gx_amp
                 )
-            if current_block["gy"] is not None:
+            if "gy" in current_block:
                 current_block["gy"] = pp.scale_grad(
                     grad=current_block["gy"], scale=gy_amp
                 )
-            if current_block["gz"] is not None:
+            if "gz" in current_block:
                 current_block["gz"] = pp.scale_grad(
                     grad=current_block["gz"], scale=gy_amp
                 )
@@ -153,7 +170,7 @@ class Sequence:
 
         else:
             parent_block_id = self._block_library[name].ID
-            block_duration = self._block_library[name].duration
+            block_duration = self._block_library[name].block_duration
             if delay is not None:
                 block_duration = max(delay, block_duration)
             if rotmat is None:
@@ -162,6 +179,7 @@ class Sequence:
             else:
                 rotmat = rotmat.ravel().tolist()
                 hasrot = [-1]
+
             loop_row = (
                 [
                     -1,
@@ -200,7 +218,7 @@ class Sequence:
 
 def _pp_rotate(grad, rot_matrix):
     grad_channels = ["gx", "gy", "gz"]
-    grad = copy.deepcopy(grad)
+    grad = deepcopy(grad)
 
     # get length of gradient waveforms
     wave_length = []

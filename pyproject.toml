@@ -73,21 +73,11 @@ fallback_version="v99-dev"
 # Formatting using black.
 [tool.black]
 
-[tool.isort]
-profile="black"
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = [
-    "--cov=mrsim",
-    "--cov-report=term-missing",
-    "--cov-report=xml"
-]
-
 # linting using ruff.
 [tool.ruff]
 src = ["src", "tests"]
 select = ["E", "F", "B", "Q", "D", "UP", "ANN"]
+extend-exclude = [ "example_*.py" , "*_version.py", "test_*.py"]
 
 ignore = [
     "ANN101", # missing type annotation for self
@@ -95,13 +85,32 @@ ignore = [
     "ANN204", # missing return type for __init__
     "D105", # missing docstring in magic method
     "D404", # Imperative mode is not necessary everywhere, trust me.
+    "B905", # zip() without an explicit strict= parameter
+    "B028", # No explicit stacklevel keyword argument found
+    "F401", # Using ``try: import ... except:`` is nice.
 ]
 
-[tool.ruff.per-file-ignores]
-"tests/*.py" = ["ANN"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-[mypy]
+[tool.isort]
+profile="black"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+pythonpath  = ["tests"]
+testpaths=["tests"]
+addopts = [
+    "--import-mode=importlib",
+    "--cov=mrsim",
+    "--cov-report=term-missing",
+    "--cov-report=xml"
+]
+
+[tool.pylsp-mypy]
+enabled = false
+live_mode = false
+
+[tool.mypy]
 ignore_missing_imports = true

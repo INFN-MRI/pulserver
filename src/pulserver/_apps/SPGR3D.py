@@ -115,8 +115,8 @@ def SPGR3D(
     gss_reph = pp.make_trapezoid(
         channel="z", area=-gss.area / 2, duration=1e-3, system=system
     )
-    seq.register_event(name="excitation", rf=rf, gz=gss)
-    seq.register_event(name="slab_rephasing", gz=gss_reph)
+    seq.register_block(name="excitation", rf=rf, gz=gss)
+    seq.register_block(name="slab_rephasing", gz=gss_reph)
 
     # readout
     delta_kx, delta_ky, delta_kz = 1 / fov, 1 / fov, 1 / slab_thickness
@@ -126,8 +126,8 @@ def SPGR3D(
     adc = pp.make_adc(
         num_samples=Nx, duration=g_read.flat_time, delay=g_read.rise_time, system=system
     )
-    seq.register_event("dummy_readout", gx=g_read)
-    seq.register_event("readout", gx=g_read, adc=adc)
+    seq.register_block("dummy_readout", gx=g_read)
+    seq.register_block("readout", gx=g_read, adc=adc)
 
     # phase encoding
     gx_phase = pp.make_trapezoid(
@@ -135,11 +135,11 @@ def SPGR3D(
     )
     gy_phase = pp.make_trapezoid(channel="y", area=-delta_ky * Ny, system=system)
     gz_phase = pp.make_trapezoid(channel="z", area=-delta_kz * Nz, system=system)
-    seq.register_event("g_phase", gx=gx_phase, gy=gy_phase, gz=gz_phase)
+    seq.register_block("g_phase", gx=gx_phase, gy=gy_phase, gz=gz_phase)
 
     # crusher gradient
     gz_spoil = pp.make_trapezoid(channel="z", area=4 / slab_thickness, system=system)
-    seq.register_event("g_spoil", gz=gz_spoil)
+    seq.register_block("g_spoil", gz=gz_spoil)
 
     # phase encoding plan TODO: helper routine
     pey_steps = ((np.arange(Ny)) - Ny / 2) / Ny * 2
