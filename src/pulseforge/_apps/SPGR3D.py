@@ -9,7 +9,7 @@ import numpy as np
 import pypulseq as pp
 
 
-from pulseforge import PulseqBlock, RfPhaseCycle
+from pulseforge import Sequence, RfPhaseCycle
 
 
 def SPGR3D(
@@ -85,7 +85,7 @@ def SPGR3D(
     )
 
     # initialize sequence
-    seq = PulseqBlock(system=system, format=seqformat)  # TODO: rename as Sequence?
+    seq = Sequence(system=system, format=seqformat)
 
     # initialize prescription
     if np.isscalar(fov):

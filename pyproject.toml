@@ -1,30 +1,106 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools", "setuptools_scm[toml]", "wheel"]
+
 
 [project]
 name = "pulseforge"
-version = "0.0.1.alpha"
-authors = [{name = "Matteo Cencini", email = "matteo.cencini@gmail.com"}]
 description = "A PyPulseq-based client/server MR sequence design toolbox."
-readme = "README.md"
-requires-python = ">=3.8"
-keywords = ["MRI", "GEHC", "Pulseq", "TOPPE"]
-license = {text = "MIT"}
-classifiers = ["Programming Language :: Python :: 3"]
-dependencies = [
-   "pypulseq@git+https://github.com/mcencini/pypulseq.git@gehc", # until next pypulseq release
-   "pulpy@git+https://github.com/mcencini/pulpy.git@master", # until stable pulpy release
+readme = "README.rst"
+
+requires-python = ">=3.10"
+dynamic = ["version"]
+
+license = {file = "LICENSE"}
+keywords = ["pulseq", "mri", "sequence-design", "pulse-sequences", "mri-sequences"]
+
+
+authors = [
+  {name = "Matteo Cencini", email = "matteo.cencini@gmail.com" } # Optional
 ]
 
-[project.optional-dependencies]
-dev = ["black", "pytest"]
+# Classifiers help users find your project by categorizing it.
+# For a list of valid classifiers, see https://pypi.org/classifiers/
+classifiers = [  # Optional
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 3 - Alpha",
 
-[project.scripts]
-pulseforge = "pulseforge._cli:cli"
+  # Indicate who your project is intended for
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+
+  # Specify the Python versions you support here. In particular, ensure
+  # that you indicate you support Python 3. These classifiers are *not*
+  # checked by "pip install". See instead "python_requires" below.
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+"numpy<2.0",
+"numba",
+"pypulseq",
+"pulpy",
+"ismrmrd",
+]
+
+
+[project.optional-dependencies] # Optional
+dev = ["black", "isort"]
+test = ["pytest", "pytest-black", "pytest-cov", "pytest-sugar", "pytest-xdist"]
+doc = ["sphinx", "pydata-sphinx-theme", "sphinx-gallery", "matplotlib", "mrtwin"]
+# List URLs that are relevant to your project
+# This field corresponds to the "Project-URL" and "Home-Page" metadata fields:
+[project.urls]  # Optional
+"Homepage" = "https://github.com/INFN-MRI/pulseforge"
+"Bug Reports" = "https://github.com/INFN-MRI/pulseforge/issues"
+"Source" = "https://github.com/INFN-MRI/pulseforge"
 
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["pulseforge*"]
-exclude = ["pulseforge.tests*"]
-namespaces = false
+where=["src"]
+
+[tool.setuptools_scm]
+write_to = "src/pulseforge/_version.py"
+version_scheme = "python-simplified-semver"
+local_scheme="no-local-version"
+fallback_version="v99-dev"
+
+# Formatting using black.
+[tool.black]
+
+[tool.isort]
+profile="black"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--cov=mrsim",
+    "--cov-report=term-missing",
+    "--cov-report=xml"
+]
+
+# linting using ruff.
+[tool.ruff]
+src = ["src", "tests"]
+select = ["E", "F", "B", "Q", "D", "UP", "ANN"]
+
+ignore = [
+    "ANN101", # missing type annotation for self
+    "ANN102", # missing type annotation for cls in classmethod.
+    "ANN204", # missing return type for __init__
+    "D105", # missing docstring in magic method
+    "D404", # Imperative mode is not necessary everywhere, trust me.
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*.py" = ["ANN"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[mypy]
+ignore_missing_imports = true

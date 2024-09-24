@@ -1,18 +1,19 @@
 """Ceq structure definition."""
 
-__all__ = ["Ceq"]
+__all__ = ["Ceq", "PulseqBlock"]
 
 from dataclasses import dataclass
 from types import SimpleNamespace
-
-from typing import Dict
-from typing import Optional
 from typing import Union
 
 import struct
 import numpy as np
+import pypulseq as pp
+
+from . import _autoseg
 
 CHANNEL_ENUM = {"osc0": 0, "osc1": 1, "ext1": 2}
+SEGMENT_RINGDOWN_TIME = 116 * 1e-6
 
 
 @dataclass
@@ -184,16 +185,29 @@ class PulseqTrig:
         )
 
 
-@dataclass
 class PulseqBlock:
-    ID: int
-    block_duration: float
-    rf: Optional[PulseqRF]
-    gx: Optional[PulseqGrad]
-    gy: Optional[PulseqGrad]
-    gz: Optional[PulseqGrad]
-    adc: Optional[PulseqADC]
-    trig: Optional[PulseqTrig]
+    """Pulseq block structure."""
+
+    def __init__(
+        self,
+        ID: int,
+        rf: SimpleNamespace = None,
+        gx: SimpleNamespace = None,
+        gy: SimpleNamespace = None,
+        gz: SimpleNamespace = None,
+        adc: SimpleNamespace = None,
+        trig: SimpleNamespace = None,
+    ) -> "PulseqBlock":
+        self.ID = ID
+        args = [rf, gx, gy, gz, adc, trig]
+        args = [arg for arg in args if arg is not None]
+        self.block_duration = pp.calc_duration(*args)
+        self.rf = PulseqRF.from_struct(rf) if rf else None
+        self.gx = PulseqGrad.from_struct(gx) if gx else None
+        self.gy = PulseqGrad.from_struct(gy) if gy else None
+        self.gz = PulseqGrad.from_struct(gz) if gz else None
+        self.adc = PulseqADC.from_struct(adc) if adc else None
+        self.trig = PulseqTrig.from_struct(trig) if trig else None
 
     def to_bytes(self) -> bytes:
         bytes_data = struct.pack(">i", self.ID) + struct.pack(">f", self.block_duration)
@@ -209,7 +223,8 @@ class PulseqBlock:
             if grad:
                 bytes_data += grad.to_bytes()
             else:
-                bytes_data += struct.pack(">h", 0)  # * 2 + struct.pack(">f", 0) * 2
+                # * 2 + struct.pack(">f", 0) * 2
+                bytes_data += struct.pack(">h", 0)
 
         # ADC Event
         if self.adc:
@@ -221,32 +236,19 @@ class PulseqBlock:
         if self.trig:
             bytes_data += self.trig.to_bytes()
         else:
-            bytes_data += struct.pack(">i", 0)  # * 2 + struct.pack(">f", 0) * 2
+            # * 2 + struct.pack(">f", 0) * 2
+            bytes_data += struct.pack(">i", 0)
 
         return bytes_data
 
-    @classmethod
-    def from_dict(cls, data: Dict) -> "PulseqBlock":
-        return cls(
-            ID=data["ID"],
-            block_duration=data["block_duration"],
-            rf=PulseqRF.from_struct(data["rf"]) if data.get("rf") else None,
-            gx=PulseqGrad.from_struct(data["gx"]) if data.get("gx") else None,
-            gy=PulseqGrad.from_struct(data["gy"]) if data.get("gy") else None,
-            gz=PulseqGrad.from_struct(data["gz"]) if data.get("gz") else None,
-            adc=PulseqADC.from_struct(data["adc"]) if data.get("adc") else None,
-            trig=PulseqTrig.from_struct(data["trig"]) if data.get("trig") else None,
-        )
 
-
-@dataclass
 class Segment:
-    segment_id: int
-    n_blocks_in_segment: int
-    block_ids: np.ndarray
+    """Ceq segment."""
 
-    def __post_init__(self):
-        self.block_ids = np.asarray(self.block_ids, dtype=np.int16)
+    def __init__(self, segment_id: int, block_ids: list[int]):
+        self.segment_id = segment_id
+        self.n_blocks_in_segment = len(block_ids)
+        self.block_ids = np.asarray(block_ids, dtype=np.int16)
 
     def to_bytes(self) -> bytes:
         return (
@@ -255,33 +257,28 @@ class Segment:
             + self.block_ids.astype(">i2").tobytes()
         )
 
-    @classmethod
-    def from_dict(cls, data: Dict) -> "Segment":
-        return cls(
-            segment_id=data["segment_id"],
-            n_blocks_in_segment=data["n_blocks_in_segment"],
-            block_ids=data["block_ids"],
-        )
 
-
-@dataclass
 class Ceq:
-    n_max: int = 0  # number of blocks (rows in BLOCKS section) in .seq file
-    n_parent_blocks: int = 0
-    n_segments: int = 1
-    parent_blocks: list[PulseqBlock] = None
-    segments: list[Segment] = None
-    n_columns_in_loop_array: int = 10  # TODO: add rotmat (+= 9 elements)
-    loop: list[
-        np.ndarray
-    ] = None  # dynamic scan settings of shape (n_max, n_columns_in_loop_array), loop[n] = [segment_id ID rfamp rfphs rffreq gxamp gyamp gzamp recphs block_duration]
-    max_b1: float = 0.0  # Hz. Max B1 amplitude across all parent blocks
-    duration: float = 0.0  # scan duration, sec
+    """CEQ structure."""
 
-    def __post_init__(self):
-        self.parent_blocks = []
-        self.segments = []
-        self.loop = []
+    def __init__(
+        self,
+        parent_blocks: list[PulseqBlock],
+        loop: list[list],
+        sections_edges: list[list[int]],
+    ):
+        loop = np.asarray(loop, dtype=np.float32)
+        segments = _build_segments(loop, sections_edges)
+
+        # build CEQ structure
+        self.n_max = loop.shape[0]
+        self.n_parent_blocks = len(parent_blocks)
+        self.n_segments = len(segments)
+        self.segments = segments
+        self.n_columns_in_loop_array = loop.shape[1] - 1  # discard "hasrot"
+        self.loop = loop[:, :-1]
+        self.max_b1 = _find_b1_max(parent_blocks)
+        self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
 
     def to_bytes(self) -> bytes:
         bytes_data = (
@@ -298,3 +295,65 @@ class Ceq:
         bytes_data += struct.pack(">f", self.max_b1)
         bytes_data += struct.pack(">f", self.duration)
         return bytes_data
+
+
+# %% local subroutines
+def _build_segments(loop, sections_edges):
+    hasrot = np.ascontiguousarray(loop[:, -1]).astype(int)
+    parent_block_id = np.ascontiguousarray(loop[:, 1]).astype(int) * hasrot
+    
+    # build section edges
+    if not sections_edges:
+        sections_edges = [0]
+    sections_edges = np.stack((sections_edges, sections_edges[1:] + [-1]), axis=-1)
+
+    # loop over sections and find segment definitions
+    segment_id = np.zeros(loop.shape[0], dtype=np.float32)
+    seg_definitions = []
+    
+    # fill sections from 0 to n-1
+    n_sections = len(sections_edges)
+    for n in range(n_sections-1):
+        section_start, section_end = sections_edges[n]
+        _seg_definition = _autoseg.find_segment_definitions(
+            parent_block_id[section_start:section_end]
+        )
+        _seg_definition = _autoseg.split_rotated_segments(_seg_definition)
+        seg_definitions.extend(_seg_definition)
+        
+    # fill last section
+    section_start = sections_edges[-1][0]
+    _seg_definition = _autoseg.find_segment_definitions(
+        parent_block_id[section_start:]
+    )
+    _seg_definition = _autoseg.split_rotated_segments(_seg_definition)
+    seg_definitions.extend(_seg_definition)
+
+    # for each event, find the segment it belongs to
+    for n in range(len(seg_definitions)):
+        idx = _autoseg.find_segments(parent_block_id, seg_definitions[n])
+        segment_id[idx] = n
+    segment_id += 1  # segment 0 is reserved for pure delay
+    loop[:, 0] = segment_id
+
+    # now build segment fields
+    n_segments = len(seg_definitions)
+    segments = []
+    for n in range(n_segments):
+        segments.append(Segment(n + 1, seg_definitions[n]))
+
+    return segments
+
+
+def _find_b1_max(parent_blocks):
+    return np.max([block.rf.max_b1 for block in parent_blocks if block.rf is not None])
+
+
+def _calc_duration(segment_id, block_duration):
+    block_duration = block_duration.sum()
+
+    # total segment ringdown
+    n_seg_boundaries = (np.diff(segment_id) != 0).sum()
+    seg_ringdown_duration = SEGMENT_RINGDOWN_TIME * n_seg_boundaries
+
+    return block_duration + seg_ringdown_duration
