@@ -77,7 +77,14 @@ fallback_version="v99-dev"
 [tool.ruff]
 src = ["src", "tests"]
 select = ["E", "F", "B", "Q", "D", "UP", "ANN"]
-extend-exclude = [ "example_*.py" , "*_version.py", "test_*.py"]
+extend-exclude = [ 
+"example_*.py" , 
+"*_version.py", 
+"test_*.py", 
+"tests", 
+"src/pulserver/_server",
+"src/pulserver/pulseq/_spsp",
+]
 
 ignore = [
     "ANN101", # missing type annotation for self

@@ -2,6 +2,7 @@
 
 __all__ = []
 
+from . import pulseq
 from . import _server  # noqa
 
 # from . import _readout

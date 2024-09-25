@@ -6,14 +6,15 @@ def are_equal(struct1, struct2, check_types=True):
     """
     Compare two potentially nested structures containing Python objects, including numpy arrays and namespaces.
 
-    Parameters:
+    Parameters
+    ----------
     - struct1, struct2: The structures to compare. These could be dicts, lists, tuples, SimpleNamespace, or primitive types.
     - check_types: If True, it will check whether the types of struct1 and struct2 match.
 
-    Returns:
+    Returns
+    -------
     - bool: True if both structures are equal, False otherwise.
     """
-
     # Case 1: If both are numpy arrays, use np.array_equal to compare
     if isinstance(struct1, np.ndarray) and isinstance(struct2, np.ndarray):
         return np.array_equal(struct1, struct2)
