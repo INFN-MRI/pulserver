@@ -59,8 +59,7 @@ def pulseq_block(pulseq_rf, pulseq_grad_trap, pulseq_adc, pulseq_trig):
 # Test PulseqRF Initialization and to_bytes conversion
 def test_pulseq_rf_init(pulseq_rf):
     assert isinstance(pulseq_rf, PulseqRF)
-    assert pulseq_rf.n_samples == 3
-    assert np.isclose(pulseq_rf.max_b1, 3.0)
+    assert pulseq_rf.wav.n_samples == 3
 
 
 def test_pulseq_rf_to_bytes(pulseq_rf):
@@ -165,4 +164,4 @@ def test_ceq_init(pulseq_block):
     assert isinstance(ceq, Ceq)
     assert ceq.n_parent_blocks == 1
     assert ceq.n_segments > 0
-    assert ceq.max_b1 == pulseq_block.rf.max_b1
+    assert ceq.max_b1 == 3.0

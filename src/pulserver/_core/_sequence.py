@@ -170,7 +170,7 @@ class Sequence:
 
         else:
             parent_block_id = self._block_library[name].ID
-            block_duration = self._block_library[name].block_duration
+            block_duration = self._block_library[name].duration
             if delay is not None:
                 block_duration = max(delay, block_duration)
             if rotmat is None:

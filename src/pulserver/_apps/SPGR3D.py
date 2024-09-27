@@ -19,7 +19,8 @@ def SPGR3D(
     max_grad: float,
     max_slew: float,
     grad_raster_time: float,
-    seqformat: str | bool = False,
+    seqformat: str | bool = "bytes",
+    filename: str | bool = False,
 ):
     """
     Generate a 3D Spoiled Gradient Recalled Echo (SPGR) pulse sequence.
@@ -97,9 +98,9 @@ def SPGR3D(
         )  # in-plane FOV, slab thickness
 
     if np.isscalar(npix):
-        Nx, Ny, Nz = npix[0], npix[0], npix[1]  # in-plane resolution, slice thickness
+        Nx, Ny, Nz = npix, npix, npix  # in-plane resolution, slice thickness
     else:
-        Nx, Ny, Nz = npix[0], npix[0], npix[0]  # in-plane resolution, slice thickness
+        Nx, Ny, Nz = npix[0], npix[0], npix[1]  # in-plane resolution, slice thickness
 
     # initialize event events
     # RF pulse
@@ -172,9 +173,16 @@ def SPGR3D(
         rf_phase = rf_phases()
         seq.add_block("excitation")
         seq.add_block("slab_rephasing")
-        seq.add_block("g_phase", gy_amp=pey_steps[n], gz_amp=pez_steps[n])
+        seq.add_block("g_phase", gy_amp=encoding_plan[0][n], gz_amp=encoding_plan[1][n])
         seq.add_block("readout", rf_phase=rf_phase, adc_phase=rf_phase)
-        seq.add_block("g_phase", gy_amp=-pey_steps[n], gz_amp=-pez_steps[n])
+        seq.add_block(
+            "g_phase", gy_amp=-encoding_plan[0][n], gz_amp=-encoding_plan[1][n]
+        )
         seq.add_block("g_spoil")
+
+    # save (TODO: extract this in a separate function)
+    # if filename:
+    #     with open(filename + ".dat", "wb") as binary_file:
+    #         binary_file.write(seq)
 
     return seq.export()

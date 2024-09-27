@@ -19,31 +19,42 @@ SEGMENT_RINGDOWN_TIME = 116 * 1e-6  # TODO: doesn't have to be hardcoded
 class PulseqShapeArbitrary:
     n_samples: int
     raster: float
-    waveform: np.ndarray
-    # phase: np.ndarray = None # TODO: consider removing
+    magnitude: np.ndarray
+    phase: np.ndarray | None = None
 
     def __post_init__(self):
-        self.waveform = np.asarray(self.waveform, dtype=np.float32)
-        # self.phase = np.asarray(self.phase, dtype=np.float32) if self.phase else 0 * self.magnitude # TODO: consider removing
+        self.magnitude = np.asarray(self.magnitude, dtype=np.float32)
+        self.phase = (
+            np.asarray(self.phase, dtype=np.float32) if self.phase is not None else None
+        )
 
     def to_bytes(self) -> bytes:
+        if self.phase is not None:
+            return (
+                struct.pack(">i", self.n_samples)
+                + struct.pack(">f", self.raster)
+                + self.magnitude.astype(">f4").tobytes()
+                + self.phase.astype(">f4").tobytes()
+            )
+
         return (
             struct.pack(">i", self.n_samples)
             + struct.pack(">f", self.raster)
-            + self.waveform.astype(">f4").tobytes()  # +
-            # self.phase.astype(">f4").tobytes()
+            + self.magnitude.astype(">f4").tobytes()
         )
 
 
 @dataclass
 class PulseqShapeTrap:
+    amplitude: float
     rise_time: float
     flat_time: float
     fall_time: float
 
     def to_bytes(self) -> bytes:
         return (
-            struct.pack(">f", self.rise_time)
+            struct.pack(">f", self.amplitude)
+            + struct.pack(">f", self.rise_time)
             + struct.pack(">f", self.flat_time)
             + struct.pack(">f", self.fall_time)
         )
@@ -52,62 +63,42 @@ class PulseqShapeTrap:
 @dataclass
 class PulseqRF:
     type: int
-    n_samples: int
-    rho: np.ndarray
-    theta: np.ndarray
-    t: np.ndarray
-    shape_dur: float
+    wav: PulseqShapeArbitrary
+    duration: float
     delay: float
-    freq_offset: float
-    phase_offset: float
-    max_b1: float
-
-    def __post_init__(self):
-        self.rho = np.asarray(self.rho, dtype=np.float32)
-        self.theta = np.asarray(self.theta, dtype=np.float32)
-        self.t = np.asarray(self.t, dtype=np.float32)
 
     def to_bytes(self) -> bytes:
         return (
             struct.pack(">h", self.type)
-            + struct.pack(">h", self.n_samples)
-            + self.rho.astype(">f4").tobytes()
-            + self.theta.astype(">f4").tobytes()
-            + self.t.astype(">f4").tobytes()
-            + struct.pack(">f", self.shape_dur)
+            + self.wav.to_bytes()
+            + struct.pack(">f", self.duration)
             + struct.pack(">f", self.delay)
-            + struct.pack(">f", self.freq_offset)
-            + struct.pack(">f", self.phase_offset)
-            + struct.pack(">f", self.max_b1)
         )
 
     @classmethod
     def from_struct(cls, data: SimpleNamespace) -> "PulseqRF":
+        n_samples = data.signal.shape[0]
+        raster = np.diff(data.t)[0]
+        rho = np.abs(data.signal)
+        theta = np.angle(data.signal)
+
         return cls(
             type=1,
-            n_samples=data.signal.shape[0],
-            rho=np.abs(data.signal),
-            theta=np.angle(data.signal),
-            t=data.t,
-            shape_dur=data.shape_dur,
+            wav=PulseqShapeArbitrary(n_samples, raster, rho, theta),
+            duration=data.shape_dur,
             delay=data.delay,
-            freq_offset=data.freq_offset,
-            phase_offset=data.phase_offset,
-            max_b1=max(abs(data.signal)),
         )
 
 
 @dataclass
 class PulseqGrad:
     type: int
-    amplitude: float
     delay: float
     shape: PulseqShapeArbitrary | PulseqShapeTrap
 
     def to_bytes(self) -> bytes:
         return (
             struct.pack(">h", self.type)
-            + struct.pack(">f", self.amplitude)
             + struct.pack(">f", self.delay)
             + self.shape.to_bytes()
         )
@@ -116,16 +107,16 @@ class PulseqGrad:
     def from_struct(cls, data: SimpleNamespace) -> "PulseqGrad":
         if data.type == "trap":
             type = 1
-            amplitude = data.amplitude
-            shape_obj = PulseqShapeTrap(data.rise_time, data.flat_time, data.fall_time)
+            shape_obj = PulseqShapeTrap(
+                data.amplitude, data.rise_time, data.flat_time, data.fall_time
+            )
         elif data.type == "grad":
             type = 2
-            amplitude = max(abs(data.waveform))
-            waveform = data.waveform / amplitude if amplitude != 0.0 else data.waveform
             n_samples = data.waveform.shape[0]
             raster = np.diff(data.tt)[0]
+            waveform = data.waveform
             shape_obj = PulseqShapeArbitrary(n_samples, raster, waveform)
-        return cls(type=type, amplitude=amplitude, delay=data.delay, shape=shape_obj)
+        return cls(type=type, delay=data.delay, shape=shape_obj)
 
 
 @dataclass
@@ -134,8 +125,6 @@ class PulseqADC:
     num_samples: int
     dwell: float
     delay: float
-    freq_offset: float
-    phase_offset: float
 
     def to_bytes(self) -> bytes:
         return (
@@ -143,8 +132,6 @@ class PulseqADC:
             + struct.pack(">i", self.num_samples)
             + struct.pack(">f", self.dwell)
             + struct.pack(">f", self.delay)
-            + struct.pack(">f", self.freq_offset)
-            + struct.pack(">f", self.phase_offset)
         )
 
     @classmethod
@@ -154,8 +141,6 @@ class PulseqADC:
             num_samples=data.num_samples,
             dwell=data.dwell,
             delay=data.delay,
-            freq_offset=data.freq_offset,
-            phase_offset=data.phase_offset,
         )
 
 
@@ -200,7 +185,7 @@ class PulseqBlock:
         self.ID = ID
         args = [rf, gx, gy, gz, adc, trig]
         args = [arg for arg in args if arg is not None]
-        self.block_duration = pp.calc_duration(*args)
+        self.duration = pp.calc_duration(*args)
         self.rf = PulseqRF.from_struct(rf) if rf else None
         self.gx = PulseqGrad.from_struct(gx) if gx else None
         self.gy = PulseqGrad.from_struct(gy) if gy else None
@@ -209,7 +194,7 @@ class PulseqBlock:
         self.trig = PulseqTrig.from_struct(trig) if trig else None
 
     def to_bytes(self) -> bytes:
-        bytes_data = struct.pack(">i", self.ID) + struct.pack(">f", self.block_duration)
+        bytes_data = struct.pack(">i", self.ID) + struct.pack(">f", self.duration)
 
         # RF Event
         if self.rf:
@@ -222,20 +207,18 @@ class PulseqBlock:
             if grad:
                 bytes_data += grad.to_bytes()
             else:
-                # * 2 + struct.pack(">f", 0) * 2
                 bytes_data += struct.pack(">h", 0)
 
         # ADC Event
         if self.adc:
             bytes_data += self.adc.to_bytes()
         else:
-            bytes_data += struct.pack(">h", 0)  # * 6
+            bytes_data += struct.pack(">h", 0)
 
         # Trigger Event
         if self.trig:
             bytes_data += self.trig.to_bytes()
         else:
-            # * 2 + struct.pack(">f", 0) * 2
             bytes_data += struct.pack(">i", 0)
 
         return bytes_data
@@ -344,7 +327,7 @@ def _build_segments(loop, sections_edges):
 
 
 def _find_b1_max(parent_blocks):
-    return np.max([block.rf.max_b1 for block in parent_blocks if block.rf is not None])
+    return np.max([max(abs(block.rf.wav.magnitude)) for block in parent_blocks if block.rf is not None])
 
 
 def _calc_duration(segment_id, block_duration):
