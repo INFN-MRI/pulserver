@@ -20,7 +20,6 @@ def SPGR3D(
     max_slew: float,
     grad_raster_time: float,
     seqformat: str | bool = "bytes",
-    filename: str | bool = False,
 ):
     """
     Generate a 3D Spoiled Gradient Recalled Echo (SPGR) pulse sequence.
@@ -179,10 +178,5 @@ def SPGR3D(
             "g_phase", gy_amp=-encoding_plan[0][n], gz_amp=-encoding_plan[1][n]
         )
         seq.add_block("g_spoil")
-
-    # save (TODO: extract this in a separate function)
-    # if filename:
-    #     with open(filename + ".dat", "wb") as binary_file:
-    #         binary_file.write(seq)
 
     return seq.export()

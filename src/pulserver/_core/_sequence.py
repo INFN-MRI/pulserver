@@ -211,7 +211,9 @@ class Sequence:
 
         # if required, dump to bytes string
         if self._format == "bytes":
-            self._sequence = self._sequence.to_bytes()
+            self._sequence = self._sequence.to_bytes(endian=">")
+        elif self._format == "file":
+            self._sequence = self._sequence.to_bytes(endian="<")
 
         return self._sequence
 

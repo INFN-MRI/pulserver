@@ -28,19 +28,19 @@ class PulseqShapeArbitrary:
             np.asarray(self.phase, dtype=np.float32) if self.phase is not None else None
         )
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         if self.phase is not None:
             return (
-                struct.pack(">i", self.n_samples)
-                + struct.pack(">f", self.raster)
-                + self.magnitude.astype(">f4").tobytes()
-                + self.phase.astype(">f4").tobytes()
+                struct.pack(endian + "i", self.n_samples)
+                + struct.pack(endian + "f", self.raster)
+                + self.magnitude.astype(endian + "f4").tobytes()
+                + self.phase.astype(endian + "f4").tobytes()
             )
 
         return (
-            struct.pack(">i", self.n_samples)
-            + struct.pack(">f", self.raster)
-            + self.magnitude.astype(">f4").tobytes()
+            struct.pack(endian + "i", self.n_samples)
+            + struct.pack(endian + "f", self.raster)
+            + self.magnitude.astype(endian + "f4").tobytes()
         )
 
 
@@ -51,12 +51,12 @@ class PulseqShapeTrap:
     flat_time: float
     fall_time: float
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">f", self.amplitude)
-            + struct.pack(">f", self.rise_time)
-            + struct.pack(">f", self.flat_time)
-            + struct.pack(">f", self.fall_time)
+            struct.pack(endian + "f", self.amplitude)
+            + struct.pack(endian + "f", self.rise_time)
+            + struct.pack(endian + "f", self.flat_time)
+            + struct.pack(endian + "f", self.fall_time)
         )
 
 
@@ -67,12 +67,12 @@ class PulseqRF:
     duration: float
     delay: float
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">h", self.type)
-            + self.wav.to_bytes()
-            + struct.pack(">f", self.duration)
-            + struct.pack(">f", self.delay)
+            struct.pack(endian + "h", self.type)
+            + self.wav.to_bytes(endian)
+            + struct.pack(endian + "f", self.duration)
+            + struct.pack(endian + "f", self.delay)
         )
 
     @classmethod
@@ -96,11 +96,11 @@ class PulseqGrad:
     delay: float
     shape: PulseqShapeArbitrary | PulseqShapeTrap
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">h", self.type)
-            + struct.pack(">f", self.delay)
-            + self.shape.to_bytes()
+            struct.pack(endian + "h", self.type)
+            + struct.pack(endian + "f", self.delay)
+            + self.shape.to_bytes(endian)
         )
 
     @classmethod
@@ -126,12 +126,12 @@ class PulseqADC:
     dwell: float
     delay: float
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">h", self.type)
-            + struct.pack(">i", self.num_samples)
-            + struct.pack(">f", self.dwell)
-            + struct.pack(">f", self.delay)
+            struct.pack(endian + "h", self.type)
+            + struct.pack(endian + "i", self.num_samples)
+            + struct.pack(endian + "f", self.dwell)
+            + struct.pack(endian + "f", self.delay)
         )
 
     @classmethod
@@ -151,12 +151,12 @@ class PulseqTrig:
     delay: float
     duration: float
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">i", self.type)
-            + struct.pack(">i", self.channel)
-            + struct.pack(">f", self.delay)
-            + struct.pack(">f", self.duration)
+            struct.pack(endian + "h", self.type)
+            + struct.pack(endian + "i", self.channel)
+            + struct.pack(endian + "f", self.delay)
+            + struct.pack(endian + "f", self.duration)
         )
 
     @classmethod
@@ -193,33 +193,35 @@ class PulseqBlock:
         self.adc = PulseqADC.from_struct(adc) if adc else None
         self.trig = PulseqTrig.from_struct(trig) if trig else None
 
-    def to_bytes(self) -> bytes:
-        bytes_data = struct.pack(">i", self.ID) + struct.pack(">f", self.duration)
+    def to_bytes(self, endian=">") -> bytes:
+        bytes_data = struct.pack(endian + "i", self.ID) + struct.pack(
+            endian + "f", self.duration
+        )
 
         # RF Event
         if self.rf:
-            bytes_data += self.rf.to_bytes()
+            bytes_data += self.rf.to_bytes(endian)
         else:
-            bytes_data += struct.pack(">h", 0)  # * 2
+            bytes_data += struct.pack(endian + "h", 0)
 
         # Gradient Events
         for grad in [self.gx, self.gy, self.gz]:
             if grad:
-                bytes_data += grad.to_bytes()
+                bytes_data += grad.to_bytes(endian)
             else:
-                bytes_data += struct.pack(">h", 0)
+                bytes_data += struct.pack(endian + "h", 0)
 
         # ADC Event
         if self.adc:
-            bytes_data += self.adc.to_bytes()
+            bytes_data += self.adc.to_bytes(endian)
         else:
-            bytes_data += struct.pack(">h", 0)
+            bytes_data += struct.pack(endian + "h", 0)
 
         # Trigger Event
         if self.trig:
-            bytes_data += self.trig.to_bytes()
+            bytes_data += self.trig.to_bytes(endian)
         else:
-            bytes_data += struct.pack(">i", 0)
+            bytes_data += struct.pack(endian + "h", 0)
 
         return bytes_data
 
@@ -232,11 +234,11 @@ class Segment:
         self.n_blocks_in_segment = len(block_ids)
         self.block_ids = np.asarray(block_ids, dtype=np.int16)
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         return (
-            struct.pack(">h", self.segment_id)
-            + struct.pack(">h", self.n_blocks_in_segment)
-            + self.block_ids.astype(">i2").tobytes()
+            struct.pack(endian + "h", self.segment_id)
+            + struct.pack(endian + "h", self.n_blocks_in_segment)
+            + self.block_ids.astype(endian + "i2").tobytes()
         )
 
 
@@ -263,20 +265,20 @@ class Ceq:
         self.max_b1 = _find_b1_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, endian=">") -> bytes:
         bytes_data = (
-            struct.pack(">i", self.n_max)
-            + struct.pack(">h", self.n_parent_blocks)
-            + struct.pack(">h", self.n_segments)
+            struct.pack(endian + "i", self.n_max)
+            + struct.pack(endian + "h", self.n_parent_blocks)
+            + struct.pack(endian + "h", self.n_segments)
         )
         for block in self.parent_blocks:
-            bytes_data += block.to_bytes()
+            bytes_data += block.to_bytes(endian)
         for segment in self.segments:
-            bytes_data += segment.to_bytes()
-        bytes_data += struct.pack(">h", self.n_columns_in_loop_array)
-        bytes_data += self.loop.astype(">f4").tobytes()
-        bytes_data += struct.pack(">f", self.max_b1)
-        bytes_data += struct.pack(">f", self.duration)
+            bytes_data += segment.to_bytes(endian)
+        bytes_data += struct.pack(endian + "h", self.n_columns_in_loop_array)
+        bytes_data += self.loop.astype(endian + "f4").tobytes()
+        bytes_data += struct.pack(endian + "f", self.max_b1)
+        bytes_data += struct.pack(endian + "f", self.duration)
         return bytes_data
 
 
@@ -327,7 +329,13 @@ def _build_segments(loop, sections_edges):
 
 
 def _find_b1_max(parent_blocks):
-    return np.max([max(abs(block.rf.wav.magnitude)) for block in parent_blocks if block.rf is not None])
+    return np.max(
+        [
+            max(abs(block.rf.wav.magnitude))
+            for block in parent_blocks
+            if block.rf is not None
+        ]
+    )
 
 
 def _calc_duration(segment_id, block_duration):
