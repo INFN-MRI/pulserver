@@ -18,7 +18,7 @@ def SPGR3D(
     alpha: float,
     max_grad: float,
     max_slew: float,
-    grad_raster_time: float,
+    raster_time: float,
     seqformat: str | bool = "bytes",
 ):
     """
@@ -42,8 +42,8 @@ def SPGR3D(
         Maximum gradient amplitude in T/m.
     max_slew : float
         Maximum gradient slew rate in T/m/s.
-    grad_raster_time : float
-        Gradient raster time in seconds (the time between successive gradient samples).
+    raster_time : float
+        Waveform raster time in seconds (the time between successive gradient samples).
     seqformat : str or bool, optional
         Output sequence format. If a string is provided, it specifies the desired output format (e.g., 'pulseq', 'bytes').
         If False, the sequence is returned as an internal object. Default is False.
@@ -81,7 +81,8 @@ def SPGR3D(
         grad_unit="mT/m",
         max_slew=max_slew,
         slew_unit="T/m/s",
-        grad_raster_time=grad_raster_time,
+        grad_raster_time=raster_time,
+        rf_raster_time=raster_time,
     )
 
     # initialize sequence
@@ -133,12 +134,12 @@ def SPGR3D(
     gx_phase = pp.make_trapezoid(
         channel="x", area=-g_read.area / 2, duration=1e-3, system=system
     )
-    gy_phase = pp.make_trapezoid(channel="y", area=-delta_ky * Ny, system=system)
-    gz_phase = pp.make_trapezoid(channel="z", area=-delta_kz * Nz, system=system)
+    gy_phase = pp.make_trapezoid(channel="y", area=delta_ky * Ny, system=system)
+    gz_phase = pp.make_trapezoid(channel="z", area=delta_kz * Nz, system=system)
     seq.register_block("g_phase", gx=gx_phase, gy=gy_phase, gz=gz_phase)
 
     # crusher gradient
-    gz_spoil = pp.make_trapezoid(channel="z", area=4 / slab_thickness, system=system)
+    gz_spoil = pp.make_trapezoid(channel="z", area=32 / slab_thickness, system=system)
     seq.register_block("g_spoil", gz=gz_spoil)
 
     # phase encoding plan TODO: helper routine

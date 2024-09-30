@@ -30,6 +30,7 @@ def find_segment_definitions(arr):
         if len(main_loop) > 0:
             return dummy_loop + [main_loop.tolist()]
         return dummy_loop
+
     return [main_loop.tolist()]
 
 

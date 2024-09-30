@@ -316,14 +316,13 @@ def _build_segments(loop, sections_edges):
     for n in range(len(seg_definitions)):
         idx = _autoseg.find_segments(parent_block_id, seg_definitions[n])
         segment_id[idx] = n
-    segment_id += 1  # segment 0 is reserved for pure delay
     loop[:, 0] = segment_id
 
     # now build segment fields
     n_segments = len(seg_definitions)
     segments = []
     for n in range(n_segments):
-        segments.append(Segment(n + 1, seg_definitions[n]))
+        segments.append(Segment(n, seg_definitions[n]))
 
     return segments
 
