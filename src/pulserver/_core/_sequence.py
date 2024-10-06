@@ -98,7 +98,9 @@ class Sequence:
                 self._block_library[name]["delay"] = deepcopy(delay)
         else:
             ID = len(self._block_library)
-            self._block_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig, delay)
+            self._block_library[name] = PulseqBlock(
+                ID, rf, gx, gy, gz, adc, trig, delay
+            )
 
     def section(self, name: str):
         assert (
@@ -134,19 +136,19 @@ class Sequence:
                     warnings.warn(
                         "Dynamic delay not allowed except for pure delay blocks - ignoring the specified delay"
                     )
-        
+
                 current_block = deepcopy(self._block_library[name])
-    
+
                 # scale RF pulse and apply phase modulation / frequency offset
                 if "rf" in current_block:
                     current_block["rf"].signal *= rf_amp
                     current_block["rf"].phase_offset = rf_phase
                     current_block["rf"].freq_offset += rf_freq
-    
+
                 # apply phase modulation to ADC
                 if "adc" in current_block:
                     current_block["adc"].phase_offset = adc_phase
-    
+
                 # scale gradients
                 if "gx" in current_block:
                     current_block["gx"] = pp.scale_grad(
@@ -160,7 +162,7 @@ class Sequence:
                     current_block["gz"] = pp.scale_grad(
                         grad=current_block["gz"], scale=gy_amp
                     )
-    
+
                 # rotate gradients
                 if rotmat is not None:
                     # extract gradient waveforms from current event
@@ -168,15 +170,15 @@ class Sequence:
                     for ch in ["gx", "gy", "gz"]:
                         if ch in current_block:
                             current_grad[ch] = current_block[ch]
-    
+
                     # actual rotation
                     current_block = _pp_rotate(current_block, rotmat)
-    
+
                     # replace rotated gradients in current event
                     for ch in ["gx", "gy", "gz"]:
                         if ch in current_block:
                             current_block[ch] = current_grad[ch]
-                            
+
                 # update sequence structure
                 self._sequence.add_block(*current_block.values())
 

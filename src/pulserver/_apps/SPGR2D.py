@@ -29,8 +29,8 @@ def SPGR2D(
     Generate a 2D Spoiled Gradient Recalled Echo (SPGR) pulse sequence.
 
     This function designs a 2D SPGR sequence based on the provided field of view (FOV), matrix size,
-    number of slices, slice thickness and spacing, flip angle, recovery time, 
-    and hardware constraints such as maximum gradient amplitude and slew rate. 
+    number of slices, slice thickness and spacing, flip angle, recovery time,
+    and hardware constraints such as maximum gradient amplitude and slew rate.
     The output can be formatted in different sequence file formats if specified.
 
     Parameters
@@ -169,7 +169,8 @@ def SPGR2D(
 
     # generate rf phases
     rf_phases = RfPhaseCycle(
-        num_pulses=dummy_scans + imaging_scans + calib_scans, phase_increment=rf_spoiling_inc
+        num_pulses=dummy_scans + imaging_scans + calib_scans,
+        phase_increment=rf_spoiling_inc,
     )
 
     # construct sequence
@@ -184,16 +185,16 @@ def SPGR2D(
         seq.add_block("g_spoil")
 
     seq.section(name="scan_loop")
-    for n in range(imaging_scans+calib_scans):
+    for n in range(imaging_scans + calib_scans):
         rf_phase = rf_phases()
-        
+
         if n < calib_scans:
             rf_freq = 0.0
             y_amp = 0.0
         else:
-            rf_freq = encoding_plan[1][n-calib_scans]
-            y_amp = encoding_plan[0][n-calib_scans]
-        
+            rf_freq = encoding_plan[1][n - calib_scans]
+            y_amp = encoding_plan[0][n - calib_scans]
+
         seq.add_block("excitation", rf_freq=rf_freq)
         seq.add_block("slab_rephasing")
         seq.add_block("g_phase", gy_amp=y_amp)
