@@ -1,6 +1,6 @@
-"""3D Spoiled Gradient Echo sequence."""
+"""2D Spoiled Gradient Echo sequence."""
 
-__all__ = ["SPGR3D"]
+__all__ = ["SPGR2D"]
 
 from collections.abc import Iterable
 
@@ -12,38 +12,51 @@ import pypulseq as pp
 from pulserver import Sequence, RfPhaseCycle
 
 
-def SPGR3D(
+def SPGR2D(
     fov: Iterable[float],
+    slice_thickness: float,
     npix: Iterable[int],
+    nslices: int,
     alpha: float,
+    rectime: float,
     max_grad: float,
     max_slew: float,
     raster_time: float,
+    slice_spacing: float = 0.0,
     seqformat: str | bool = "bytes",
 ):
     """
-    Generate a 3D Spoiled Gradient Recalled Echo (SPGR) pulse sequence.
+    Generate a 2D Spoiled Gradient Recalled Echo (SPGR) pulse sequence.
 
-    This function designs a 3D SPGR sequence based on the provided field of view (FOV), matrix size,
-    flip angle, and hardware constraints such as maximum gradient amplitude and slew rate. The output
-    can be formatted in different sequence file formats if specified.
+    This function designs a 2D SPGR sequence based on the provided field of view (FOV), matrix size,
+    number of slices, slice thickness and spacing, flip angle, recovery time, 
+    and hardware constraints such as maximum gradient amplitude and slew rate. 
+    The output can be formatted in different sequence file formats if specified.
 
     Parameters
     ----------
     fov : Iterable[float]
-        Field of view along each spatial dimension [fov_plane, fov_z] in mm.
-        If scalar, assume cubic fov.
+        Field of view along each spatial dimension [fov_x, fov_y] in mm.
+        If scalar, assume squared fov.
+    slice_thickness : float)
+        Slice thickness in mm.
     npix : Iterable[int]
-        Number of voxels along each spatial dimension [plane_mtx, nz] (matrix size).
-        If scalar, assume cubic matrix size.
+        Number of voxels along each spatial dimension [nx, ny] (matrix size).
+        If scalar, assume squared matrix size.
+    nslices : int
+        Number of slices.
     alpha : float
         Flip angle in degrees.
+    rectime : float
+        Recovery time after spoiling in ms.
     max_grad : float
         Maximum gradient amplitude in mT/m.
     max_slew : float
         Maximum gradient slew rate in T/m/s.
     raster_time : float
         Waveform raster time in seconds (the time between successive gradient samples).
+    slice_spacing : float, optional
+        Additional slice spacing in mm. The default is 0.0 (contiguous slices).
     seqformat : str or bool, optional
         Output sequence format. If a string is provided, it specifies the desired output format (e.g., 'pulseq', 'bytes').
         If False, the sequence is returned as an internal object. Default is False.
@@ -62,14 +75,15 @@ def SPGR3D(
 
     Examples
     --------
-    Generate a 3D SPGR sequence for a 256x256x128 matrix with a 240x240x120 mm FOV, a 15-degree flip angle, and hardware limits:
+    Generate a 2D SPGR sequence for a single 5 mm thick slice and 240x240 mm FOV, 256x256 matrix size,
+    15-degree flip angle, 5s recovery time and hardware limits 4mT/m, 150T/m/s, 4e-6 s raster time as:
 
-    >>> from pulseforge import SPGR3D
-    >>> SPGR3D([240, 120], [256, 128], 15, 0.04, 150, 4e-6)
+    >>> from pulseforge import SPGR2D
+    >>> SPGR2D(240.0, 5.0, 256, 1, 15.0, 5.0, 40, 150, 4e-6)
 
     Generate the same sequence and export it in bytes format:
 
-    >>> SPGR3D([240, 120], [256, 128], 15, 0.04, 150, 4e-6, seqformat='bytes')
+    >>> SPGR2D(240.0, 5.0, 256, 1, 15.0, 5.0, 40, 150, 4e-6, format='bytes')
 
     """
     # RF specs
@@ -89,25 +103,24 @@ def SPGR3D(
     seq = Sequence(system=system, format=seqformat)
 
     # initialize prescription
-    if np.isscalar(fov):
-        fov, slab_thickness = fov * 1e-3, fov * 1e-3  # isotropic
-    else:
-        fov, slab_thickness = (
-            fov[0] * 1e-3,
-            fov[1] * 1e-3,
-        )  # in-plane FOV, slab thickness
+    fov, slice_thickness, slice_spacing = (
+        fov * 1e-3,
+        slice_thickness * 1e-3,
+        slice_spacing * 1e-3,
+    )
+    slice_spacing += slice_thickness
 
     if np.isscalar(npix):
-        Nx, Ny, Nz = npix, npix, npix  # in-plane resolution, slice thickness
+        Nx, Ny, Nz = npix, npix, nslices  # in-plane resolution, slice thickness
     else:
-        Nx, Ny, Nz = npix[0], npix[0], npix[1]  # in-plane resolution, slice thickness
+        Nx, Ny, Nz = npix[0], npix[1], nslices  # in-plane resolution, slice thickness
 
     # initialize event events
     # RF pulse
     rf, gss, _ = pp.make_sinc_pulse(
         flip_angle=np.deg2rad(alpha),
         duration=3e-3,
-        slice_thickness=slab_thickness,
+        slice_thickness=slice_thickness,
         apodization=0.42,
         time_bw_product=4,
         system=system,
@@ -120,7 +133,7 @@ def SPGR3D(
     seq.register_block(name="slab_rephasing", gz=gss_reph)
 
     # readout
-    delta_kx, delta_ky, delta_kz = 1 / fov, 1 / fov, 1 / slab_thickness
+    delta_kx, delta_ky = 1 / fov, 1 / fov
     g_read = pp.make_trapezoid(
         channel="x", flat_area=Nx * delta_kx, flat_time=3.2e-3, system=system
     )
@@ -135,26 +148,28 @@ def SPGR3D(
         channel="x", area=-g_read.area / 2, duration=1e-3, system=system
     )
     gy_phase = pp.make_trapezoid(channel="y", area=delta_ky * Ny, system=system)
-    gz_phase = pp.make_trapezoid(channel="z", area=delta_kz * Nz, system=system)
-    seq.register_block("g_phase", gx=gx_phase, gy=gy_phase, gz=gz_phase)
+    seq.register_block("g_phase", gx=gx_phase, gy=gy_phase)
 
     # crusher gradient
-    gz_spoil = pp.make_trapezoid(channel="z", area=32 / slab_thickness, system=system)
-    seq.register_block("g_spoil", gz=gz_spoil)
+    gz_spoil = pp.make_trapezoid(channel="z", area=32 / slice_thickness, system=system)
+    delay = pp.make_delay(rectime)
+    seq.register_block("g_spoil", gz=gz_spoil, delay=delay)
 
     # phase encoding plan TODO: helper routine
     pey_steps = ((np.arange(Ny)) - (Ny / 2)) / Ny
-    pez_steps = ((np.arange(Nz)) - (Nz / 2)) / Nz
-    encoding_plan = np.meshgrid(pey_steps, pez_steps, indexing="xy")
+    FOVz = Nz * slice_spacing
+    foff_steps = np.linspace(-FOVz / 2, FOVz / 2, Nz) * gss.amplitude
+    encoding_plan = np.meshgrid(pey_steps, foff_steps, indexing="xy")
     encoding_plan = [enc.ravel() for enc in encoding_plan]
 
     # scan duration
-    dummy_scans = Ny
-    imaging_scans = Ny * Nz
+    dummy_scans = 10
+    calib_scans = 10
+    imaging_scans = Ny * nslices
 
     # generate rf phases
     rf_phases = RfPhaseCycle(
-        num_pulses=dummy_scans + imaging_scans, phase_increment=rf_spoiling_inc
+        num_pulses=dummy_scans + imaging_scans + calib_scans, phase_increment=rf_spoiling_inc
     )
 
     # construct sequence
@@ -163,21 +178,27 @@ def SPGR3D(
         rf_phase = rf_phases()
         seq.add_block("excitation")
         seq.add_block("slab_rephasing")
-        seq.add_block("g_phase", gy_amp=0.0, gz_amp=0.0)
+        seq.add_block("g_phase", gy_amp=0.0)
         seq.add_block("dummy_readout", rf_phase=rf_phase)
-        seq.add_block("g_phase", gy_amp=0.0, gz_amp=0.0)
+        seq.add_block("g_phase", gy_amp=0.0)
         seq.add_block("g_spoil")
 
     seq.section(name="scan_loop")
-    for n in range(imaging_scans):
+    for n in range(imaging_scans+calib_scans):
         rf_phase = rf_phases()
-        seq.add_block("excitation")
+        
+        if n < calib_scans:
+            rf_freq = 0.0
+            y_amp = 0.0
+        else:
+            rf_freq = encoding_plan[1][n-calib_scans]
+            y_amp = encoding_plan[0][n-calib_scans]
+        
+        seq.add_block("excitation", rf_freq=rf_freq)
         seq.add_block("slab_rephasing")
-        seq.add_block("g_phase", gy_amp=encoding_plan[0][n], gz_amp=encoding_plan[1][n])
+        seq.add_block("g_phase", gy_amp=y_amp)
         seq.add_block("readout", rf_phase=rf_phase, adc_phase=rf_phase)
-        seq.add_block(
-            "g_phase", gy_amp=-encoding_plan[0][n], gz_amp=-encoding_plan[1][n]
-        )
+        seq.add_block("g_phase", gy_amp=-y_amp)
         seq.add_block("g_spoil")
 
     return seq.export()

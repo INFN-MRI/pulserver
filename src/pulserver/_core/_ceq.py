@@ -183,9 +183,10 @@ class PulseqBlock:
         gz: SimpleNamespace = None,
         adc: SimpleNamespace = None,
         trig: SimpleNamespace = None,
+        delay: SimpleNamespace = None,
     ) -> "PulseqBlock":
         self.ID = ID
-        args = [rf, gx, gy, gz, adc, trig]
+        args = [rf, gx, gy, gz, adc, trig, delay]
         args = [arg for arg in args if arg is not None]
         self.duration = pp.calc_duration(*args)
         self.rf = PulseqRF.from_struct(rf) if rf else None

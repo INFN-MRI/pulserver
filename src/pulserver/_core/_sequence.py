@@ -2,6 +2,8 @@
 
 __all__ = ["Sequence"]
 
+import warnings
+
 from copy import deepcopy
 from types import SimpleNamespace
 
@@ -48,6 +50,7 @@ class Sequence:
         gz: SimpleNamespace | None = None,
         adc: SimpleNamespace | None = None,
         trig: SimpleNamespace | None = None,
+        delay: SimpleNamespace | None = None,
     ):
         # sanity checks
         if self._format == "pulseq":
@@ -91,9 +94,11 @@ class Sequence:
                 self._block_library[name]["adc"] = deepcopy(adc)
             if trig is not None:
                 self._block_library[name]["trig"] = deepcopy(trig)
+            if delay is not None:
+                self._block_library[name]["delay"] = deepcopy(delay)
         else:
             ID = len(self._block_library)
-            self._block_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig)
+            self._block_library[name] = PulseqBlock(ID, rf, gx, gy, gz, adc, trig, delay)
 
     def section(self, name: str):
         assert (
@@ -120,82 +125,114 @@ class Sequence:
     ):
         assert name in self._block_library, f"Requested block {name} not found!"
         if self._format == "pulseq":
-            current_block = deepcopy(self._block_library[name])
-
-            # scale RF pulse and apply phase modulation / frequency offset
-            if "rf" in current_block:
-                current_block["rf"].signal *= rf_amp
-                current_block["rf"].phase_offset = rf_phase
-                current_block["rf"].freq_offset += rf_freq
-
-            # apply phase modulation to ADC
-            if "adc" in current_block:
-                current_block["adc"].phase_offset = adc_phase
-
-            # scale gradients
-            if "gx" in current_block:
-                current_block["gx"] = pp.scale_grad(
-                    grad=current_block["gx"], scale=gx_amp
-                )
-            if "gy" in current_block:
-                current_block["gy"] = pp.scale_grad(
-                    grad=current_block["gy"], scale=gy_amp
-                )
-            if "gz" in current_block:
-                current_block["gz"] = pp.scale_grad(
-                    grad=current_block["gz"], scale=gy_amp
-                )
-
-            # rotate gradients
-            if rotmat is not None:
-                # extract gradient waveforms from current event
-                current_grad = {}
-                for ch in ["gx", "gy", "gz"]:
-                    if ch in current_block:
-                        current_grad[ch] = current_block[ch]
-
-                # actual rotation
-                current_block = _pp_rotate(current_block, rotmat)
-
-                # replace rotated gradients in current event
-                for ch in ["gx", "gy", "gz"]:
-                    if ch in current_block:
-                        current_block[ch] = current_grad[ch]
-
-            # update sequence structure
-            if delay is not None:
-                self._sequence.add_block(pp.make_delay(delay), *current_block.values())
+            if name == "delay":
+                if delay is None:
+                    raise ValueError("Missing 'delay' input for pure delay block.")
+                self._sequence.add_block(pp.make_delay(delay))
             else:
+                if delay is not None:
+                    warnings.warn(
+                        "Dynamic delay not allowed except for pure delay blocks - ignoring the specified delay"
+                    )
+        
+                current_block = deepcopy(self._block_library[name])
+    
+                # scale RF pulse and apply phase modulation / frequency offset
+                if "rf" in current_block:
+                    current_block["rf"].signal *= rf_amp
+                    current_block["rf"].phase_offset = rf_phase
+                    current_block["rf"].freq_offset += rf_freq
+    
+                # apply phase modulation to ADC
+                if "adc" in current_block:
+                    current_block["adc"].phase_offset = adc_phase
+    
+                # scale gradients
+                if "gx" in current_block:
+                    current_block["gx"] = pp.scale_grad(
+                        grad=current_block["gx"], scale=gx_amp
+                    )
+                if "gy" in current_block:
+                    current_block["gy"] = pp.scale_grad(
+                        grad=current_block["gy"], scale=gy_amp
+                    )
+                if "gz" in current_block:
+                    current_block["gz"] = pp.scale_grad(
+                        grad=current_block["gz"], scale=gy_amp
+                    )
+    
+                # rotate gradients
+                if rotmat is not None:
+                    # extract gradient waveforms from current event
+                    current_grad = {}
+                    for ch in ["gx", "gy", "gz"]:
+                        if ch in current_block:
+                            current_grad[ch] = current_block[ch]
+    
+                    # actual rotation
+                    current_block = _pp_rotate(current_block, rotmat)
+    
+                    # replace rotated gradients in current event
+                    for ch in ["gx", "gy", "gz"]:
+                        if ch in current_block:
+                            current_block[ch] = current_grad[ch]
+                            
+                # update sequence structure
                 self._sequence.add_block(*current_block.values())
 
         else:
             parent_block_id = self._block_library[name].ID
-            block_duration = self._block_library[name].duration
-            if delay is not None:
-                block_duration = max(delay, block_duration)
-            if rotmat is None:
+            if name == "delay":
+                if delay is None:
+                    raise ValueError("Missing 'delay' input for pure delay block.")
+                block_duration = delay
                 rotmat = np.eye(3, dtype=np.float32).ravel().tolist()
                 hasrot = [1]
-            else:
-                rotmat = rotmat.ravel().tolist()
-                hasrot = [-1]
+                loop_row = (
+                    [
+                        -1,
+                        parent_block_id,
+                        1.0,
+                        0.0,
+                        0.0,
+                        1.0,
+                        1.0,
+                        1.0,
+                        0.0,
+                        block_duration,
+                    ]
+                    + rotmat
+                    + hasrot
+                )
 
-            loop_row = (
-                [
-                    -1,
-                    parent_block_id,
-                    rf_amp,
-                    rf_phase,
-                    rf_freq,
-                    gx_amp,
-                    gy_amp,
-                    gz_amp,
-                    adc_phase,
-                    block_duration,
-                ]
-                + rotmat
-                + hasrot
-            )
+            else:
+                if delay is not None:
+                    warnings.warn(
+                        "Dynamic delay not allowed except for pure delay blocks - ignoring the specified delay"
+                    )
+                block_duration = self._block_library[name].duration
+                if rotmat is None:
+                    rotmat = np.eye(3, dtype=np.float32).ravel().tolist()
+                    hasrot = [1]
+                else:
+                    rotmat = rotmat.ravel().tolist()
+                    hasrot = [-1]
+                loop_row = (
+                    [
+                        -1,
+                        parent_block_id,
+                        rf_amp,
+                        rf_phase,
+                        rf_freq,
+                        gx_amp,
+                        gy_amp,
+                        gz_amp,
+                        adc_phase,
+                        block_duration,
+                    ]
+                    + rotmat
+                    + hasrot
+                )
             self._loop.append(loop_row)
 
     def export(self):
