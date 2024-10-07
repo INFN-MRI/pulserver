@@ -2,7 +2,6 @@
 
 __all__ = []
 
-# Cartesian
 from ._make_line_readout import make_line_readout
 from ._make_spiral_readout import make_spiral_readout
 

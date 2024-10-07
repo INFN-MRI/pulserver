@@ -43,5 +43,25 @@ and the accompanying adc events.
    pulserver.blocks.make_line_readout
    pulserver.blocks.make_spiral_readout
    
+Phase Encoding
+^^^^^^^^^^^^^^
+Phase encoding blocks, including phase blips for EPI sampling.
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   pulserver.blocks.make_phase_encoding
+   
+Miscellaneous
+^^^^^^^^^^^^^
+Miscellaneous blocks such as gradient spoiling.
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   pulserver.blocks.make_spoiler_gradient
+   
 
    

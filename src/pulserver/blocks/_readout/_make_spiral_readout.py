@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pypulseq as pp
 
 
-from .._grad.make_spiral import make_spiral
+from .._grad._make_spiral import make_spiral
 
 
 def make_spiral_readout(
