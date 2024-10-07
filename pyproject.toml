@@ -110,7 +110,7 @@ pythonpath  = ["tests"]
 testpaths=["tests"]
 addopts = [
     "--import-mode=importlib",
-    "--cov=mrsim",
+    "--cov=pulserver",
     "--cov-report=term-missing",
     "--cov-report=xml"
 ]

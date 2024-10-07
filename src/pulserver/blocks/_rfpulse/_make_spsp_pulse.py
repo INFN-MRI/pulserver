@@ -20,6 +20,7 @@ USE_TABLE = {"excitation": "ex", "refocusing": "se", "inversion": "inv"}
 
 
 def make_spsp_pulse(
+    system: Opts,
     flip_angle: float | Iterable[float],
     slice_thickness: float,
     spectral_band_edges: Iterable[float] | str = "water",
@@ -27,17 +28,12 @@ def make_spsp_pulse(
     spatial_time_bw_product: float = 4.0,
     spatial_ripples: Iterable[float] = (0.01, 0.01),
     spatial_filter_type: str = "ls",
-    spectral_ripples: Iterable[float] = (0.02, 0.005),
+    spectral_ripples: tuple[float] = (0.02, 0.005),
     spectral_filter_type: str = "min",
     use: str = "excitation",
-    raster_time: float | None = None,
-    max_grad: float | None = None,
-    max_slew: float | None = None,
-    B0: float | None = None,
-    system: Opts | None = None,
     verbose: bool = False,
     plot: bool = False,
-) -> tuple[SimpleNamespace, SimpleNamespace]:
+) -> dict:
     """
     Design a spectral-spatial RF pulse.
 
@@ -47,6 +43,8 @@ def make_spsp_pulse(
 
     Parameters
     ----------
+    system : Opts
+        System limits.
     flip_angle : float | Iterable[float]
         Flip angle specification for each spectral band, in ``[rad]``.
         For water selective pulses (``spectral_band_edges="water"``),
@@ -61,38 +59,32 @@ def make_spsp_pulse(
         spectral band is set according to the ``B0`` value.
     freq_offset : float | None, optional
         Frequency offset in Hertz (Hz).
+    use : str, optional
+        Use of radio-frequency pulse. Must be one of ``"excitation"`` (default),
+        ``"refocusing"`` or ``"inversion"``.
     spatial_time_bw_product : float
         Time-bandwidth product for the spatial dimension.
     spatial_ripples : Iterable[float]
         Spatial passband and stopband ripples, in the form ``(pass_ripple, stop_ripple)``.
     spatial_filter_type : str, optional
-        Type of filter for the spatial dimension: ``"ms"``, ``"ls"``, ``"pm"`` (default), ``"min"``, ``"max"``.
+        Type of filter for the spatial dimension: ``"ms"``, ``"ls"`` (default), ``"pm"``, ``"min"``, ``"max"``.
     spectral_ripples : Iterable[float]
         Spectral passband and stopband ripples.
     spectral_filter_type : str, optional
         Type of filter for the spectral dimension: ``"min"`` (default), ``"max"``, ``"lin"``.
-    raster_time : float | None, optional
-        Raster time (in ``[s]``) of RF and accompanying gradient events.
-    max_grad : float, optional
-        Maximum gradient strength of accompanying gradient event.
-    max_slew : float | None, optional
-        Maximum slew rate of accompanying gradient event.
-    B0 : float | None, optional
-        Static field strength in ``[T]``.
-    system : Opts, optional
-        System limits. Default is a system limits object initialised to default values.
-    use : str, optional
-        Use of radio-frequency pulse. Must be one of ``"excitation"`` (default),
-        ``"refocusing"`` or ``"inversion"``.
     verbose : bool, optional
         If ``True``, print debug messages. Default is ``False``.
 
     Returns
     -------
-    rf : SimpleNamespace
-        Radio-frequency pulse event.
-    gz : SimpleNamespace, optional
-        Accompanying gradient event.
+    rf_block : dict
+        Dictionary with the following key:
+
+        * rf : SimpleNamespace
+            Radio-frequency block pulse event.
+        * gz : SimpleNamespace
+            Slice (or slab) selection event,
+            including (hopefully!) the rephasing lobe.
 
     Raises
     ------
@@ -113,38 +105,21 @@ def make_spsp_pulse(
         )
 
     gamma = system.gamma
-    if raster_time is not None:
-        system.grad_raster_time = raster_time
-        system.rf_raster_time = raster_time
-    else:
-        raster_time = system.grad_raster_time
-        system.rf_raster_time = raster_time
-    if max_grad is not None:
-        system.max_grad = convert(
-            from_value=max_grad, from_unit="mT/m", to_unit="Hz/m", gamma=abs(gamma)
-        )
-    else:
-        max_grad = convert(
-            from_value=system.max_grad,
-            from_unit="Hz/m",
-            to_unit="mT/m",
-            gamma=abs(gamma),
-        )
-    if max_slew is not None:
-        system.max_slew = convert(
-            from_value=max_slew, from_unit="T/m/s", to_unit="Hz/m/s", gamma=abs(gamma)
-        )
-    else:
-        max_slew = convert(
-            from_value=system.max_slew,
-            from_unit="Hz/m/s",
-            to_unit="T/m/s",
-            gamma=abs(gamma),
-        )
-    if B0 is not None:
-        system.B0 = B0
-    else:
-        B0 = system.B0
+    raster_time = system.grad_raster_time
+    system.rf_raster_time = raster_time
+    max_grad = convert(
+        from_value=system.max_grad,
+        from_unit="Hz/m",
+        to_unit="mT/m",
+        gamma=abs(gamma),
+    )
+
+    max_slew = convert(
+        from_value=system.max_slew,
+        from_unit="Hz/m/s",
+        to_unit="T/m/s",
+        gamma=abs(gamma),
+    )
 
     if use != "" and use not in get_supported_rf_uses():
         raise ValueError(
@@ -216,4 +191,4 @@ def make_spsp_pulse(
     negative_zero_indices = np.where(rf.signal == -0.0)
     rf.signal[negative_zero_indices] = 0
 
-    return rf, grad
+    return {"rf": rf, "gz": grad}
