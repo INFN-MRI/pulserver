@@ -44,7 +44,7 @@ def make_line_readout(
     Returns
     -------
     read_block : dict
-        Readout block dictionary with the following key:
+        Readout block dictionary with the following keys:
 
         * gx : SimpleNamespace
             Readout gradient event.
@@ -56,7 +56,7 @@ def make_line_readout(
             ADC event (only if ``has_adc`` is ``True``).
 
     phase_block : dict
-        Readout prewinder / rewinder block with the following key:
+        Readout prewinder / rewinder block with the following keys:
 
         * gx : SimpleNamespace
             Pre-/rewinder gradient event.
@@ -66,7 +66,7 @@ def make_line_readout(
             Pre-/rewinder gradient event (only if ``ndim == 3``).
 
     flyback_block : dict, optional
-        Readout flyback block with the following key:
+        Readout flyback block with the following keys:
 
         * gx : SimpleNamespace
             Flyback gradient event.

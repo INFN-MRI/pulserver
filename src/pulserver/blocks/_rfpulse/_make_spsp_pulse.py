@@ -78,7 +78,7 @@ def make_spsp_pulse(
     Returns
     -------
     rf_block : dict
-        Dictionary with the following key:
+        Dictionary with the following keys:
 
         * rf : SimpleNamespace
             Radio-frequency block pulse event.

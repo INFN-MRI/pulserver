@@ -31,3 +31,17 @@ and (for spatially-selective pulses), the accompanying gradient event.
    pulserver.blocks.make_slr_pulse
    pulserver.blocks.make_spsp_pulse
    
+Readout
+^^^^^^^
+Readout blocks, including both the gradient (either trapezoidal or arbitrary, e.g., for spiral imaging), 
+and the accompanying adc events.
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   pulserver.blocks.make_line_readout
+   pulserver.blocks.make_spiral_readout
+   
+
+   

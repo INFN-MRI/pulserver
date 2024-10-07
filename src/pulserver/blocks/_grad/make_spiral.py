@@ -23,7 +23,7 @@ def make_spiral(
     fs_npix: int = None,
     trans_dur: float = 0.5,
     spiral_type: str = "outward",
-) -> SimpleNamespace:
+) -> tuple[SimpleNamespace, SimpleNamespace]:
     """
     Create a spiral gradient event.
 
