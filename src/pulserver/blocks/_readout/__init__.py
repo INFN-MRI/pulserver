@@ -3,7 +3,6 @@
 __all__ = []
 
 # Cartesian
-from . import cartesian_readout as _cartesian_readout
-from .cartesian_readout import *  # noqa
+from ._make_line_readout import make_line_readout
 
-__all__.extend(_cartesian_readout.__all__)
+__all__.append("make_line_readout")
