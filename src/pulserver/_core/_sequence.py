@@ -190,6 +190,7 @@ class Sequence:
                 block_duration = delay
                 rotmat = np.eye(3, dtype=np.float32).ravel().tolist()
                 hasrot = [1]
+                hasadc = [0]
                 loop_row = (
                     [
                         -1,
@@ -204,6 +205,7 @@ class Sequence:
                         block_duration,
                     ]
                     + rotmat
+                    + hasadc
                     + hasrot
                 )
 
@@ -219,6 +221,10 @@ class Sequence:
                 else:
                     rotmat = rotmat.ravel().tolist()
                     hasrot = [-1]
+                if self._block_library[name].adc is None:
+                    hasadc = [0]
+                else:
+                    hasadc = [1]
                 loop_row = (
                     [
                         -1,
@@ -233,6 +239,7 @@ class Sequence:
                         block_duration,
                     ]
                     + rotmat
+                    + hasadc
                     + hasrot
                 )
             self._loop.append(loop_row)

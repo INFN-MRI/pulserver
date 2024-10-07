@@ -263,10 +263,11 @@ class Ceq:
         self.n_segments = len(segments)
         self.parent_blocks = parent_blocks
         self.segments = segments
-        self.n_columns_in_loop_array = loop.shape[1] - 1  # discard "hasrot"
-        self.loop = loop[:, :-1]
+        self.n_columns_in_loop_array = loop.shape[1] - 2  # discard "hasrot", "hasadc"
+        self.loop = loop[:, :-2]
         self.max_b1 = _find_b1_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
+        self.n_readouts = int(np.sum(loop[:, -2]))
 
     def to_bytes(self, endian=">") -> bytes:
         bytes_data = (
@@ -282,6 +283,8 @@ class Ceq:
         bytes_data += self.loop.astype(endian + "f4").tobytes()
         bytes_data += struct.pack(endian + "f", self.max_b1)
         bytes_data += struct.pack(endian + "f", self.duration)
+        bytes_data += struct.pack(endian + "i", self.n_readouts)
+
         return bytes_data
 
 

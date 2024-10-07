@@ -9,20 +9,19 @@ import pypulseq as pp
 from .._block import PulseqBlock
 
 
-class CartesianReadout2D(PulseqBlock):
-    """
-    Wrapper class for PyPulseq 2D Cartesian readout module.
-    """
-
-    def __init__(
-        self, sys, fov, npix, osf=1.0, adc_duration=3.0, nechoes=1, flyback=False
-    ):
+def make_line_readout(
+        system: pp.Opts, 
+        fov: float, 
+        npix: int, 
+        osf: float = 1.0, 
+        adc_duration: float = 3.0,
+        ):
         """
-        Prepare Cartesian readout for 2D imaging.
+        Prepare line readout for Cartesian, EPI or Radial imaging.
 
         Parameters
         ----------
-        sys : pypulseq.Opts
+        system : pypulseq.Opts
             System limits.
         fov : float | tuple[float]
             Field of view ``(FOVx, FOVy)`` in ``[mm]``.
@@ -34,12 +33,6 @@ class CartesianReadout2D(PulseqBlock):
             Readout oversampling factor. The default is ``1.0``.
         adc_duration : float, optional
             ADC window duration in ``[ms]``. The default is '`3.0``.
-        nechoes : int, optional
-            Number of echoes. The default is ``1``.
-        flyback : bool, optional
-            Flyback (monopolar) echoes (``True``) or bipolar echoes (``False``).
-            Ignored for single-echo acquisitions (``nechoes=1``).
-            The default is ``False``.
 
         """
         # store number of echoes and flyback
