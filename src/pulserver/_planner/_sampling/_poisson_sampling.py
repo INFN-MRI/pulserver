@@ -1,219 +1,29 @@
-"""Cartesian 3D phase encoding plan."""
+"""
+Regular grid undersampling pattern for Cartesian imaging.
 
-__all__ = ["CaipirinhaSampling"]
+This can be used e.g., for Compressed Sensing acceleration.
+
+"""
+
+__all__ = ["poisson_sampling3D"]
+
 
 import warnings
+
 
 import numpy as np
 import numba as nb
 
-from .partial_fourier import partial_fourier
 
-
-class CaipirinhaSampling:
-    """
-    Wrapper class for 3D CAIPIRINHA sampling.
-    """
-
-    def __init__(self, shape, accel=1, calib=None, shift=0, crop_corner=True, pf=1.0):
-        """
-        Generate regular sampling pattern for GRAPPA/ARC accelerated acquisition.
-
-        Parameters
-        ----------
-        shape : int | Tuple[int]
-            Image shape along phase encoding dims ``(ny, nz)``.
-            If scalar, assume equal size for ``y`` and ``z`` axes.
-        accel : float | Tuple[float], optional
-            Target acceleration factor along phase encoding dims ``(Ry, Rz)``.
-            Must be ``>= 1``. If scalar, assume acceleration over ``y``
-            only. The default is ``1`` (no acceleration).
-        calib : int | Tuple[int], optional
-            Image shape along phase encoding dims ``(cy, cz)``.
-            If scalar, assume equal size for ``y`` and ``z`` axes.
-            The default is ``None`` (no calibration).
-        shift : int, optional
-            Caipirinha shift. The default is ``0`` (standard PI sampling).
-        crop_corner : bool, optional
-            Toggle whether to crop corners of k-space (elliptical sampling).
-            The default is ``True``.
-        pf : float, optional
-            Partial Fourier undersampling along ``z`` axis.
-            Ranges from ``0.5`` to ``1.0`` (no Partial Fourier acceleration).
-            A minimum value of ``0.75`` is suggested. The default is ``1.0``.
-
-        """
-        # generate mask
-        self._mask = _regular_mask(shape, accel, calib, shift, crop_corner)
-
-        # apply partial fourier
-        if pf < 1.0:
-            pf_mask = partial_fourier(self._mask.shape[-1], pf)
-            self._mask = self._mask.astype(np.float32)
-            self._mask *= pf_mask
-
-        # cast to bool
-        self._mask = self._mask.astype(bool)
-
-        # get scaling factor
-        ny, nz = self._mask.shape
-
-        # prepare grid
-        iy, iz = np.mgrid[:ny, :nz]
-
-        # rescale between (-1, 1)
-        scale_y, scale_z = iy - ny // 2, iz - nz // 2
-        scale_y, scale_z = scale_y / ny, scale_z / nz
-        scale_y, scale_z = 2 * scale_y, 2 * scale_z
-
-        # pick samples
-        self._iy = iy[self._mask]
-        self._iz = iz[self._mask]
-
-        self._scale_y = scale_y[self._mask]
-        self._scale_z = scale_z[self._mask]
-
-        # number of pe steps
-        self._nmax = len(scale_y)
-
-    def __call__(self, idx):
-        n = idx % self._nmax
-        return self._scale_y[n], self._scale_z[n]
-
-    # def update_hdr(self, hdr, idx):
-    #     n = idx % self._nmax
-    #     iy, iz = self._iy[n], self._iz[n]
-
-
-class PoissonSampling:
-    pass
-
-
-class ShufflePoissonSampling:
-    pass
-
-
-# %% local subroutines
-def _regular_mask(shape, accel=1, calib=None, shift=0, crop_corner=True):
-    """
-    Generate regular sampling pattern for GRAPPA/ARC accelerated acquisition.
-
-    Parameters
-    ----------
-    shape : int | Tuple[int]
-        Image shape along phase encoding dims ``(ny, nz)``.
-        If scalar, assume equal size for ``y`` and ``z`` axes.
-    accel : float | Tuple[float], optional
-        Target acceleration factor along phase encoding dims ``(Ry, Rz)``.
-        Must be ``>= 1``. If scalar, assume acceleration over ``y``
-        only. The default is ``1`` (no acceleration).
-    calib : int | Tuple[int], optional
-        Image shape along phase encoding dims ``(cy, cz)``.
-        If scalar, assume equal size for ``y`` and ``z`` axes.
-        The default is ``None`` (no calibration).
-    shift : int, optional
-        Caipirinha shift. The default is ``0`` (standard PI sampling).
-    crop_corner : bool, optional
-        Toggle whether to crop corners of k-space (elliptical sampling).
-        The default is ``True``.
-
-    Returns
-    -------
-    mask : np.ndarray
-        Regular-grid sampling mask of shape ``(ny, nz)``.
-
-    """
-    if np.isscalar(shape):
-        # assume square matrix (ky, kz)
-        shape = [shape, shape]
-    if np.isscalar(accel):
-        # assume acceleration along a single axis
-        accel = [accel, 1]
-
-    # cast tuple to lists
-    shape = list(shape)
-    accel = list(accel)
-
-    # define elliptical grid
-    nz, ny = shape
-    z, y = np.mgrid[:nz, :ny]
-    y, z = abs(y - shape[-1] // 2), abs(z - shape[-2] // 2)
-    r = np.sqrt((y / shape[-1]) ** 2 + (z / shape[-2]) ** 2) < 0.5
-
-    # check
-    if accel[0] < 1:
-        raise ValueError(f"Ky acceleration must be >= 1, got {accel[0]}")
-    if accel[1] < 1:
-        raise ValueError(f"Kz acceleration must be >= 1, got {accel[1]}")
-    if shift < 0:
-        raise ValueError(f"CAPIRINHA shift must be positive, got {shift}")
-    if shift > accel[1] - 1:
-        raise ValueError(f"CAPIRINHA shift must be lower than Rz, got {shift}")
-
-    # build mask
-    rows, cols = np.mgrid[:nz, :ny]
-    mask = (rows % accel[0] == 0) & (cols % accel[1] == 0)
-
-    # CAPIRINHA shift
-    if shift > 0:
-        # first pad
-        padsize0 = int(np.ceil(mask.shape[0] / accel[0]) * accel[0] - mask.shape[0])
-        mask = np.pad(mask, ((0, padsize0), (0, 0)))
-        nzp0, _ = mask.shape
-
-        # first reshape
-        mask = mask.reshape(nzp0 // accel[0], accel[0], ny)
-        mask = mask.reshape(nzp0 // accel[0], accel[0] * ny)
-
-        # second pad
-        padsize1 = int(np.ceil(mask.shape[0] / accel[1]) * accel[1] - mask.shape[0])
-        mask = np.pad(mask, ((0, padsize1), (0, 0)))
-        nzp1, _ = mask.shape
-
-        # second reshape
-        mask = mask.reshape(nzp1 // accel[1], accel[1], accel[0] * ny)
-
-        # perform shift
-        for n in range(1, mask.shape[1]):
-            actshift = n * shift
-            mask[:, n, :] = np.roll(mask[:, n, :], actshift)
-
-        # first reshape back
-        mask = mask.reshape(nzp1, accel[0] * ny)
-        mask = mask[:nzp0, :]
-
-        # second reshape back
-        mask = mask.reshape(nzp0 // accel[0], accel[0], ny)
-        mask = mask.reshape(nzp0, ny)
-        mask = mask[:nz, :]
-
-    # re-insert calibration region
-    if calib is not None:
-        # broadcast
-        if np.isscalar(calib):
-            calib = [calib, calib]
-
-        # cast tuple to list
-        calib = list(calib)
-
-        # reverse (cz, cy)
-        calib.reverse()
-
-        mask[
-            shape[0] // 2 - calib[0] // 2 : shape[0] // 2 + calib[0] // 2,
-            shape[1] // 2 - calib[1] // 2 : shape[1] // 2 + calib[1] // 2,
-        ] = 1
-
-    # crop corners
-    if crop_corner:
-        mask *= r
-
-    return mask.T  # (ny, nz)
-
-
-def _poisson_disk(
-    shape, accel, calib=None, crop_corner=True, seed=0, max_attempts=30, tol=0.1
-):
+def poisson_sampling3D(
+    shape: int | tuple[int],
+    accel: float | tuple[float] = 1.0,
+    calib: int | tuple[int] | None = None,
+    crop_corner: bool = True,
+    seed: int = 0,
+    max_attempts: int = 30,
+    tol: float = 0.1,
+) -> np.ndarray:
     """
     Generate variable-density Poisson-disc sampling pattern.
 
@@ -227,14 +37,14 @@ def _poisson_disk(
 
     Parameters
     ----------
-    shape : int | Tuple[int]
+    shape : int | tuple[int]
         Image shape along phase encoding dims ``(ny, nz)``.
         If scalar, assume equal size for ``y`` and ``z`` axes.
     accel : float | Tuple[float], optional
         Target acceleration factor along phase encoding dims ``(Ry, Rz)``.
         Must be ``>= 1``. If scalar, assume acceleration over ``y``
         only. The default is ``1`` (no acceleration).
-    calib : int | Tuple[int], optional
+    calib : int | tuple[int], optional
         Image shape along phase encoding dims ``(cy, cz)``.
         If scalar, assume equal size for ``y`` and ``z`` axes.
         The default is ``None`` (no calibration).

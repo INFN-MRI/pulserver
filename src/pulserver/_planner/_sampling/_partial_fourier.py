@@ -1,13 +1,15 @@
-"""Partial Fourier design routine."""
+"""Partial Fourier undersampling."""
 
 __all__ = ["partial_fourier"]
 
+
 import warnings
+
 
 import numpy as np
 
 
-def partial_fourier(shape, undersampling):
+def partial_fourier(shape: int, undersampling: float) -> np.ndarray:
     """
     Generate sampling pattern for Partial Fourier accelerated acquisition.
 
@@ -15,14 +17,14 @@ def partial_fourier(shape, undersampling):
     ----------
     shape : int
         Image shape along partial fourier axis.
-    undersampling :
-        Target undersampling factor. Must be > 0.5 (suggested > 0.7)
-        and <= 1 (=1: no PF).
+    undersampling : float
+        Target undersampling factor.
+        Must be > 0.5 (suggested > 0.7) and <= 1 (=1: no PF).
 
     Returns
     -------
-    mask : np.ndarray
-        Partial Fourier (1D) sampling mask.
+    np.array
+        Regular-grid sampling mask of shape ``(shape,)``.
 
     """
     # check
@@ -40,7 +42,7 @@ def partial_fourier(shape, undersampling):
         )
 
     # generate mask
-    mask = np.ones(shape, dtype=np.float32)
+    mask = np.ones(shape, dtype=bool)
 
     # cut mask
     edge = np.floor(np.asarray(shape) * np.asarray(undersampling))

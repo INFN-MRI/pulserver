@@ -45,6 +45,7 @@ dependencies = [
 "numba",
 "pypulseq",
 "pulpy",
+"mrinufft",
 "ismrmrd",
 "ipywidgets",
 ]
