@@ -31,7 +31,7 @@ def make_spiral_readout(
     fov : float
         Field of View in ``[mm]``.
     npix : int
-        Image matrix size.
+        Matrix size.
     narms : int, optional
         Number of interleaves. The default is ``1``.
     fs_npix : int, optional

@@ -25,8 +25,7 @@ def make_line_readout(
     fov : float
         Field of view in the readout direction in ``[mm]``.
     npix : int
-        Matrix size in the readout direction
-        If it is a scalar, assume square matrix.
+        Matrix size in the readout direction.
     osf : float, optional
         Readout oversampling factor. The default is ``1.0``.
     has_adc : bool, optional
