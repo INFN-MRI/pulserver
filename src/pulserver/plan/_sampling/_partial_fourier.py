@@ -33,8 +33,8 @@ def partial_fourier(shape: int, undersampling: float) -> np.ndarray:
             "undersampling must be greater than 0.5 and lower than 1, got"
             f" {undersampling}"
         )
-    if undersampling == 1:
-        warnings.warn("Undersampling factor set to 1 - no acceleration")
+    # if undersampling == 1:
+    #     warnings.warn("Undersampling factor set to 1 - no acceleration")
     if undersampling < 0.7:
         warnings.warn(
             f"Undersampling factor = {undersampling} < 0.7 - phase errors will"

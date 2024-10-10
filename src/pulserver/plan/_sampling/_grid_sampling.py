@@ -28,7 +28,7 @@ def grid_sampling2D(
     accel : float, optional
         Target acceleration factor along phase encoding dim ``Ry``.
         Must be ``>= 1``. The default is ``1`` (no acceleration).
-    calib : int | tuple[int], optional
+    calib : int | None = None, optional
         Image shape along phase encoding dim ``cy``.
         The default is ``None`` (no calibration).
 
@@ -107,10 +107,13 @@ def grid_sampling3D(
     r = np.sqrt((y / shape[-1]) ** 2 + (z / shape[-2]) ** 2) < 0.5
 
     # check
-    if accel[0] < 1:
-        raise ValueError(f"Ky acceleration must be >= 1, got {accel[0]}")
-    if accel[1] < 1:
-        raise ValueError(f"Kz acceleration must be >= 1, got {accel[1]}")
+    # if accel[0] < 1:
+    #     raise ValueError(f"Ky acceleration must be >= 1, got {accel[0]}")
+    # if accel[1] < 1:
+    #     raise ValueError(f"Kz acceleration must be >= 1, got {accel[1]}")
+    if np.all(np.asarray(accel) == 1):
+        return np.ones(shape, dtype=bool)
+
     if shift < 0:
         raise ValueError(f"CAPIRINHA shift must be positive, got {shift}")
     if shift > accel[1] - 1:

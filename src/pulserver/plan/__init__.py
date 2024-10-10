@@ -11,10 +11,12 @@ schemes.
 __all__ = []
 
 # RF phase cycling scheme
-from .phase_cycling import RfPhaseCycle  # noqa
+from ._phase_cycling import RfPhaseCycle  # noqa
 
 # Cartesian
-# from .cartesian3D import CaipirinhaSampling  # noqa
+from ._cartesian2D import cartesian2D  # noqa
+from ._cartesian3D import cartesian3D  # noqa
 
 __all__.append("RfPhaseCycle")
-# __all__.append("CaipirinhaSampling")
+__all__.append("cartesian2D")
+__all__.append("cartesian3D")

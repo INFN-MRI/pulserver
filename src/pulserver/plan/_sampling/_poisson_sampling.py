@@ -76,12 +76,19 @@ def poisson_sampling3D(
     if np.isscalar(shape):
         # assume square matrix (ky, kz)
         shape = [shape, shape, 1]
+    shape = list(shape)
     if len(shape) == 2:
         shape = shape + [1]
+
+    # cast tuple to lists
+    shape = list(shape)
 
     if calib is not None:
         if np.isscalar(calib):
             calib = [calib, calib]
+
+        # cast tuple to lists
+        calib = list(calib)
 
         # find actual calibration size
         if shape[-1] > 1:
@@ -92,8 +99,10 @@ def poisson_sampling3D(
         # reverse (cz, cy)
         calib.reverse()
 
-    if accel <= 1:
-        raise ValueError(f"accel must be greater than 1, got {accel}")
+    # if accel < 1:
+    #     raise ValueError(f"accel must be greater than 1, got {accel}")
+    if accel == 1:
+        return np.ones(shape, dtype=bool).squeeze()
 
     if seed is not None:
         rand_state = np.random.get_state()
@@ -156,7 +165,7 @@ def poisson_sampling3D(
     if seed is not None:
         np.random.set_state(rand_state)
 
-    return mask, actual_accel
+    return mask  # , actual_accel
 
 
 # %% local utils

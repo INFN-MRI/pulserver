@@ -9,7 +9,8 @@ import numpy as np
 import pypulseq as pp
 
 
-from pulserver import Sequence, RfPhaseCycle
+from pulserver import Sequence
+from pulserver.plan import RfPhaseCycle
 
 
 def SPGR2D(
