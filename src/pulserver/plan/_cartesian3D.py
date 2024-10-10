@@ -92,7 +92,8 @@ def cartesian3D(
 
     # Reorder views
     if view_order == "sequential":
-        pass
+        phase_encoding_ordering = np.arange(ny)
+        slice_encoding_ordering = np.arange(nz)
     elif view_order == "center-out":
         phase_encoding_ordering = _ordering.center_out(np.arange(ny))
         slice_encoding_ordering = _ordering.center_out(np.arange(nz))
@@ -109,15 +110,6 @@ def cartesian3D(
     )
     encoding_scaling = np.stack(encoding_scaling, axis=0)
 
-    # Combine ordering
-    if view_order == "center-out":
-        encoding_ordering = np.meshgrid(
-            phase_encoding_ordering,
-            slice_encoding_ordering,
-            indexing="xy",
-        )
-        encoding_ordering = np.stack([enc.ravel() for enc in encoding_ordering], axis=0)
-
     # Compute sampling mask for phase encoding
     sampling_pattern = (
         grid_sampling3D((ny, nz), (Ry, Rz), calib, shift, crop_corner)
@@ -125,37 +117,34 @@ def cartesian3D(
         * partial_fourier(ny, Rpf)
     )
 
-    # Apply undersampling
-    if view_order == "sequential":
-        encoding_scaling = np.stack(
-            [enc[sampling_pattern] for enc in encoding_scaling], axis=0
-        )
-        encoding_labels = sampling2labels(sampling_pattern)
-        encoding_labels = np.stack((encoding_labels[1], encoding_labels[0]), axis=0)
-    else:
-        mask = sampling_pattern.copy()
-        mask[np.logical_not(sampling_pattern)] = np.nan
-        encoding_scaling = np.stack(
-            [enc.ravel() * mask.ravel() for enc in encoding_scaling], axis=0
-        )
-        encoding_scaling = [encoding_scaling[n][encoding_ordering[n]] for n in range(2)]
-        encoding_scaling = np.stack(
-            [enc[np.logical_not(np.isnan(enc))] for enc in encoding_scaling], axis=0
-        )
+    # Initialize labels
+    encoding_labels = np.indices(sampling_pattern.shape)
 
-        encoding_labels = np.indices(sampling_pattern.shape)
-        encoding_labels = np.stack(
-            [enc.ravel() * mask.ravel() for enc in encoding_labels], axis=0
-        )
-        encoding_labels = [encoding_labels[n][encoding_ordering[n]] for n in range(2)]
-        encoding_labels = np.stack([enc[enc >= 0] for enc in encoding_labels], axis=0)
+    # Apply undersampling
+    mask = np.where(sampling_pattern == 0, np.nan, sampling_pattern)
+    encoding_scaling = np.stack([mask * enc for enc in encoding_scaling], axis=0)
+    encoding_labels = np.stack([mask * enc for enc in encoding_labels], axis=0)
+
+    # Sort coordinates
+    encoding_scaling[0] = encoding_scaling[0][:, phase_encoding_ordering]
+    encoding_scaling[1] = encoding_scaling[1][slice_encoding_ordering, :]
+    encoding_labels[0] = encoding_labels[0][phase_encoding_ordering, :]
+    encoding_labels[1] = encoding_labels[1][:, slice_encoding_ordering]
+
+    # Filter out unsampled locations
+    encoding_scaling = np.stack(
+        [enc[np.logical_not(np.isnan(enc))] for enc in encoding_scaling], axis=0
+    )
+    encoding_labels = np.stack(
+        [enc[np.logical_not(np.isnan(enc))] for enc in encoding_labels], axis=0
+    )
 
     # Unpack
     phase_encoding_scaling = encoding_scaling[0]
     slice_encoding_scaling = encoding_scaling[1]
 
-    phase_encoding_labels = encoding_labels[0]
-    slice_encoding_labels = encoding_labels[1]
+    phase_encoding_labels = encoding_labels[1].astype(int)
+    slice_encoding_labels = encoding_labels[0].astype(int)
 
     # Generate encoding iterator
     return (

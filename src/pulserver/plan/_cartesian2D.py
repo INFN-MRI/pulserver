@@ -137,8 +137,8 @@ def cartesian2D(
     # Generate encoding iterator
     return (
         Cartesian2DIterator(
-            (phase_encoding_scaling, phase_encoding_labels),
-            (slice_freq_offset, slice_labels),
+            (phase_encoding_scaling, phase_encoding_labels.astype(int)),
+            (slice_freq_offset, slice_labels.astype(int)),
             view_loop_position,
             dummy_shots,
         ),
