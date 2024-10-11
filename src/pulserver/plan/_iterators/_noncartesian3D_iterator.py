@@ -61,7 +61,7 @@ class NonCartesian3DIterator:
         view_enc: np.ndarray | tuple,
         dummy_shots=0,
     ):
-        args = view_enc
+        args = [view_enc]
 
         # input checking
         _check_iterator_input(args)

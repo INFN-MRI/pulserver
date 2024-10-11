@@ -42,5 +42,7 @@ def generate_tilt_angles(
     - ``"mri golden"``: tilt of the golden angle used in MRI :math:`\pi(\sqrt{5}-1)/2`
 
     """
+    if n_partitions is None:
+        n_partitions = n_angles
     dtheta = initialize_tilt(tilt, n_partitions)
     return dtheta * np.arange(n_angles) % (2 * np.pi)
