@@ -44,6 +44,7 @@ class RfPhaseCycle:
 
     Ported from:
     Shaihan Malik, July 2017
+
     """
 
     def __init__(self, num_pulses: int, phase_increment: float | str):
@@ -69,8 +70,15 @@ class RfPhaseCycle:
                 phase_pattern = np.concatenate((phase_pattern, [0]))
 
         self._count = 0
-        self._phase = np.deg2rad(phase_pattern)
+        _phase = np.deg2rad(phase_pattern)
+        self._phase = np.mod(_phase + np.pi, 2 * np.pi) - np.pi
 
-    def __call__(self):
+    def __call__(self):  # noqa
         self._count += 1
         return self._phase[self._count - 1]
+
+
+def _map_to_0_pi(angles):
+    angles = np.mod(angles, 360.0)
+    angles = np.where(angles > 180.0, 360.0 - angles, angles)
+    return angles
