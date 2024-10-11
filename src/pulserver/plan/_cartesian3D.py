@@ -14,8 +14,8 @@ from ._sampling import grid_sampling3D, partial_fourier, poisson_sampling3D
 def cartesian3D(
     ny: int,
     nz: int,
-    Ry: float = 1.0,
-    Rz: float = 1.0,
+    Ry: int = 1,
+    Rz: int = 1,
     shift: int = 0,
     Rp: float = 1.0,
     Rpf: float = 1.0,
@@ -39,12 +39,12 @@ def cartesian3D(
     ----------
     ny : int
         Number of phase encoding lines.
-    nslices : int
-        Number of slices.
-    Ry : float, optional
-        Parallel Imaging acceleration along y. The default is ``1.0`` (no acceleration).
-    Rz : float, optional
-        Parallel Imaging acceleration along z. The default is ``1.0`` (no acceleration).
+    nz : int
+        Number of slice encoding lines.
+    Ry : int, optional
+        Parallel Imaging acceleration along y. The default is ``1`` (no acceleration).
+    Rz : int, optional
+        Parallel Imaging acceleration along z. The default is ``1`` (no acceleration).
     shift : int, optional
         Caipirinha shift. The default is ``0`` (standard PI sampling).
     Rp : float, optional
@@ -82,8 +82,8 @@ def cartesian3D(
         Iterator to keep trace of the shot index. Used to retrieve
         gradient amplitude and data labeling at a specific point during
         the scan loop.
-    sampling_pattern : np.ndarray
-        Cartesian sampling pattern of shape ``(ny, nz)``.
+    tilt_angles : np.ndarray
+        Rotation angles of shape ``(nviews // Rtheta,)``.
 
     """
     # Compute phase encoding gradient scaling for each phase encoding step (from -0.5 to 0.5)
@@ -114,22 +114,22 @@ def cartesian3D(
     sampling_pattern = (
         grid_sampling3D((ny, nz), (Ry, Rz), calib, shift, crop_corner)
         * poisson_sampling3D((ny, nz), Rp, calib, crop_corner, seed, max_attempts, tol)
-        * partial_fourier(ny, Rpf)
+        * partial_fourier(nz, Rpf)
     )
 
     # Initialize labels
-    encoding_labels = np.indices(sampling_pattern.shape)
+    encoding_labels = np.indices(sampling_pattern.T.shape)
 
     # Apply undersampling
-    mask = np.where(sampling_pattern == 0, np.nan, sampling_pattern)
+    mask = np.where(sampling_pattern.T == 0, np.nan, sampling_pattern.T)
     encoding_scaling = np.stack([mask * enc for enc in encoding_scaling], axis=0)
     encoding_labels = np.stack([mask * enc for enc in encoding_labels], axis=0)
 
     # Sort coordinates
     encoding_scaling[0] = encoding_scaling[0][:, phase_encoding_ordering]
     encoding_scaling[1] = encoding_scaling[1][slice_encoding_ordering, :]
-    encoding_labels[0] = encoding_labels[0][phase_encoding_ordering, :]
-    encoding_labels[1] = encoding_labels[1][:, slice_encoding_ordering]
+    encoding_labels[0] = encoding_labels[0][:, phase_encoding_ordering]
+    encoding_labels[1] = encoding_labels[1][slice_encoding_ordering, :]
 
     # Filter out unsampled locations
     encoding_scaling = np.stack(

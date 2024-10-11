@@ -19,7 +19,7 @@ def generate_tilt_angles(
     n_angles : int
         Length of the generated tilt angle list.
     tilt : str or float
-        Tilt angle in ``[rad]]`` or name of the tilt.
+        Tilt angle in ``[rad]`` or name of the tilt.
     n_partitions : int, optional
         Number of partitions of the unit circle.
         If not provided, assume it is equal to ``n_angles``.

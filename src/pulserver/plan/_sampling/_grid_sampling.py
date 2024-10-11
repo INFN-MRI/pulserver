@@ -13,7 +13,7 @@ import numpy as np
 
 def grid_sampling2D(
     shape: int,
-    accel: float,
+    accel: int,
     calib: int = None,
 ) -> np.ndarray:
     """
@@ -25,7 +25,7 @@ def grid_sampling2D(
     ----------
     shape : int | tuple[int]
         Image shape along phase encoding dim ``ny``.
-    accel : float, optional
+    accel : int, optional
         Target acceleration factor along phase encoding dim ``Ry``.
         Must be ``>= 1``. The default is ``1`` (no acceleration).
     calib : int | None = None, optional
@@ -54,7 +54,7 @@ def grid_sampling2D(
 
 def grid_sampling3D(
     shape: int | tuple[int],
-    accel: float | tuple[float] = 1.0,
+    accel: int | tuple[int] = 1.0,
     calib: int | tuple[int] | None = None,
     shift: int = 0,
     crop_corners: bool = True,
@@ -69,7 +69,7 @@ def grid_sampling3D(
     shape : int | tuple[int]
         Image shape along phase encoding dims ``(ny, nz)``.
         If scalar, assume equal size for ``y`` and ``z`` axes.
-    accel : float | tuple[float], optional
+    accel : int | tuple[int], optional
         Target acceleration factor along phase encoding dims ``(Ry, Rz)``.
         Must be ``>= 1``. If scalar, assume acceleration over ``y``
         only. The default is ``1`` (no acceleration).
@@ -177,4 +177,4 @@ def grid_sampling3D(
     if crop_corners:
         mask *= r
 
-    return mask.T  # (ny, nz)
+    return mask  # (ny, nz)

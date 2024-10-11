@@ -131,3 +131,7 @@ class Cartesian3DIterator:
             return scale, head
 
         return scale
+
+    def reset(self):
+        """reset count to 0."""
+        self.count = 0

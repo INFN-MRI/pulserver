@@ -20,7 +20,7 @@ def cartesian2D(
     slice_gap: float,
     ny: int,
     n_slices: int,
-    Ry: float = 1.0,
+    Ry: int = 1,
     Rpf: float = 1.0,
     calib: int | None = None,
     view_order: str = "sequential",
@@ -50,10 +50,10 @@ def cartesian2D(
         Slice gap in ``[m]``.
     ny : int
         Number of phase encoding lines.
-    nslices : int
+    n_slices : int
         Number of slices.
-    Ry : float, optional
-        Parallel Imaging acceleration. The default is ``1.0`` (no acceleration).
+    Ry : int, optional
+        Parallel Imaging acceleration. The default is ``1`` (no acceleration).
     Rpf : float, optional
         Partial Fourier acceleration. The default is ``1.0`` (no acceleration).
         Must be > 0.5 (suggested > 0.7) and <= 1 (=1: no PF).
@@ -86,7 +86,7 @@ def cartesian2D(
 
     Returns
     -------
-    Cartesian2DIterator : object
+    NonCartesian2DIterator : object
         Iterator to keep trace of the shot index. Used to retrieve
         gradient amplitude and data labeling at a specific point during
         the scan loop.
@@ -106,7 +106,7 @@ def cartesian2D(
     if slice_order == "sequential":
         pass
     elif slice_order == "interleaved":
-        phase_encoding_scaling = _ordering.interleaved(slice_freq_offset)
+        slice_freq_offset = _ordering.interleaved(slice_freq_offset)
         slice_labels = _ordering.interleaved(slice_labels)
     else:
         raise ValueError(

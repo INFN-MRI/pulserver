@@ -165,7 +165,7 @@ def poisson_sampling3D(
     if seed is not None:
         np.random.set_state(rand_state)
 
-    return mask  # , actual_accel
+    return mask.T  # , actual_accel
 
 
 # %% local utils
