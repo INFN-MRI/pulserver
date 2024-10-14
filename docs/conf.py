@@ -32,7 +32,7 @@ author = "Pulserver Contributors"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-	"matplotlib.sphinxext.plot_directive",
+    "matplotlib.sphinxext.plot_directive",
     "myst_nb",
     "sphinx_copybutton",
     "sphinx.ext.duration",
@@ -83,26 +83,26 @@ highlight_language = "python"
 # -- Options for Sphinx Gallery ----------------------------------------------
 
 # sphinx_gallery_conf = {
-    # "doc_module": "pulserver",
-    # "backreferences_dir": "generated/gallery_backreferences",
-    # "reference_url": {"pulserver": None},
-    # "examples_dirs": ["../examples/"],
-    # "gallery_dirs": ["generated/autoexamples"],
-    # "filename_pattern": "/example_",
-    # "ignore_pattern": r"(__init__|conftest|utils).py",
-    # "nested_sections": True,
-    # "binder": {
-        # "org": "infn-mri",
-        # "repo": "pulserver",
-        # "branch": "gh-pages",
-        # "binderhub_url": "https://mybinder.org",
-        # "dependencies": [
-            # "./binder/apt.txt",
-            # "./binder/environment.yml",
-        # ],
-        # "notebooks_dir": "examples",
-        # "use_jupyter_lab": True,
-    # },
+# "doc_module": "pulserver",
+# "backreferences_dir": "generated/gallery_backreferences",
+# "reference_url": {"pulserver": None},
+# "examples_dirs": ["../examples/"],
+# "gallery_dirs": ["generated/autoexamples"],
+# "filename_pattern": "/example_",
+# "ignore_pattern": r"(__init__|conftest|utils).py",
+# "nested_sections": True,
+# "binder": {
+# "org": "infn-mri",
+# "repo": "pulserver",
+# "branch": "gh-pages",
+# "binderhub_url": "https://mybinder.org",
+# "dependencies": [
+# "./binder/apt.txt",
+# "./binder/environment.yml",
+# ],
+# "notebooks_dir": "examples",
+# "use_jupyter_lab": True,
+# },
 # }
 
 # intersphinx_mapping = {

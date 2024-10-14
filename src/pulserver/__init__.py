@@ -6,6 +6,7 @@ from pypulseq import Opts  # noqa
 
 from . import blocks  # noqa
 from . import plan  # noqa
+from . import sequences  # noqa
 
 from . import _server  # noqa
 
