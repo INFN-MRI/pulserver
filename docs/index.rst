@@ -6,14 +6,8 @@
    :caption: User Guides
 
    getting_started
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: Examples
-
-   generated/autoexamples/index
-
+   hands-on
+   
 .. toctree::
    :hidden:
    :caption: API References

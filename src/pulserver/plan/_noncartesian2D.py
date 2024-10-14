@@ -20,9 +20,9 @@ from ._sampling import generate_tilt_angles
 def noncartesian2D(
     g_slice_select: SimpleNamespace,
     slice_thickness: float,
-    slice_gap: float,
     n_views: int,
     n_slices: int,
+    slice_gap: float = 0.0,
     Rtheta: float = 1.0,
     view_order: str = "mri-golden",
     slice_order: str = "interleaved",
@@ -45,13 +45,13 @@ def noncartesian2D(
     g_slice_select : SimpleNamespace
         PyPulseq slice selection event.
     slice_thickness : float
-        Slice thickness in ``[m]``.
-    slice_gap : float
-        Slice gap in ``[m]``.
+        Slice thickness in ``[mm]``.
     n_views : int
         Number of readouts.
     n_slices : int
         Number of slices.
+    slice_gap : float
+        Slice gap in ``[mm]``.
     Rtheta : float, optional
         Angular undersampling factor. The default is ``1.0`` (no acceleration).
     view_order : str, optional
@@ -96,11 +96,16 @@ def noncartesian2D(
 
     """
     # Compute RF frequency offsets for each slice (in [Hz/m])
-    slice_coverage = n_slices * (slice_thickness + slice_gap)  # total z coverage in [m]
-    slice_freq_offset = (
-        np.linspace(-slice_coverage / 2, slice_coverage / 2, n_slices)
-        * g_slice_select.amplitude
-    )
+    slice_coverage = (
+        n_slices * (slice_thickness + slice_gap) * 1e-3
+    )  # total z coverage in [m]
+    if n_slices != 1:
+        slice_freq_offset = (
+            np.linspace(-slice_coverage / 2, slice_coverage / 2, n_slices)
+            * g_slice_select.amplitude
+        )
+    else:
+        slice_freq_offset = np.asarray([0.0])
     slice_labels = np.arange(n_slices)
 
     # Reorder slices

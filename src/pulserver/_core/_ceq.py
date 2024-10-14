@@ -287,6 +287,12 @@ class Ceq:
 
         return bytes_data
 
+    def export(self, dformat="file"):  # noqa
+        if dformat == "bytes":
+            return self.to_bytes(endian=">")
+        elif dformat == "file":
+            return self.to_bytes(endian="<")
+
 
 @dataclass
 class SequenceParams:

@@ -26,7 +26,7 @@ def test_cartesian2D_basic(
     ny, n_slices, slice_thickness, slice_gap, Ry, Rpf, g_slice_select
 ):
     result, sampling_pattern = cartesian2D(
-        g_slice_select, slice_thickness, slice_gap, ny, n_slices, Ry=Ry, Rpf=Rpf
+        g_slice_select, slice_thickness, ny, n_slices, slice_gap, Ry=Ry, Rpf=Rpf
     )
 
     # Check that the sampling pattern is an ndarray of the correct length
@@ -52,9 +52,9 @@ def test_cartesian2D_view_slice_order(view_order, slice_order, g_slice_select):
     result, sampling_pattern = cartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         ny,
         n_slices,
+        slice_gap,
         view_order=view_order,
         slice_order=slice_order,
     )
@@ -74,9 +74,9 @@ def test_cartesian2D_dummy_shots(dummy_shots, g_slice_select):
     result, sampling_pattern = cartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         ny,
         n_slices,
+        slice_gap,
         dummy_shots=dummy_shots,
     )
 
@@ -92,7 +92,7 @@ def test_cartesian2D_default_params(g_slice_select):
     slice_gap = 0.0
 
     result, sampling_pattern = cartesian2D(
-        g_slice_select, slice_thickness, slice_gap, ny, n_slices
+        g_slice_select, slice_thickness, ny, n_slices, slice_gap
     )
 
     # Check that the sampling pattern is an ndarray of the correct length

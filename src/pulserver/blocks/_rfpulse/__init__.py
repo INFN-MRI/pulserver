@@ -120,7 +120,7 @@ def make_slr_pulse(
     flip_angle : float
         Flip angle in degrees.
     slice_thickness : float
-        Slice thickness in (m) of accompanying slice select trapezoidal event.
+        Slice thickness in (mm) of accompanying slice select trapezoidal event.
         The slice thickness determines the area of the slice select event.
     duration : float, optional
         Duration in seconds (s).
@@ -207,7 +207,7 @@ def make_slr_pulse(
         0,
         0,
         True,
-        slice_thickness,
+        slice_thickness * 1e-3,
         system,
         time_bw_product,
         pulse_cfg,

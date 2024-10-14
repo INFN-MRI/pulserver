@@ -28,9 +28,9 @@ def test_noncartesian2D_basic(n_views, n_slices, Rtheta, view_order, g_slice_sel
     result, rotmat = noncartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         n_views,
         n_slices,
+        slice_gap,
         Rtheta=Rtheta,
         view_order=view_order,
     )
@@ -50,9 +50,9 @@ def test_noncartesian2D_slice_order(slice_order, g_slice_select):
     result, rotmat = noncartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         n_views,
         n_slices,
+        slice_gap,
         slice_order=slice_order,
     )
 
@@ -71,9 +71,9 @@ def test_noncartesian2D_view_loop_position(view_loop_position, g_slice_select):
     result, rotmat = noncartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         n_views,
         n_slices,
+        slice_gap,
         view_loop_position=view_loop_position,
     )
 
@@ -92,9 +92,9 @@ def test_noncartesian2D_dummy_shots(dummy_shots, g_slice_select):
     result, rotmat = noncartesian2D(
         g_slice_select,
         slice_thickness,
-        slice_gap,
         n_views,
         n_slices,
+        slice_gap,
         dummy_shots=dummy_shots,
     )
 
@@ -110,7 +110,7 @@ def test_noncartesian2D_default_params(g_slice_select):
     n_slices = 32
 
     result, rotmat = noncartesian2D(
-        g_slice_select, slice_thickness, slice_gap, n_views, n_slices
+        g_slice_select, slice_thickness, n_views, n_slices, slice_gap
     )
 
     # Check that the rotation matrix is an ndarray of the correct shape

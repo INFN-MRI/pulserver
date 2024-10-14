@@ -13,8 +13,7 @@ def make_spoiler_gradient(
     channel: str,
     system: pp.Opts,
     ncycles: int,
-    fov: float,
-    npix: int,
+    voxel_size: float,
     duration: float | None = None,
 ) -> SimpleNamespace:
     """
@@ -26,14 +25,12 @@ def make_spoiler_gradient(
     channel : str
         Phase encoding axis. Must be
         one between ``x``, ``y`` and `z``.
-    ncycles : int
-        Number of spoiling cycles per voxel.
     system : pypulseq.Opts
         System limits.
-    fov : float
-        Field of view in the spoiling direction in ``[mm]``.
-    npix : int
-        Matrix size in the spoiling direction.
+    ncycles : int
+        Number of spoiling cycles per voxel.
+    voxel_size : float
+        Voxel size in the spoiling direction in ``[mm]``.
     duration : float | None, optional
         Duration of spoiling gradient in ``[s]``.
         If not provided, use minimum duration
@@ -50,18 +47,18 @@ def make_spoiler_gradient(
     if channel not in ["x", "y", "z"]:
         raise ValueError(f"Unrecognized channel {channel} - must be 'x', 'y', or 'z'.")
 
-    # k space area
-    dr = fov / npix
+    # # k space area
+    # dr = fov / npix
 
     # prepare phase encoding gradient lobe
     if duration:
         return pp.make_trapezoid(
             channel=channel,
-            area=(ncycles * np.pi / dr),
+            area=(ncycles * np.pi / voxel_size),
             system=system,
             duration=duration,
         )
 
     return pp.make_trapezoid(
-        channel=channel, area=(ncycles * np.pi / dr), system=system
+        channel=channel, area=(ncycles * np.pi / voxel_size), system=system
     )

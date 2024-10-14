@@ -24,24 +24,34 @@ class Sequence:
 
     """
 
-    def __init__(self, system: SimpleNamespace, format: str | bool):
+    def __init__(self, system: SimpleNamespace, platform: str):
         self._system = system
-        self._format = format
 
-        if self._format == "pulseq":
+        if platform == "pulseq":
+            platform = "siemens"
+        elif platform == "toppe":
+            platform = "gehc"
+
+        self._format = platform
+
+        if self._format == "siemens":
             self._sequence = pp.Sequence(system=system)
-        else:
+        elif self._format == "gehc":
             self._loop = []
-
-        if self._format == "pulseq":
-            self._block_library = {"delay": {}}
         else:
+            raise ValueError(
+                f"Accepted platforms are currently 'siemens'/'pulseq' and 'gehc'/'toppe' - found {platform}."
+            )
+
+        if self._format == "siemens":
+            self._block_library = {"delay": {}}
+        elif self._format == "gehc":
             self._block_library = {"delay": PulseqBlock(ID=0)}
 
         self._section_labels = []
         self._sections_edges = []
 
-    def register_block(
+    def register_block(  # noqa
         self,
         name: str,
         rf: SimpleNamespace | None = None,
@@ -53,11 +63,11 @@ class Sequence:
         delay: SimpleNamespace | None = None,
     ):
         # sanity checks
-        if self._format == "pulseq":
+        if self._format == "siemens":
             assert (
                 len(self._sequence.block_events) == 0
             ), "Please define all the events before building the loop."
-        else:
+        elif self._format == "gehc":
             assert (
                 len(self._loop) == 0
             ), "Please define all the events before building the loop."
@@ -80,7 +90,7 @@ class Sequence:
             ), f"z-gradient waveform is directed towards {gz.channel}"
 
         # update block library
-        if self._format == "pulseq":
+        if self._format == "siemens":
             self._block_library[name] = {}
             if rf is not None:
                 self._block_library[name]["rf"] = deepcopy(rf)
@@ -96,23 +106,23 @@ class Sequence:
                 self._block_library[name]["trig"] = deepcopy(trig)
             if delay is not None:
                 self._block_library[name]["delay"] = deepcopy(delay)
-        else:
+        elif self._format == "gehc":
             ID = len(self._block_library)
             self._block_library[name] = PulseqBlock(
                 ID, rf, gx, gy, gz, adc, trig, delay
             )
 
-    def section(self, name: str):
+    def section(self, name: str):  # noqa
         assert (
             name not in self._section_labels
         ), f"Section {name} already exists - please use another name."
-        if self._format == "pulseq":
+        if self._format == "siemens":
             _current_seqlength = len(self._sequence.block_events)
-        else:
+        elif self._format == "gehc":
             _current_seqlength = len(self._loop)
         self._sections_edges.append(_current_seqlength)
 
-    def add_block(
+    def add_block(  # noqa
         self,
         name: str,
         gx_amp: float = 1.0,
@@ -126,7 +136,7 @@ class Sequence:
         rotmat: np.ndarray | None = None,
     ):
         assert name in self._block_library, f"Requested block {name} not found!"
-        if self._format == "pulseq":
+        if self._format == "siemens":
             if name == "delay":
                 if delay is None:
                     raise ValueError("Missing 'delay' input for pure delay block.")
@@ -182,7 +192,7 @@ class Sequence:
                 # update sequence structure
                 self._sequence.add_block(*current_block.values())
 
-        else:
+        elif self._format == "gehc":
             parent_block_id = self._block_library[name].ID
             if name == "delay":
                 if delay is None:
@@ -244,8 +254,8 @@ class Sequence:
                 )
             self._loop.append(loop_row)
 
-    def export(self):
-        if self._format == "pulseq":
+    def build(self):  # noqa
+        if self._format == "siemens":
             return self._sequence
 
         # prepare Ceq structure
@@ -254,12 +264,6 @@ class Sequence:
             self._loop,
             self._sections_edges,
         )
-
-        # if required, dump to bytes string
-        if self._format == "bytes":
-            self._sequence = self._sequence.to_bytes(endian=">")
-        elif self._format == "file":
-            self._sequence = self._sequence.to_bytes(endian="<")
 
         return self._sequence
 

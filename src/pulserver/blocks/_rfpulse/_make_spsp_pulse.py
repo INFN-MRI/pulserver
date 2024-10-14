@@ -46,12 +46,12 @@ def make_spsp_pulse(
     system : Opts
         System limits.
     flip_angle : float | Iterable[float]
-        Flip angle specification for each spectral band, in ``[rad]``.
+        Flip angle specification for each spectral band, in ``[deg]``.
         For water selective pulses (``spectral_band_edges="water"``),
         if the user provides a scalar, we assume that the flip angle refers
-        to water and fat flip angle is ``0.0 [rad]``.
+        to water and fat flip angle is ``0.0 [deg]``.
     slice_thickness : float
-        Thickness of the slice in ``[m]``.
+        Thickness of the slice in ``[mm]``.
     spectral_band_edges : Iterable[float] | str, optional
         Frequency band edge specification in ``[Hz]``.
         Can also be a string (e.g., ``"water"``),
@@ -104,6 +104,8 @@ def make_spsp_pulse(
             f"Invalid use parameter. Must be one of {valid_pulse_uses}. Passed: {use}"
         )
 
+    slice_thickness *= 1e-3
+    flip_angle = np.deg2rad(flip_angle)
     gamma = system.gamma
     raster_time = system.grad_raster_time
     system.rf_raster_time = raster_time

@@ -17,9 +17,9 @@ from ._sampling import grid_sampling2D, partial_fourier
 def cartesian2D(
     g_slice_select: SimpleNamespace,
     slice_thickness: float,
-    slice_gap: float,
     ny: int,
     n_slices: int,
+    slice_gap: float = 0.0,
     Ry: int = 1,
     Rpf: float = 1.0,
     calib: int | None = None,
@@ -45,13 +45,13 @@ def cartesian2D(
     g_slice_select : SimpleNamespace
         PyPulseq slice selection event.
     slice_thickness : float
-        Slice thickness in ``[m]``.
-    slice_gap : float
-        Slice gap in ``[m]``.
+        Slice thickness in ``[mm]``.
     ny : int
         Number of phase encoding lines.
     n_slices : int
         Number of slices.
+    slice_gap : float
+        Slice gap in ``[mm]``.
     Ry : int, optional
         Parallel Imaging acceleration. The default is ``1`` (no acceleration).
     Rpf : float, optional
@@ -95,11 +95,16 @@ def cartesian2D(
 
     """
     # Compute RF frequency offsets for each slice (in [Hz/m])
-    slice_coverage = n_slices * (slice_thickness + slice_gap)  # total z coverage in [m]
-    slice_freq_offset = (
-        np.linspace(-slice_coverage / 2, slice_coverage / 2, n_slices)
-        * g_slice_select.amplitude
-    )
+    slice_coverage = (
+        n_slices * (slice_thickness + slice_gap) * 1e-3
+    )  # total z coverage in [m]
+    if n_slices != 1:
+        slice_freq_offset = (
+            np.linspace(-slice_coverage / 2, slice_coverage / 2, n_slices)
+            * g_slice_select.amplitude
+        )
+    else:
+        slice_freq_offset = np.asarray([0.0])
     slice_labels = np.arange(n_slices)
 
     # Reorder slices
@@ -114,7 +119,7 @@ def cartesian2D(
         )
 
     # Compute phase encoding gradient scaling for each phase encoding step (from -0.5 to 0.5)
-    phase_encoding_scaling = ((np.arange(ny)) - (ny / 2)) / ny
+    phase_encoding_scaling = ((np.arange(ny)) - (ny // 2)) / ny
 
     # Compute sampling mask for phase encoding
     sampling_pattern = grid_sampling2D(ny, Ry, calib) * partial_fourier(ny, Rpf)

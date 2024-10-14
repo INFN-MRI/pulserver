@@ -42,6 +42,7 @@ classifiers = [  # Optional
 
 dependencies = [
 "numpy<2.0",
+"scipy<1.14",
 "numba",
 "pypulseq",
 "pulpy",

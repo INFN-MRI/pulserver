@@ -69,13 +69,16 @@ class RfPhaseCycle:
                 phase_pattern = np.tile(np.asarray([0, np.pi]), num_pulses // 2)
                 phase_pattern = np.concatenate((phase_pattern, [0]))
 
-        self._count = 0
         _phase = np.deg2rad(phase_pattern)
         self._phase = np.mod(_phase + np.pi, 2 * np.pi) - np.pi
+        self.count = 0
 
     def __call__(self):  # noqa
-        self._count += 1
-        return self._phase[self._count - 1]
+        self.count += 1
+        return self._phase[self.count - 1]
+
+    def reset(self):  # noqa
+        self.count = 0
 
 
 def _map_to_0_pi(angles):

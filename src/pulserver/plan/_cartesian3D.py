@@ -87,8 +87,8 @@ def cartesian3D(
 
     """
     # Compute phase encoding gradient scaling for each phase encoding step (from -0.5 to 0.5)
-    phase_encoding_scaling = ((np.arange(ny)) - (ny / 2)) / ny
-    slice_encoding_scaling = ((np.arange(nz)) - (nz / 2)) / nz
+    phase_encoding_scaling = ((np.arange(ny)) - (ny // 2)) / ny
+    slice_encoding_scaling = ((np.arange(nz)) - (nz // 2)) / nz
 
     # Reorder views
     if view_order == "sequential":
