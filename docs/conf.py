@@ -32,6 +32,8 @@ author = "Pulserver Contributors"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+	"matplotlib.sphinxext.plot_directive",
+    "myst_nb",
     "sphinx_copybutton",
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
@@ -42,9 +44,18 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    "sphinx_gallery.gen_gallery",
     "sphinx_add_colab_link",
 ]
+
+# -- Options for plot_directive extension ------------------------------------
+plot_include_source = True
+plot_html_show_source_link = True
+# plot_formats = [("png", 90)]
+
+# -- Options for nbsphinx extension ------------------------------------------
+# If the notebooks take a long time to run, pre-run them and save the outputs. The following line tells nbsphinx not to
+# re-run them during the build process.
+nbsphinx_execute = "never"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -57,7 +68,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # generate autosummary even if no references
 autosummary_generate = True
-# autosummary_imported_members = True
 autodoc_inherit_docstrings = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
@@ -72,28 +82,28 @@ highlight_language = "python"
 
 # -- Options for Sphinx Gallery ----------------------------------------------
 
-sphinx_gallery_conf = {
-    "doc_module": "mrtwin",
-    "backreferences_dir": "generated/gallery_backreferences",
-    "reference_url": {"mrtwin": None},
-    "examples_dirs": ["../examples/"],
-    "gallery_dirs": ["generated/autoexamples"],
-    "filename_pattern": "/example_",
-    "ignore_pattern": r"(__init__|conftest|utils).py",
-    "nested_sections": True,
-    "binder": {
-        "org": "infn-mri",
-        "repo": "pulserver",
-        "branch": "gh-pages",
-        "binderhub_url": "https://mybinder.org",
-        "dependencies": [
-            "./binder/apt.txt",
-            "./binder/environment.yml",
-        ],
-        "notebooks_dir": "examples",
-        "use_jupyter_lab": True,
-    },
-}
+# sphinx_gallery_conf = {
+    # "doc_module": "pulserver",
+    # "backreferences_dir": "generated/gallery_backreferences",
+    # "reference_url": {"pulserver": None},
+    # "examples_dirs": ["../examples/"],
+    # "gallery_dirs": ["generated/autoexamples"],
+    # "filename_pattern": "/example_",
+    # "ignore_pattern": r"(__init__|conftest|utils).py",
+    # "nested_sections": True,
+    # "binder": {
+        # "org": "infn-mri",
+        # "repo": "pulserver",
+        # "branch": "gh-pages",
+        # "binderhub_url": "https://mybinder.org",
+        # "dependencies": [
+            # "./binder/apt.txt",
+            # "./binder/environment.yml",
+        # ],
+        # "notebooks_dir": "examples",
+        # "use_jupyter_lab": True,
+    # },
+# }
 
 # intersphinx_mapping = {
 #     "python": ("https://docs.python.org/3", None),

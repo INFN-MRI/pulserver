@@ -4,7 +4,7 @@ Developing Pulserver
 Developement environment
 ------------------------
 
-We recommend to use a virtual environement (e.g., Conda), and install mrtwin and its dependencies in it.
+We recommend to use a virtual environement (e.g., Conda), and install pulserver and its dependencies in it.
 
 
 Running tests
