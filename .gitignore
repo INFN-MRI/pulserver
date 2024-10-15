@@ -21,5 +21,6 @@ tmp/
 
 docs/generated/
 docs_build/
+jupyter_execute/
 
 src/pulserver/_version.py

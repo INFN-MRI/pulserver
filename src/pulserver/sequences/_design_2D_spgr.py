@@ -9,9 +9,9 @@ import numpy as np
 import pypulseq as pp
 
 
-from pulserver import Sequence
-from pulserver import blocks
-from pulserver import plan
+from .._core import Sequence
+from .. import blocks
+from .. import plan
 
 
 def design_2D_spgr(
