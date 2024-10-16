@@ -40,6 +40,10 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [test]
     steps:
+      - name: Install dependencies
+        run: |
+          pip install .[doc, sphinx]
+      
       - name: Build API documentation
         run: |
           python -m sphinx docs docs_build
