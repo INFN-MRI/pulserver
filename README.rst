@@ -5,7 +5,7 @@ Pulserver
 .. |Coverage| image:: https://codecov.io/gh/INFN-MRI/pulserver/graph/badge.svg?token=qtB53xANwI 
  :target: https://codecov.io/gh/INFN-MRI/pulserver
 
-.. |CI/CD| image:: https://github.com/INFN-MRI/pulserver/workflows/CI/badge.svg
+.. |CI/CD| image:: https://github.com/INFN-MRI/pulserver/workflows/CI-CD/badge.svg
    :target: https://github.com/INFN-MRI/pulserver
 
 .. |License| image:: https://img.shields.io/github/license/INFN-MRI/pulserver
