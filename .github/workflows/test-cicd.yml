@@ -1,0 +1,65 @@
+name: CI/CD
+
+on: 
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    strategy:
+      matrix:
+        python-version: [3.10, 3.12]  # Specify the desired Python versions
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install .[test]
+
+      - name: Run tests
+        run: pytest --cov --cov-report=xml tests
+		
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token:  ${{ secrets.CODECOV_TOKEN }}
+          slug: INFN-MRI/pulserver
+		  
+  docs:
+    runs-on: ubuntu-20.04
+    needs: [test]
+    steps:
+      - name: Get the docs_build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs_final
+          path: docs_build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+		  
+      - name: Display structure of docs
+        run: ls -R docs_build/
+		  
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs_build
+          destination_dir: .  # Ensure you deploy to the root of the gh-pages branch
+          publish_branch: gh-pages
+          keep_files: false
+		
+	
+		

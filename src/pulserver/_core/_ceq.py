@@ -21,29 +21,44 @@ SEGMENT_RINGDOWN_TIME = 116 * 1e-6  # TODO: doesn't have to be hardcoded
 class PulseqShapeArbitrary:
     n_samples: int
     raster: float
+    time: np.ndarray
     magnitude: np.ndarray
     phase: np.ndarray | None = None
+    amplitude: float | None = None
 
     def __post_init__(self):
         self.magnitude = np.asarray(self.magnitude, dtype=np.float32)
+        self.time = (
+            np.asarray(self.time, dtype=np.float32) if self.time is not None else None
+        )
         self.phase = (
             np.asarray(self.phase, dtype=np.float32) if self.phase is not None else None
         )
 
-    def to_bytes(self, endian=">") -> bytes:
-        if self.phase is not None:
-            return (
-                struct.pack(endian + "i", self.n_samples)
-                + struct.pack(endian + "f", self.raster)
-                + self.magnitude.astype(endian + "f4").tobytes()
-                + self.phase.astype(endian + "f4").tobytes()
-            )
+        # determine amplitude and normalize waveform
+        self.amplitude = abs(self.magnitude).max()
+        self.magnitude *= 32767 / self.amplitude
 
-        return (
-            struct.pack(endian + "i", self.n_samples)
-            + struct.pack(endian + "f", self.raster)
-            + self.magnitude.astype(endian + "f4").tobytes()
+    def to_bytes(self, endian=">") -> bytes:
+        _bytes = struct.pack(endian + "i", self.n_samples) + struct.pack(
+            endian + "f", self.raster
         )
+
+        # add time
+        if self.time is not None:
+            _bytes += self.time.astype(endian + "f4").tobytes()
+
+        # add magnitude
+        _bytes += self.magnitude.astype(endian + "f4").tobytes()
+
+        # add phase
+        if self.phase is not None:
+            _bytes += self.phase.astype(endian + "f4").tobytes()
+
+        # add amplitude
+        _bytes += struct.pack(endian + "f", self.amplitude)
+
+        return _bytes
 
 
 @dataclass
@@ -80,13 +95,25 @@ class PulseqRF:
     @classmethod
     def from_struct(cls, data: SimpleNamespace) -> "PulseqRF":
         n_samples = data.signal.shape[0]
-        raster = np.diff(data.t)[0]
+
+        # determine whether wave is arbitrary or extended trap
+        dt = np.unique(np.diff(np.round(data.t * 1e6))) / 1e6
+
+        if len(dt) == 1:  # uniform raster -> arbitrary shape
+            type = 1
+            raster = dt.item()
+            time = None
+        else:  # non-uniform raster -> extended trapezoid
+            type = 2
+            raster = 0.0
+            time = data.t
+
         rho = np.abs(data.signal)
         theta = np.angle(data.signal)
 
         return cls(
-            type=1,
-            wav=PulseqShapeArbitrary(n_samples, raster, rho, theta),
+            type=type,
+            wav=PulseqShapeArbitrary(n_samples, raster, time, rho, theta),
             duration=data.shape_dur,
             delay=data.delay,
         )
@@ -107,17 +134,32 @@ class PulseqGrad:
 
     @classmethod
     def from_struct(cls, data: SimpleNamespace) -> "PulseqGrad":
+        print(data)
         if data.type == "trap":
             type = 1
             shape_obj = PulseqShapeTrap(
                 data.amplitude, data.rise_time, data.flat_time, data.fall_time
             )
         elif data.type == "grad":
-            type = 2
             n_samples = data.waveform.shape[0]
-            raster = np.diff(data.tt)[0]
+
+            # determine whether wave is arbitrary or extended trap
+            dt = np.unique(np.diff(np.round(data.tt * 1e6))) / 1e6
+
+            if len(dt) == 1:  # uniform raster -> arbitrary shape
+                print("arbitrary")
+                type = 2
+                raster = dt.item()
+                time = None
+            else:  # non-uniform raster -> extended trapezoid
+                print("extended")
+                type = 3
+                raster = 0.0
+                time = data.tt
+
             waveform = data.waveform
-            shape_obj = PulseqShapeArbitrary(n_samples, raster, waveform)
+            shape_obj = PulseqShapeArbitrary(n_samples, raster, time, waveform)
+
         return cls(type=type, delay=data.delay, shape=shape_obj)
 
 
@@ -196,7 +238,7 @@ class PulseqBlock:
         self.adc = PulseqADC.from_struct(adc) if adc else None
         self.trig = PulseqTrig.from_struct(trig) if trig else None
 
-    def to_bytes(self, endian=">") -> bytes:
+    def to_bytes(self, endian=">") -> bytes:  # noqa
         bytes_data = struct.pack(endian + "i", self.ID) + struct.pack(
             endian + "f", self.duration
         )
@@ -269,7 +311,7 @@ class Ceq:
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
         self.n_readouts = int(np.sum(loop[:, -2]))
 
-    def to_bytes(self, endian=">") -> bytes:
+    def to_bytes(self, endian=">") -> bytes:  # noqa
         bytes_data = (
             struct.pack(endian + "i", self.n_max)
             + struct.pack(endian + "h", self.n_parent_blocks)
@@ -485,11 +527,7 @@ def _build_segments(loop, sections_edges):
 
 def _find_b1_max(parent_blocks):
     return np.max(
-        [
-            max(abs(block.rf.wav.magnitude))
-            for block in parent_blocks
-            if block.rf is not None
-        ]
+        [block.rf.wav.amplitude for block in parent_blocks if block.rf is not None]
     )
 
 
