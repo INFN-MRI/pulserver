@@ -1,0 +1,1182 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example &#8212; Pulserver Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'hands-on';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API References" href="api.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Pulserver Documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Pulserver
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API References</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.Sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.SequenceParams.html">SequenceParams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.Opts.html">Opts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_hard_pulse.html">make_hard_pulse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_slr_pulse.html">make_slr_pulse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_spsp_pulse.html">make_spsp_pulse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_line_readout.html">make_line_readout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_spiral_readout.html">make_spiral_readout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_phase_encoding.html">make_phase_encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/pulserver.blocks.make_spoiler_gradient.html">make_spoiler_gradient</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Miscellaneous</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="misc/contributors.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/code_of_conduct.html">Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc/development.html">Developing Pulserver</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Related Projects</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="http://github.com/imr-framework/pypulseq">PyPulseq</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/jonbmartin/pulpy">PulPy</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://toppemri.github.io/">TOPPE</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/INFN-MRI/pulserver" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/INFN-MRI/pulserver/edit/main/hands-on.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/INFN-MRI/pulserver/issues/new?title=Issue%20on%20page%20%2Fhands-on.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/hands-on.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-system-limits">1. Define system limits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiate-the-sequence-object">2. Instantiate the Sequence object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-sequence-building-blocks">3. Define Sequence building blocks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-blocks">Custom Blocks</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-sequence-plan">4. Define the Sequence plan</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-plans">Custom plans</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-scan-loop">5. Create scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-sequence">6. Building the sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wrapping-up">Wrapping up</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="hands-on-a-2d-gre-gradient-recalled-echo-sequence-example">
+<h1>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example<a class="headerlink" href="#hands-on-a-2d-gre-gradient-recalled-echo-sequence-example" title="Link to this heading">#</a></h1>
+<p>This tutorial aims to illustrate the sequence design features of Pulserver through building a minimal 2D Spoiled Gradient Recalled Echo (2D SPGR) sequence.
+We will demonstrate the built-in high-level design functions as well as show how to customize the sequence using lower-level routines, assuming a basic knowledge of the <a class="reference external" href="https://github.com/imr-framework/pypulseq/tree/dev">(Py)Pulseq</a> formalism.
+Let’s get started!</p>
+<p>First, we have to import the relevant packages and define the basic sequence parameters:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pypulseq</span> <span class="k">as</span> <span class="nn">pp</span>
+
+<span class="kn">import</span> <span class="nn">pulserver</span>
+
+<span class="c1"># Define sequence parameters</span>
+<span class="n">fov</span> <span class="o">=</span> <span class="mf">256.0</span>  <span class="c1"># Field of view in mm (assume squared FOV)</span>
+<span class="n">matrix_size</span> <span class="o">=</span> <span class="mi">256</span>  <span class="c1"># Matrix size (assume squared matrix)</span>
+<span class="n">n_slices</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Single slice acquisition</span>
+
+<span class="n">flip_angle</span> <span class="o">=</span> <span class="mf">15.0</span>  <span class="c1"># Flip angle in degrees</span>
+<span class="n">slice_thickness</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># Slab thickness in mm</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now, we can proceed to the actual sequence design.</p>
+<section id="define-system-limits">
+<h2>1. Define system limits<a class="headerlink" href="#define-system-limits" title="Link to this heading">#</a></h2>
+<p>Similarly to a standard (Py)Pulseq sequence, we need to define the system limits object, using the implementation from PyPulseq. This includes the specific scanner gradient and slew rate, the waveforms raster times and the different boards dead and ringdown times.</p>
+<p>In this case, we only specify gradient and slew rate, and use the default values for the other attributes:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">system_limits</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span>
+    <span class="n">max_grad</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">grad_unit</span><span class="o">=</span><span class="s2">&quot;mT/m&quot;</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="mi">130</span><span class="p">,</span> <span class="n">slew_unit</span><span class="o">=</span><span class="s2">&quot;T/m/s&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">system_limits</span><span class="p">)</span>  <span class="c1"># this is an alias for pypulseq.Opts</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>System limits:
+max_grad: 1490160.0000000002
+max_slew: 5534880000
+rise_time: None
+rf_dead_time: 0
+rf_ringdown_time: 0
+adc_dead_time: 0
+adc_raster_time: 1e-07
+rf_raster_time: 1e-06
+grad_raster_time: 1e-05
+block_duration_raster: 1e-05
+gamma: 42576000
+B0: 1.5
+</pre></div>
+</div>
+</div>
+</div>
+<p>You can notice that gradient and slew rate are automatically converted to <code class="docutils literal notranslate"><span class="pre">[Hz]</span></code> and <code class="docutils literal notranslate"><span class="pre">[Hz/m/s]</span></code>, respectively.</p>
+</section>
+<section id="instantiate-the-sequence-object">
+<h2>2. Instantiate the Sequence object<a class="headerlink" href="#instantiate-the-sequence-object" title="Link to this heading">#</a></h2>
+<p>Now, we instantiate the sequence object. This is designed to provide a similar use experience as native Pulseq’s <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> class, but is effectively a <a class="reference internal" href="#%5Bhttps://en.wikipedia.org/wiki/Builder_pattern"><span class="xref myst">builder</span></a> we use to create the actual PyPulseq <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> object or the equivalent representations for other Pulseq interpreters (for now, GEHC TOPPE). The aim is providing a familiar syntax to Pulseq users, while minimizing the computationally expensive conversions steps required to adapt the format to different platforms.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span>
+    <span class="n">system_limits</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;pulseq&quot;</span>
+<span class="p">)</span>  <span class="c1"># &#39;format&#39; specify the internal Sequence</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="define-sequence-building-blocks">
+<h2>3. Define Sequence building blocks<a class="headerlink" href="#define-sequence-building-blocks" title="Link to this heading">#</a></h2>
+<p>At its core, each MR sequence usually consists of the repetition of a few blocks, each consisting of the simultaneous execution of one or more events (e.g., RF, ADC, Gradient). Throughout the acquisition, some parameters of the blocks, e.g., the amplitude of the phase encoding gradients, are dynamically modified to obtained the desired image properties (e.g., FOV, resolution, contrasts). A basic 2D SPGR sequence, for example, consists of the repetition of the following block structure:</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Show code cell source</span>
+<span class="expanded">Hide code cell source</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot; Draw the sequence diagram of the FLASH sequence. Adapted from &quot;FLASH</span>
+<span class="sd">    imaging. Rapid NMR imaging using low flip-angle pulses&quot;, Haase et al.,</span>
+<span class="sd">    Journal of Magnetic Resonance, 67(2), pp. 258-266, 1986.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span>
+<span class="kn">import</span> <span class="nn">mrsd</span>
+
+<span class="c1"># Define sequence parameters (arbitrary units): echo and repetition times,</span>
+<span class="c1"># durations of ramp, pulses, encoding and readout</span>
+<span class="n">TE</span><span class="p">,</span> <span class="n">TR</span> <span class="o">=</span> <span class="mf">4.1</span><span class="p">,</span> <span class="mi">10</span>
+<span class="n">d_ramp</span><span class="p">,</span> <span class="n">d_pulse</span><span class="p">,</span> <span class="n">d_encoding</span><span class="p">,</span> <span class="n">d_readout</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+
+<span class="c1"># Create the underlying Matplotlib objects and the diagram</span>
+<span class="n">figure</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">pyplot</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Set transparent background</span>
+<span class="n">figure</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Set the color for ticks, labels, and lines (use black or another neutral color)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;bottom&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+
+<span class="n">plot</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+
+<span class="n">diagram</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">Diagram</span><span class="p">(</span>
+    <span class="n">plot</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span> <span class="s2">&quot;$G_</span><span class="si">{slice}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;$G_</span><span class="si">{phase}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;$G_</span><span class="si">{readout}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;Signal&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Slice-selective pulse of the first TR</span>
+<span class="n">excitation</span><span class="p">,</span> <span class="n">slice_selection</span> <span class="o">=</span> <span class="n">diagram</span><span class="o">.</span><span class="n">selective_pulse</span><span class="p">(</span>
+    <span class="s2">&quot;RF&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$G_</span><span class="si">{slice}</span><span class="s2">$&quot;</span><span class="p">,</span>
+    <span class="n">d_pulse</span><span class="p">,</span>
+    <span class="n">ramp</span><span class="o">=</span><span class="n">d_ramp</span><span class="p">,</span>
+    <span class="n">center</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">pulse_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ec&quot;</span><span class="p">:</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">},</span>
+    <span class="n">gradient_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ec&quot;</span><span class="p">:</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="c1"># Design events</span>
+<span class="n">adc</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">ADC</span><span class="p">(</span><span class="n">d_readout</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">TE</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;0.5&quot;</span><span class="p">)</span>
+<span class="n">echo</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">Echo</span><span class="p">(</span><span class="n">d_readout</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">adc</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">readout</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">Gradient</span><span class="p">(</span><span class="n">d_readout</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ramp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">adc</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">slice_rewind</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">Gradient</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">d_ramp</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">slice_selection</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+
+<span class="n">phase_encoding</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">MultiGradient</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">slice_rewind</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+<span class="n">readout_prephasing</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">adapt</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">slice_rewind</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+<span class="n">phase_rewind</span> <span class="o">=</span> <span class="n">mrsd</span><span class="o">.</span><span class="n">MultiGradient</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">readout</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+
+<span class="n">readout_rewind</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">adapt</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">readout</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+<span class="n">spoil</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">adapt</span><span class="p">(</span>
+    <span class="n">d_encoding</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">begin</span><span class="o">=</span><span class="n">readout_rewind</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Rewind slice selection</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{slice}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">slice_rewind</span><span class="p">)</span>
+
+<span class="c1"># Readout</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Signal&quot;</span><span class="p">,</span> <span class="n">adc</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Signal&quot;</span><span class="p">,</span> <span class="n">echo</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{readout}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">readout</span><span class="p">)</span>
+
+<span class="c1"># Encoding: rewind slice-selection gradient, run phase gradient, prephase</span>
+
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{phase}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">phase_encoding</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{readout}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">readout_prephasing</span><span class="p">)</span>
+
+<span class="c1"># Post-readout: rewind phase encoding, spoil</span>
+
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{phase}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">phase_rewind</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{readout}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">readout_rewind</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{slice}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">spoil</span><span class="p">)</span>
+
+<span class="c1"># Start of next TR</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">excitation</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">TR</span><span class="p">))</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;$G_</span><span class="si">{slice}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">slice_selection</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">TR</span><span class="p">))</span>
+
+<span class="c1"># Add annotations: flip angles and TE/TR intervals</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\alpha,\phi_n$&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span> <span class="n">TR</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\alpha,\phi_{n+1}$&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+    <span class="s2">&quot;$G_</span><span class="si">{phase}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">phase_encoding</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\uparrow$&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+    <span class="s2">&quot;$G_</span><span class="si">{phase}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="n">phase_rewind</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\downarrow$&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;cornflowerblue&quot;</span>
+<span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">interval</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TE</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;TE&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">interval</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">pyplot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<img alt="_images/02d8a6468300a8e8102c78a2de98bd18cd76deafb34ce6099d7ecd8882d5c2b6.png" src="_images/02d8a6468300a8e8102c78a2de98bd18cd76deafb34ce6099d7ecd8882d5c2b6.png" />
+</div>
+</div>
+<p>Hence, we need to create the following blocks:</p>
+<ul class="simple">
+<li><p><strong>RF Excitation</strong>:this consists of the simultaneous execution of an RF event and its accompanying slice selection gradient on z-axis.</p></li>
+<li><p><strong>Slice Rephasing</strong>: this consists of the slice rephasing gradient event on z-axis.</p></li>
+<li><p><strong>Phase encoding</strong>: this consists of simultaneous execution of the phase encoding gradient event on y-axis and the readout pre-winder event on the x-axis.</p></li>
+<li><p><strong>Readout</strong>: this block consists of the simultaneous execution of the readout gradient (x-axis) and the ADC event (to record the MR signal).</p></li>
+<li><p><strong>Rewinder</strong>: this is a repetition of the <strong>Phase encoding</strong>, with a scaling factor equal to -1.0 for the y-axis gradient event (reverse polarity).</p></li>
+<li><p><strong>Spoiler</strong>: this consists of the spoiling gradient event on z-axis.</p></li>
+</ul>
+<p>This can be accomplished using <code class="docutils literal notranslate"><span class="pre">pulserver.blocks</span></code> sub-package as follows:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># create excitation and slice rephasing blocks</span>
+<span class="n">exc_block</span><span class="p">,</span> <span class="n">slice_reph_block</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
+    <span class="n">system_limits</span><span class="p">,</span> <span class="n">flip_angle</span><span class="p">,</span> <span class="n">slice_thickness</span>
+<span class="p">)</span>
+
+<span class="c1"># create phase encoding gradient, readout pre-/re-winder and readout/adc blocks:</span>
+<span class="n">phase_enc</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span><span class="p">)</span>
+<span class="n">readout_block</span><span class="p">,</span> <span class="n">readout_prewind_block</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_line_readout</span><span class="p">(</span>
+    <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span>
+<span class="p">)</span>
+
+<span class="c1"># create combined phase encoding + readout prewinder block</span>
+<span class="n">phase_enc_block</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gy&quot;</span><span class="p">:</span> <span class="n">phase_enc</span><span class="p">,</span> <span class="o">**</span><span class="n">readout_prewind_block</span><span class="p">}</span>
+
+<span class="c1"># create spoiling block</span>
+<span class="n">spoil_block</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;gz&quot;</span><span class="p">:</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_spoiler_gradient</span><span class="p">(</span>
+        <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">system_limits</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">fov</span> <span class="o">/</span> <span class="n">matrix_size</span>
+    <span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>These blocks have to be registered by using <code class="docutils literal notranslate"><span class="pre">Sequence.register_block</span></code> method. Similarly to <code class="docutils literal notranslate"><span class="pre">Pypulseq.Sequence.register_*_event</span></code>, this is used to efficently re-use sequence blocks throughout the scan loop.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Sequence.register_block</span></code> method accepts the following arguments:</p>
+<ul class="simple">
+<li><p><strong>name</strong>: this is the identifier of the block (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;excitation&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;readout&quot;</span></code>).</p></li>
+<li><p><strong>rf</strong>: this is a RF pulse event. A block can contain either a RF event or an ADC event, not both.</p></li>
+<li><p><strong>gx</strong>: this is a Gradient event along x-axis.</p></li>
+<li><p><strong>gy</strong>: this is a Gradient event along y-axis.</p></li>
+<li><p><strong>gz</strong>: this is a Gradient event along z-axis.</p></li>
+<li><p><strong>adc</strong>: this is an ADC event. A block can contain either a RF event or an ADC event, not both.</p></li>
+<li><p><strong>trig</strong>: this is a trigger event.</p></li>
+<li><p><strong>delay</strong>: this is a delay event, which defines the minimum duration of the block. If the maximum of event durations within a block is lower than this value, a <code class="docutils literal notranslate"><span class="pre">wait</span></code> event will be created by the interpreter so that the duration of the block is equal to <code class="docutils literal notranslate"><span class="pre">delay</span></code>. If the duration is already higher than this value, this is ignored.</p></li>
+</ul>
+<p>To reduce boilerplate, sequence blocks returned by <code class="docutils literal notranslate"><span class="pre">pulserver.blocks</span></code> routines are usually dictionaries with a subset of <code class="docutils literal notranslate"><span class="pre">(rf,</span> <span class="pre">gx,</span> <span class="pre">gy,</span> <span class="pre">gz,</span> <span class="pre">adc,</span> <span class="pre">trig,</span> <span class="pre">delay)</span></code> keys. This way, sequence blocks can be simply registered as:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;excitation&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">exc_block</span><span class="p">)</span>
+<span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;slice_rephasing&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">slice_reph_block</span><span class="p">)</span>
+<span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">readout_block</span><span class="p">)</span>
+<span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">phase_enc_block</span><span class="p">)</span>
+<span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spoiling&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">spoil_block</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Block name can be freely chosen by the user, with the exception of <code class="docutils literal notranslate"><span class="pre">&quot;delay&quot;</span></code>: this is reserved as a pure delay block with this name is created during the instantiation of <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> object.</p>
+<section id="custom-blocks">
+<h3>Custom Blocks<a class="headerlink" href="#custom-blocks" title="Link to this heading">#</a></h3>
+<p>As the input arguments for <code class="docutils literal notranslate"><span class="pre">Sequence.register_event</span></code> are Pypulseq events, the user can leverage the PyPulseq design routines to create custom blocks other then the <code class="docutils literal notranslate"><span class="pre">Pulserver</span></code> built-in. For example, the spoiler gradient could have been designed as:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of a custom block</span>
+<span class="n">custom_gz_spoil</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="mi">32</span> <span class="o">/</span> <span class="n">slice_thickness</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system_limits</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>and then registered as</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="s2">&quot;custom_spoil&quot;</span><span class="p">,</span> <span class="n">gz</span><span class="o">=</span><span class="n">custom_gz_spoil</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="define-the-sequence-plan">
+<h2>4. Define the Sequence plan<a class="headerlink" href="#define-the-sequence-plan" title="Link to this heading">#</a></h2>
+<p>Throughout the scan loop, the basic sequence structure is repeated while changing the phase $\Phi_n$ phase of the RF pulse (RF spoiling), its frequency offset (to excite different slices) and the scaling of the y-gradient events in both <strong>Phase encoding</strong> and <strong>Rewinder</strong> blocks to sample different ky lines in k-space. The gradient amplitude scaling and RF phase and frequency offsets are examples of dynamic sequence parameters, which also include RF amplitude scaling, gradient rotations and variable delay times, that are used to control the image contrast and k-space sampling pattern.</p>
+<p>Hence, the user needs to create the schedule for these dynamic sequence parameters. As this require a lot of effort, especially to obtain specific sampling pattern for Parallel Imaging and Compressed Sensing (e.g., CAIPIRINHA and Poisson Disk sampling), we include support routine to 1) generate such sampling masks and RF modulation patterns and 2) retrieve the corresponding gradient / RF amplitude settings at each TR. These support routines are included in <code class="docutils literal notranslate"><span class="pre">pulserver.plan</span></code> subpackage.</p>
+<p>We now use this package to create a Cartesian sampling mask and the RF phase list required to obtain RF spoiling:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># total number of RF excitations</span>
+<span class="n">n_scans</span> <span class="o">=</span> <span class="n">matrix_size</span> <span class="o">*</span> <span class="n">n_slices</span>
+
+<span class="c1"># create RF phase schedule</span>
+<span class="n">rf_phases</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">RfPhaseCycle</span><span class="p">(</span>
+    <span class="n">num_pulses</span><span class="o">=</span><span class="n">n_scans</span><span class="p">,</span>
+    <span class="n">phase_increment</span><span class="o">=</span><span class="mf">117.0</span><span class="p">,</span>  <span class="c1"># degrees</span>
+<span class="p">)</span>
+
+<span class="c1"># create Gy and RF frequency offset schedule to achieve the requested FOV, in-plane resolution and number of slices</span>
+<span class="n">encoding_plan</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">cartesian2D</span><span class="p">(</span>
+    <span class="n">g_slice_select</span><span class="o">=</span><span class="n">exc_block</span><span class="p">[</span><span class="s2">&quot;gz&quot;</span><span class="p">],</span>
+    <span class="n">slice_thickness</span><span class="o">=</span><span class="n">slice_thickness</span><span class="p">,</span>
+    <span class="n">n_slices</span><span class="o">=</span><span class="n">n_slices</span><span class="p">,</span>
+    <span class="n">ny</span><span class="o">=</span><span class="n">matrix_size</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># second output is the (kx, ky) sampling mask, here not necessary because we do not have acceleration</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Both <code class="docutils literal notranslate"><span class="pre">rf_phases</span></code> and <code class="docutils literal notranslate"><span class="pre">encoding_plan</span></code> are iterators which keep track of the number of times they have been called, and which can be used to retrieve the actual <code class="docutils literal notranslate"><span class="pre">rf_phase</span></code>, the gradient and rf frequency offsets <code class="docutils literal notranslate"><span class="pre">(gy_amp,</span> <span class="pre">rf_freq)</span></code> and the corresponding phase encoding and slice indexes <code class="docutils literal notranslate"><span class="pre">(iy,</span> <span class="pre">iz)</span></code> while increasing the readability in case of nested (e.g., phase and slice) loops:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">rf_phase</span> <span class="o">=</span> <span class="n">rf_phases</span><span class="p">()</span>
+    <span class="n">encoding</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="n">encoding_plan</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF phase: </span><span class="si">{</span><span class="n">rf_phase</span><span class="si">}</span><span class="s2"> [rad]&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gy amplitude (wrt to peak of gradient waveform): </span><span class="si">{</span><span class="n">encoding</span><span class="o">.</span><span class="n">gy_amp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Phase encoding index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF frequency offset: </span><span class="si">{</span><span class="n">encoding</span><span class="o">.</span><span class="n">rf_freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slice index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iz</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>RF phase: 0.0 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.5
+Phase encoding index: 0
+RF frequency offset: 0.0
+Slice index: 0
+RF phase: 0.03564023811504491 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.49609375
+Phase encoding index: 1
+RF frequency offset: 0.0
+Slice index: 0
+RF phase: 0.10692071434513473 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.4921875
+Phase encoding index: 2
+RF frequency offset: 0.0
+Slice index: 0
+RF phase: 0.21384142869026945 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.48828125
+Phase encoding index: 3
+RF frequency offset: 0.0
+Slice index: 0
+</pre></div>
+</div>
+</div>
+</div>
+<p>Iterators can be rewound by using the <code class="docutils literal notranslate"><span class="pre">reset()</span></code> method:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF phase counter before reset: </span><span class="si">{</span><span class="n">rf_phases</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Encoding counter before reset: </span><span class="si">{</span><span class="n">encoding_plan</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">rf_phases</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">encoding_plan</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF phase counter after reset: </span><span class="si">{</span><span class="n">rf_phases</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Encoding counter after reset: </span><span class="si">{</span><span class="n">encoding_plan</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>RF phase counter before reset: 4
+Encoding counter before reset: 4
+RF phase counter after reset: 0
+Encoding counter after reset: 0
+</pre></div>
+</div>
+</div>
+</div>
+<section id="custom-plans">
+<h3>Custom plans<a class="headerlink" href="#custom-plans" title="Link to this heading">#</a></h3>
+<p>Both the plan design routines and the iterators are just convenience tool to help the user. Since the entities used in dynamic loop definition, as we will see in the next section, are the plain floating point rf/gradient scaling and rotations (float or NumPy NDArrays), the user can leverage <code class="docutils literal notranslate"><span class="pre">NumPy</span></code> and any existing sampling pattern generator package (e.g., <a class="reference external" href="https://github.com/mikgroup/sigpy">SigPy.RF</a> or <a class="reference external" href="https://github.com/jonbmartin/pulpy">PulPy</a> to create its own sequence plan:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_sequence_plan</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">Ry</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is actually an example of 3D encoding&quot;&quot;&quot;</span>
+    <span class="c1"># create Gy scaling for ny lines and Ry acceleration factor</span>
+    <span class="n">gy_scale</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)[::</span><span class="n">Ry</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">/</span> <span class="n">ny</span>  <span class="c1"># -0.5:0.5, in-plane acceleration = 2</span>
+
+    <span class="c1"># create Gz scaling</span>
+    <span class="n">gz_scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">nz</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">nz</span>  <span class="c1"># -0.5:0.5</span>
+
+    <span class="c1"># create Gy, Gz combinations using Gy as faster varying dimension (inner sequence loop)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+        <span class="n">gy_scale</span><span class="p">,</span>
+        <span class="n">gz_scale</span><span class="p">,</span>
+        <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="create-scan-loop">
+<h2>5. Create scan loop<a class="headerlink" href="#create-scan-loop" title="Link to this heading">#</a></h2>
+<p>Now that we have all sequence building blocks, it is time to build the actual loop. It is advised to mark the beginning of scan loop with a <code class="docutils literal notranslate"><span class="pre">pulserver.Sequence.section</span></code> method call, which only accepts a <code class="docutils literal notranslate"><span class="pre">name</span></code> argument. The user can concatenate multiple <code class="docutils literal notranslate"><span class="pre">section</span></code> blocks (each corresponding to an individual loop), which can be used to create e.g., the steady state preparation loop, the Parallel Imaging calibration loop or the main sequence loop. The actual section name is not currently used by the builder, but the <code class="docutils literal notranslate"><span class="pre">section</span></code> declaration helps some of the interpreters (e.g., TOPPE) to identify the periodic sequences of the loop. If the interpreter does not use this (e.g., Siemens’s Pulseq), <code class="docutils literal notranslate"><span class="pre">section</span></code> marks are ignored, but having them in the code helps the user to better visualize the sequence structure.</p>
+<p>In this example, we will design a simple sequence with a single section:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span><span class="o">.</span><span class="n">section</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;scan_loop&quot;</span><span class="p">)</span>  <span class="c1"># section declaration</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_scans</span><span class="p">):</span>
+
+    <span class="c1"># get dynamic sequence parameters</span>
+    <span class="n">rf_phase</span> <span class="o">=</span> <span class="n">rf_phases</span><span class="p">()</span>
+    <span class="n">encoding</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">encoding_plan</span><span class="p">()</span>
+
+    <span class="c1"># update sequence loop</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;excitation&quot;</span><span class="p">,</span> <span class="n">rf_phase</span><span class="o">=</span><span class="n">rf_phase</span><span class="p">,</span> <span class="n">rf_freq</span><span class="o">=</span><span class="n">encoding</span><span class="o">.</span><span class="n">rf_freq</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;slice_rephasing&quot;</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="n">gy_amp</span><span class="o">=</span><span class="n">encoding</span><span class="o">.</span><span class="n">gy_amp</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span> <span class="n">adc_phase</span><span class="o">=</span><span class="n">rf_phase</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="n">gy_amp</span><span class="o">=-</span><span class="n">encoding</span><span class="o">.</span><span class="n">gy_amp</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;spoiling&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Each loop iteration consists essentially in the computation of the current dynamic parameters (here, <code class="docutils literal notranslate"><span class="pre">(rf_phase,</span> <span class="pre">rf_freq,</span> <span class="pre">gy_amp)</span></code>), followed by an update of the <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> object. This is achieved by using <code class="docutils literal notranslate"><span class="pre">pulserver.Sequence.add_block</span></code> method.</p>
+<p>This is conceptually similar to <code class="docutils literal notranslate"><span class="pre">pypulseq.Sequence.add_block</span></code>. However, while the latter directly accepts a list of <code class="docutils literal notranslate"><span class="pre">pypulseq</span></code> events and build a block, <code class="docutils literal notranslate"><span class="pre">pulserver.Sequence.add_block</span></code> expect the identifier (i.e., <code class="docutils literal notranslate"><span class="pre">name</span></code>) of the registered blocks and the following parameters:</p>
+<ul class="simple">
+<li><p><strong>gx_amp</strong>: amplitude scaling of the x-gradient event in the block (i.e., <code class="docutils literal notranslate"><span class="pre">gx_amp=1.0</span></code> corresponding to the nominal amplitude).</p></li>
+<li><p><strong>gy_amp</strong>: amplitude scaling of the y-gradient event in the block (i.e., <code class="docutils literal notranslate"><span class="pre">gy_amp=1.0</span></code> corresponding to the nominal amplitude).</p></li>
+<li><p><strong>gz_amp</strong>: amplitude scaling of the z-gradient event in the block (i.e., <code class="docutils literal notranslate"><span class="pre">gz_amp=1.0</span></code> corresponding to the nominal amplitude).</p></li>
+<li><p><strong>rf_amp</strong>: amplitude scaling of the RF event in the block (i.e., <code class="docutils literal notranslate"><span class="pre">rf_amp=1.0</span></code> corresponding to the nominal amplitude).</p></li>
+<li><p><strong>rf_phase</strong>: RF pulse phase modulation in <code class="docutils literal notranslate"><span class="pre">rad</span></code> (e.g., for phase cycling and RF spoiling).</p></li>
+<li><p><strong>rf_freq</strong>: RF pulse frequency offset in <code class="docutils literal notranslate"><span class="pre">Hz</span></code> (e.g., for off-isocenter slice excitation, fat saturation or MT preparation).</p></li>
+<li><p><strong>rf_phase</strong>: ADC phase modulation in <code class="docutils literal notranslate"><span class="pre">rad</span></code> (i.e., for signal de-modulation), usually the same as <strong>rf_phase</strong>.</p></li>
+<li><p><strong>delay</strong>: delay time in <code class="docutils literal notranslate"><span class="pre">s</span></code>. For the pure delay block, allows to dynamically modulate sequence timing (e.g., TE, TR) - ignored for standard blocks.</p></li>
+<li><p><strong>rotmat</strong>: Gradient 3D rotation matrix of shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> - used to rotate the slice orientation or for Non Cartesian imaging.</p></li>
+</ul>
+<p>N.B: after the first <code class="docutils literal notranslate"><span class="pre">add_block</span></code> call, the user cannot register any more sequence blocks.</p>
+</section>
+<section id="building-the-sequence">
+<h2>6. Building the sequence<a class="headerlink" href="#building-the-sequence" title="Link to this heading">#</a></h2>
+<p>We are almost there! Now, we can build the sequence by calling the <code class="docutils literal notranslate"><span class="pre">pulserver.Sequence.build</span></code> method.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">platform==&quot;pulseq&quot;</span></code> this will internally take the building blocks, scale and rotate them by using (e.g., using <code class="docutils literal notranslate"><span class="pre">pypulseq.scale_grad</span></code>, <code class="docutils literal notranslate"><span class="pre">pypulseq.rotate</span></code>) and build the actual <code class="docutils literal notranslate"><span class="pre">pypulseq.Sequence</span></code> object by calling <code class="docutils literal notranslate"><span class="pre">pypulseq.Sequence.add_block</span></code>. The result is a native <code class="docutils literal notranslate"><span class="pre">PyPulseq</span></code> sequence object, which can be saved as <code class="docutils literal notranslate"><span class="pre">pypulseq.Sequence.write_seq</span></code>:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># build</span>
+<span class="n">seq</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># this is now a PyPulseq Sequence object!</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequence:
+shape_library: EventLibrary:
+data: 3
+type: 0
+rf_library: EventLibrary:
+data: 256
+type: 256
+grad_library: EventLibrary:
+data: 262
+type: 262
+adc_library: EventLibrary:
+data: 256
+type: 0
+delay_library: EventLibrary:
+data: 0
+type: 0
+extensions_library: EventLibrary:
+data: 0
+type: 0
+rf_raster_time: 1e-06
+grad_raster_time: 1e-05
+block_events: 1536
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="wrapping-up">
+<h2>Wrapping up<a class="headerlink" href="#wrapping-up" title="Link to this heading">#</a></h2>
+<p>These steps can (and should!) be grouped in a design routine:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_2D_spgr</span><span class="p">(</span>
+    <span class="n">fov</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">matrix_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">n_slices</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">flip_angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">slice_thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pulseq&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Design a simplified 2D Spoiled Gradient Echo sequence.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fov : float</span>
+<span class="sd">        In-plane field of view in [m].</span>
+<span class="sd">    matrix_size : int</span>
+<span class="sd">        Number of pixels (assume squared matrix).</span>
+<span class="sd">    n_slices : int</span>
+<span class="sd">        Number of slices.</span>
+<span class="sd">    flip_angle : float</span>
+<span class="sd">        Flip Angle in [deg].</span>
+<span class="sd">    slice_thickness : float</span>
+<span class="sd">        Slice thickness in [mm].</span>
+<span class="sd">    platform : str, optional</span>
+<span class="sd">        MR scanner platform (e.g., &quot;siemens&quot;, &quot;gehc&quot;).</span>
+<span class="sd">        The default is &quot;pulseq&quot; (alias for &quot;siemens&quot;).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pypulse.Sequence | pulserver.Ceq</span>
+<span class="sd">        Object representing the sequence.</span>
+<span class="sd">        The format is determined by input platform.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># define system limits</span>
+    <span class="n">system_limits</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span>
+        <span class="n">max_grad</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">grad_unit</span><span class="o">=</span><span class="s2">&quot;mT/m&quot;</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="mi">130</span><span class="p">,</span> <span class="n">slew_unit</span><span class="o">=</span><span class="s2">&quot;T/m/s&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># initialize sequence object</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span>
+        <span class="n">system_limits</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;pulseq&quot;</span>
+    <span class="p">)</span>  <span class="c1"># &#39;format&#39; specify the internal Sequence</span>
+
+    <span class="c1"># Define Blocks</span>
+    <span class="c1"># -------------</span>
+    <span class="c1"># create excitation and slice rephasing blocks</span>
+    <span class="n">exc_block</span><span class="p">,</span> <span class="n">slice_reph_block</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
+        <span class="n">system_limits</span><span class="p">,</span> <span class="n">flip_angle</span><span class="p">,</span> <span class="n">slice_thickness</span>
+    <span class="p">)</span>
+
+    <span class="c1"># create phase encoding gradient, readout pre-/re-winder and readout/adc blocks:</span>
+    <span class="n">phase_enc</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span>
+    <span class="p">)</span>
+    <span class="n">readout_block</span><span class="p">,</span> <span class="n">readout_prewind_block</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_line_readout</span><span class="p">(</span>
+        <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span>
+    <span class="p">)</span>
+
+    <span class="c1"># create combined phase encoding + readout prewinder block</span>
+    <span class="n">phase_enc_block</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gy&quot;</span><span class="p">:</span> <span class="n">phase_enc</span><span class="p">,</span> <span class="o">**</span><span class="n">readout_prewind_block</span><span class="p">}</span>
+
+    <span class="c1"># create spoiling block</span>
+    <span class="n">spoil_block</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;gz&quot;</span><span class="p">:</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_spoiler_gradient</span><span class="p">(</span>
+            <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">system_limits</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">fov</span> <span class="o">/</span> <span class="n">matrix_size</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="c1"># register blocks</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;excitation&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">exc_block</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;slice_rephasing&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">slice_reph_block</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">readout_block</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">phase_enc_block</span><span class="p">)</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">register_block</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spoiling&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">spoil_block</span><span class="p">)</span>
+
+    <span class="c1"># Define sequence plan</span>
+    <span class="c1"># --------------------</span>
+    <span class="c1"># total number of RF excitations</span>
+    <span class="n">n_scans</span> <span class="o">=</span> <span class="n">matrix_size</span> <span class="o">*</span> <span class="n">n_slices</span>
+
+    <span class="c1"># create RF phase schedule</span>
+    <span class="n">rf_phases</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">RfPhaseCycle</span><span class="p">(</span>
+        <span class="n">num_pulses</span><span class="o">=</span><span class="n">n_scans</span><span class="p">,</span>
+        <span class="n">phase_increment</span><span class="o">=</span><span class="mf">117.0</span><span class="p">,</span>  <span class="c1"># degrees</span>
+    <span class="p">)</span>
+
+    <span class="c1"># create Gy and RF frequency offset schedule to achieve the requested FOV, in-plane resolution and number of slices</span>
+    <span class="n">encoding_plan</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">cartesian2D</span><span class="p">(</span>
+        <span class="n">g_slice_select</span><span class="o">=</span><span class="n">exc_block</span><span class="p">[</span><span class="s2">&quot;gz&quot;</span><span class="p">],</span>
+        <span class="n">slice_thickness</span><span class="o">=</span><span class="n">slice_thickness</span><span class="p">,</span>
+        <span class="n">n_slices</span><span class="o">=</span><span class="n">n_slices</span><span class="p">,</span>
+        <span class="n">ny</span><span class="o">=</span><span class="n">matrix_size</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># second output is the (kx, ky) sampling mask, here not necessary because we do not have acceleration</span>
+
+    <span class="c1"># Set up scan loop</span>
+    <span class="c1"># ----------------</span>
+    <span class="n">seq</span><span class="o">.</span><span class="n">section</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;scan_loop&quot;</span><span class="p">)</span>  <span class="c1"># section declaration</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_scans</span><span class="p">):</span>
+
+        <span class="c1"># get dynamic sequence parameters</span>
+        <span class="n">rf_phase</span> <span class="o">=</span> <span class="n">rf_phases</span><span class="p">()</span>
+        <span class="n">encoding</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">encoding_plan</span><span class="p">()</span>
+
+        <span class="c1"># update sequence loop</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;excitation&quot;</span><span class="p">,</span> <span class="n">rf_phase</span><span class="o">=</span><span class="n">rf_phase</span><span class="p">,</span> <span class="n">rf_freq</span><span class="o">=</span><span class="n">encoding</span><span class="o">.</span><span class="n">rf_freq</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;slice_rephasing&quot;</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="n">gy_amp</span><span class="o">=</span><span class="n">encoding</span><span class="o">.</span><span class="n">gy_amp</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span> <span class="n">adc_phase</span><span class="o">=</span><span class="n">rf_phase</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;phase_encoding&quot;</span><span class="p">,</span> <span class="n">gy_amp</span><span class="o">=-</span><span class="n">encoding</span><span class="o">.</span><span class="n">gy_amp</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="s2">&quot;spoiling&quot;</span><span class="p">)</span>
+
+    <span class="c1"># build the sequence</span>
+    <span class="k">return</span> <span class="n">seq</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>which can be called as:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span> <span class="o">=</span> <span class="n">design_2D_spgr</span><span class="p">(</span>
+    <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span><span class="p">,</span> <span class="n">n_slices</span><span class="p">,</span> <span class="n">flip_angle</span><span class="p">,</span> <span class="n">slice_thickness</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;pulseq&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequence:
+shape_library: EventLibrary:
+data: 3
+type: 0
+rf_library: EventLibrary:
+data: 256
+type: 256
+grad_library: EventLibrary:
+data: 262
+type: 262
+adc_library: EventLibrary:
+data: 256
+type: 0
+delay_library: EventLibrary:
+data: 0
+type: 0
+extensions_library: EventLibrary:
+data: 0
+type: 0
+rf_raster_time: 1e-06
+grad_raster_time: 1e-05
+block_events: 1536
+</pre></div>
+</div>
+</div>
+</div>
+<p>This can also be used as a custom plugin for the server architecture in the context of online sequence design.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="getting_started.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Getting Started</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API References</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-system-limits">1. Define system limits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiate-the-sequence-object">2. Instantiate the Sequence object</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-sequence-building-blocks">3. Define Sequence building blocks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-blocks">Custom Blocks</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-sequence-plan">4. Define the Sequence plan</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-plans">Custom plans</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-scan-loop">5. Create scan loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-sequence">6. Building the sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wrapping-up">Wrapping up</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Pulserver Contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Pulserver Contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
