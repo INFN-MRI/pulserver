@@ -411,39 +411,39 @@ class SequenceParams:
         System field strength (T).
     """
 
-    FOVx: Optional[float] = None
-    FOVy: Optional[float] = None
-    Nx: Optional[int] = None
-    Ny: Optional[int] = None
-    Nslices: Optional[int] = None
-    Nechoes: Optional[int] = None
-    Nphases: Optional[int] = None
-    slice_thickness: Optional[float] = None
-    slice_spacing: Optional[float] = None
-    Rplane: Optional[float] = None
-    Rplane2: Optional[float] = None
-    Rslice: Optional[float] = None
-    PFplane: Optional[float] = None
-    PFslice: Optional[float] = None
-    ETL: Optional[int] = None
-    TE: Optional[float] = None
-    TE0: Optional[float] = None
-    TR: Optional[float] = None
-    Tprep: Optional[float] = None
-    Trecovery: Optional[float] = None
-    flip: Optional[float] = None
-    flip2: Optional[float] = None
-    refoc_flip: Optional[float] = None
-    freq_dir: Optional[int] = None
-    freq_verse: Optional[int] = None
-    phase_verse: Optional[int] = None
-    bipolar_echoes: Optional[int] = None
-    dwell: Optional[float] = None
-    raster: Optional[float] = None
-    gmax: Optional[float] = None
-    smax: Optional[float] = None
-    b1_max: Optional[float] = None
-    b0_field: Optional[float] = None
+    FOVx: float | None = None
+    FOVy: float | None = None
+    Nx: int | None = None
+    Ny: int | None = None
+    Nslices: int | None = None
+    Nechoes: int | None = None
+    Nphases: int | None = None
+    slice_thickness: float | None = None
+    slice_spacing: float | None = None
+    Rplane: float | None = None
+    Rplane2: float | None = None
+    Rslice: float | None = None
+    PFplane: float | None = None
+    PFslice: float | None = None
+    ETL: int | None = None
+    TE: float | None = None
+    TE0: float | None = None
+    TR: float | None = None
+    Tprep: float | None = None
+    Trecovery: float | None = None
+    flip: float | None = None
+    flip2: float | None = None
+    refoc_flip: float | None = None
+    freq_dir: int | None = None
+    freq_verse: int | None = None
+    phase_verse: int | None = None
+    bipolar_echoes: int | None = None
+    dwell: float | None = None
+    raster: float | None = None
+    gmax: float | None = None
+    smax: float | None = None
+    b1_max: float | None = None
+    b0_field: float | None = None
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "SequenceParams":
