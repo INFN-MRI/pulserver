@@ -51,6 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .[doc]
+          python -m pip install -r docs/requirements.txt
       
       - name: Build API documentation
         run: |
