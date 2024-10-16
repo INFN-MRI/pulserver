@@ -1,11 +1,11 @@
 Pulserver
 =========
-|Coverage| |CI| |CD| |License| |Codefactor| |Sphinx| |PyPi| |Black| |PythonVersion|
+|Coverage| |CI/CD| |License| |Codefactor| |Sphinx| |PyPi| |Black| |PythonVersion|
 
 .. |Coverage| image:: https://codecov.io/gh/INFN-MRI/pulserver/graph/badge.svg?token=qtB53xANwI 
  :target: https://codecov.io/gh/INFN-MRI/pulserver
 
-.. |CI| image:: https://github.com/INFN-MRI/pulserver/workflows/CI/badge.svg
+.. |CI/CD| image:: https://github.com/INFN-MRI/pulserver/workflows/CI/badge.svg
    :target: https://github.com/INFN-MRI/pulserver
 
 .. |License| image:: https://img.shields.io/github/license/INFN-MRI/pulserver
