@@ -9,8 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    needs: [test]
-
+    
     strategy:
       matrix:
         python-version: [3.10, 3.12]  # Specify the desired Python versions
