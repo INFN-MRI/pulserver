@@ -64,6 +64,9 @@ doc = ["sphinx", "pydata-sphinx-theme", "myst-nb", "matplotlib", "mrtwin", "sphi
 "Bug Reports" = "https://github.com/INFN-MRI/pulserver/issues"
 "Source" = "https://github.com/INFN-MRI/pulserver"
 
+[project.scripts]  # Optional
+pulserver = "pulserver._cli:cli"
+
 [tool.setuptools.packages.find]
 where=["src"]
 

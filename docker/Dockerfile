@@ -12,3 +12,6 @@ RUN rm install_pulserver.sh
 
 # set user
 USER runner
+
+# set entrypoint
+ENTRYPOINT ["pulserver"]
