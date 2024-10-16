@@ -40,6 +40,14 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [test]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      
       - name: Install dependencies
         run: |
           pip install .[doc]
