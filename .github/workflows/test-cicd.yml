@@ -40,13 +40,9 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [test]
     steps:
-      - name: Get the docs_build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docs_final
-          path: docs_build
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}	  
+      - name: Build API documentation
+        run: |
+          python -m sphinx docs docs_build
       
       - name: Display structure of docs
         run: ls -R docs_build/	  
