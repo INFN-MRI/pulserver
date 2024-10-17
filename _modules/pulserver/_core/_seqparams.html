@@ -163,7 +163,7 @@
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../hands-on.html">Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands-on.html">Hands-on: a 2D SPGR (Spoiled Gradient-Recalled Echo) Sequence Example</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API References</span></p>
 <ul class="nav bd-sidenav">
@@ -464,13 +464,18 @@ document.write(`
     <span class="n">smax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">b1_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">b0_field</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rf_dead_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rf_ringdown_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">adc_dead_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">psd_rf_wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">psd_grd_wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="SequenceParams.from_bytes">
 <a class="viewcode-back" href="../../../generated/pulserver.SequenceParams.html#pulserver.SequenceParams.from_bytes">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_bytes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SequenceParams&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserialize from a byte array into a SequenceParams object.&quot;&quot;&quot;</span>
-        <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;2f 5h 7f h 8f 4h 6f&quot;</span>
+        <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;2f 5h 7f h 8f 4h 11f&quot;</span>
 
         <span class="c1"># Unpack the function name</span>
         <span class="n">function_name</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;50s&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[:</span><span class="mi">50</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -480,7 +485,7 @@ document.write(`
         <span class="n">values</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">format_string</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">50</span><span class="p">:])</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">x</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">SequenceParams</span><span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SequenceParams.to_bytes">
@@ -489,7 +494,7 @@ document.write(`
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serialize this dataclass to a byte array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;2f 5h 7f h 8f 4h 6f&quot;</span>
+        <span class="n">format_string</span> <span class="o">=</span> <span class="s2">&quot;2f 5h 7f h 8f 4h 11f&quot;</span>
         <span class="n">field_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">type</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)][</span><span class="mi">1</span><span class="p">:]</span>
 
         <span class="c1"># Pack function name</span>

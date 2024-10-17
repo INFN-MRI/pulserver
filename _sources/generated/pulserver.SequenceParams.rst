@@ -47,6 +47,7 @@
       ~SequenceParams.TR
       ~SequenceParams.Tprep
       ~SequenceParams.Trecovery
+      ~SequenceParams.adc_dead_time
       ~SequenceParams.b0_field
       ~SequenceParams.b1_max
       ~SequenceParams.bipolar_echoes
@@ -57,8 +58,12 @@
       ~SequenceParams.freq_verse
       ~SequenceParams.gmax
       ~SequenceParams.phase_verse
+      ~SequenceParams.psd_grd_wait
+      ~SequenceParams.psd_rf_wait
       ~SequenceParams.raster
       ~SequenceParams.refoc_flip
+      ~SequenceParams.rf_dead_time
+      ~SequenceParams.rf_ringdown_time
       ~SequenceParams.slice_spacing
       ~SequenceParams.slice_thickness
       ~SequenceParams.smax

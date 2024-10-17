@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example &#8212; Pulserver Documentation</title>
+    <title>Hands-on: a 2D SPGR (Spoiled Gradient-Recalled Echo) Sequence Example &#8212; Pulserver Documentation</title>
   
   
   
@@ -164,7 +164,7 @@
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hands-on: a 2D SPGR (Spoiled Gradient-Recalled Echo) Sequence Example</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API References</span></p>
 <ul class="nav bd-sidenav">
@@ -396,7 +396,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example</h1>
+    <h1>Hands-on: a 2D SPGR (Spoiled Gradient-Recalled Echo) Sequence Example</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -430,8 +430,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hands-on-a-2d-gre-gradient-recalled-echo-sequence-example">
-<h1>Hands-on: a 2D GRE (Gradient-Recalled Echo) Sequence Example<a class="headerlink" href="#hands-on-a-2d-gre-gradient-recalled-echo-sequence-example" title="Link to this heading">#</a></h1>
+  <section id="hands-on-a-2d-spgr-spoiled-gradient-recalled-echo-sequence-example">
+<h1>Hands-on: a 2D SPGR (Spoiled Gradient-Recalled Echo) Sequence Example<a class="headerlink" href="#hands-on-a-2d-spgr-spoiled-gradient-recalled-echo-sequence-example" title="Link to this heading">#</a></h1>
 <p>This tutorial aims to illustrate the sequence design features of Pulserver through building a minimal 2D Spoiled Gradient Recalled Echo (2D SPGR) sequence.
 We will demonstrate the built-in high-level design functions as well as show how to customize the sequence using lower-level routines, assuming a basic knowledge of the <a class="reference external" href="https://github.com/imr-framework/pypulseq/tree/dev">(Py)Pulseq</a> formalism.
 Let’s get started!</p>
@@ -449,7 +449,7 @@ Let’s get started!</p>
 <span class="n">n_slices</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Single slice acquisition</span>
 
 <span class="n">flip_angle</span> <span class="o">=</span> <span class="mf">15.0</span>  <span class="c1"># Flip angle in degrees</span>
-<span class="n">slice_thickness</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># Slab thickness in mm</span>
+<span class="n">slice_thickness</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># Slice thickness in mm</span>
 </pre></div>
 </div>
 </div>
@@ -490,12 +490,12 @@ B0: 1.5
 </section>
 <section id="instantiate-the-sequence-object">
 <h2>2. Instantiate the Sequence object<a class="headerlink" href="#instantiate-the-sequence-object" title="Link to this heading">#</a></h2>
-<p>Now, we instantiate the sequence object. This is designed to provide a similar use experience as native Pulseq’s <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> class, but is effectively a <a class="reference internal" href="#%5Bhttps://en.wikipedia.org/wiki/Builder_pattern"><span class="xref myst">builder</span></a> we use to create the actual PyPulseq <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> object or the equivalent representations for other Pulseq interpreters (for now, GEHC TOPPE). The aim is providing a familiar syntax to Pulseq users, while minimizing the computationally expensive conversions steps required to adapt the format to different platforms.</p>
+<p>Now, we instantiate the sequence object. This is designed to provide a similar use experience as native Pulseq’s <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> class, but is effectively a <code class="docutils literal notranslate"><span class="pre">builder</span> <span class="pre">&lt;(https://en.wikipedia.org/wiki/Builder_pattern&gt;</span></code> we use to create the actual PyPulseq <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> object or the equivalent representations for other Pulseq interpreters (for now, GEHC TOPPE). The aim is providing a familiar syntax to Pulseq users, while minimizing the computationally expensive conversion steps required to adapt the format to different platforms.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span>
     <span class="n">system_limits</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;pulseq&quot;</span>
-<span class="p">)</span>  <span class="c1"># &#39;format&#39; specify the internal Sequence</span>
+<span class="p">)</span>  <span class="c1"># &#39;platform&#39; specifies the internal Sequence type</span>
 </pre></div>
 </div>
 </div>
@@ -633,7 +633,7 @@ B0: 1.5
 <li><p><strong>RF Excitation</strong>:this consists of the simultaneous execution of an RF event and its accompanying slice selection gradient on z-axis.</p></li>
 <li><p><strong>Slice Rephasing</strong>: this consists of the slice rephasing gradient event on z-axis.</p></li>
 <li><p><strong>Phase encoding</strong>: this consists of simultaneous execution of the phase encoding gradient event on y-axis and the readout pre-winder event on the x-axis.</p></li>
-<li><p><strong>Readout</strong>: this block consists of the simultaneous execution of the readout gradient (x-axis) and the ADC event (to record the MR signal).</p></li>
+<li><p><strong>Readout</strong>: this consists of the simultaneous execution of the readout gradient (x-axis) and the ADC event (to record the MR signal).</p></li>
 <li><p><strong>Rewinder</strong>: this is a repetition of the <strong>Phase encoding</strong>, with a scaling factor equal to -1.0 for the y-axis gradient event (reverse polarity).</p></li>
 <li><p><strong>Spoiler</strong>: this consists of the spoiling gradient event on z-axis.</p></li>
 </ul>
@@ -711,7 +711,7 @@ B0: 1.5
 <section id="define-the-sequence-plan">
 <h2>4. Define the Sequence plan<a class="headerlink" href="#define-the-sequence-plan" title="Link to this heading">#</a></h2>
 <p>Throughout the scan loop, the basic sequence structure is repeated while changing the phase $\Phi_n$ phase of the RF pulse (RF spoiling), its frequency offset (to excite different slices) and the scaling of the y-gradient events in both <strong>Phase encoding</strong> and <strong>Rewinder</strong> blocks to sample different ky lines in k-space. The gradient amplitude scaling and RF phase and frequency offsets are examples of dynamic sequence parameters, which also include RF amplitude scaling, gradient rotations and variable delay times, that are used to control the image contrast and k-space sampling pattern.</p>
-<p>Hence, the user needs to create the schedule for these dynamic sequence parameters. As this require a lot of effort, especially to obtain specific sampling pattern for Parallel Imaging and Compressed Sensing (e.g., CAIPIRINHA and Poisson Disk sampling), we include support routine to 1) generate such sampling masks and RF modulation patterns and 2) retrieve the corresponding gradient / RF amplitude settings at each TR. These support routines are included in <code class="docutils literal notranslate"><span class="pre">pulserver.plan</span></code> subpackage.</p>
+<p>Hence, the user needs to create the schedule for these dynamic sequence parameters. As this require a lot of effort, especially to obtain specific sampling pattern for Parallel Imaging and Compressed Sensing (e.g., CAIPIRINHA and Poisson Disk sampling), we include support routines to 1) generate such sampling masks and RF modulation patterns and 2) retrieve the corresponding gradient / RF amplitude settings at each TR. These support routines are included in <code class="docutils literal notranslate"><span class="pre">pulserver.plan</span></code> subpackage.</p>
 <p>We now use this package to create a Cartesian sampling mask and the RF phase list required to obtain RF spoiling:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -950,7 +950,7 @@ block_events: 1536
     <span class="c1"># initialize sequence object</span>
     <span class="n">seq</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span>
         <span class="n">system_limits</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;pulseq&quot;</span>
-    <span class="p">)</span>  <span class="c1"># &#39;format&#39; specify the internal Sequence</span>
+    <span class="p">)</span>  <span class="c1"># &#39;platform&#39; specifies the internal Sequence type</span>
 
     <span class="c1"># Define Blocks</span>
     <span class="c1"># -------------</span>
