@@ -1,110 +1,73 @@
 """Test SequenceParams structure."""
 
-import struct
-
-from pulserver._core._ceq import SequenceParams
+from pulserver._core import SequenceParams
 
 
-def test_sequence_params_from_bytes():
-    """
-    Test deserialization from bytes.
-    """
-    # Create a test byte array equivalent to the C struct filled with -1's
-    test_data = struct.pack(
-        "2f 5h 2f 5f h 5f 3f 3h h 6f",
-        -1.0,
-        -1.0,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1,
-        -1,
-        -1,
-        -1,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-        -1.0,
-    )
-
-    # Deserialize into a SequenceParams object
-    params = SequenceParams.from_bytes(test_data)
-
-    # Ensure all fields are set to None
-    assert params.FOVx is None
-    assert params.FOVy is None
-    assert params.Nx is None
-    assert params.Ny is None
-    assert params.Nslices is None
-    assert params.Nechoes is None
-    assert params.Nphases is None
-    assert params.slice_thickness is None
-    assert params.slice_spacing is None
-    assert params.Rplane is None
-    assert params.Rplane2 is None
-    assert params.Rslice is None
-    assert params.PFplane is None
-    assert params.PFslice is None
-    assert params.ETL is None
-    assert params.TE is None
-    assert params.TE0 is None
-    assert params.TR is None
-    assert params.Tprep is None
-    assert params.Trecovery is None
-    assert params.flip is None
-    assert params.flip2 is None
-    assert params.refoc_flip is None
-    assert params.freq_dir is None
-    assert params.freq_verse is None
-    assert params.phase_verse is None
-    assert params.bipolar_echoes is None
-    assert params.dwell is None
-    assert params.raster is None
-    assert params.gmax is None
-    assert params.smax is None
-    assert params.b1_max is None
-    assert params.b0_field is None
-
-
-def test_sequence_params_asdict():
-    """
-    Test the asdict method to exclude None values.
-    """
+# Test case to verify correct creation and attribute assignment in SequenceParams
+def test_sequence_params_initialization():
     params = SequenceParams(
-        FOVx=150.0, Nx=128, Ny=None, flip=30.0, dwell=0.01, gmax=40.0
+        function_name="design_function_1",
+        FOVx=256.0,
+        FOVy=256.0,
+        Nx=128,
+        Ny=128,
+        Nslices=32,
+        Nechoes=1,
+        Nphases=1,
+        slice_thickness=1.0,
+        slice_spacing=1.5,
+        Rplane=2.0,
+        Rplane2=1.5,
+        Rslice=1.0,
+        PFplane=0.75,
+        PFslice=0.75,
+        ETL=64,
+        TE=30.0,
+        TE0=10.0,
+        TR=2000.0,
+        Tprep=100.0,
+        Trecovery=500.0,
+        flip=90.0,
+        flip2=45.0,
+        refoc_flip=180.0,
+        freq_dir=1,
+        freq_verse=1,
+        phase_verse=1,
+        bipolar_echoes=0,
+        dwell=0.00001,
+        raster=0.000004,
+        gmax=40.0,
+        smax=200.0,
+        b1_max=15.0,
+        b0_field=3.0,
     )
 
-    params_dict = params.asdict()
+    assert params.function_name == "design_function_1"
+    assert params.FOVx == 256.0
+    assert params.FOVy == 256.0
+    assert params.Nx == 128
+    assert params.Ny == 128
+    # Add more asserts for other fields as necessary
 
-    # Ensure the dict excludes None values
-    assert params_dict == {
-        "FOVx": 150.0,
-        "Nx": 128,
-        "flip": 30.0,
-        "dwell": 0.01,
-        "gmax": 40.0,
-    }
 
-    # Ensure 'Ny' and unset fields are not included in the dict because they are None
-    assert "Ny" not in params_dict
-    assert "b1_max" not in params_dict
+# Test dictionary conversion and field exclusion (asdict)
+def test_asdict_method():
+    params = SequenceParams(
+        function_name="design_function_1",
+        FOVx=256.0,
+        FOVy=256.0,
+        Nx=128,
+        Ny=128,
+        Nslices=32,
+    )
+
+    param_dict = params.asdict()
+
+    assert "function_name" not in param_dict
+    assert param_dict["FOVx"] == 256.0
+    assert param_dict["FOVy"] == 256.0
+    assert param_dict["Nx"] == 128
+    assert param_dict["Ny"] == 128
+    assert (
+        "slice_thickness" not in param_dict
+    )  # slice_thickness is None, so it should be excluded

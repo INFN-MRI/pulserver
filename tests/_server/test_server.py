@@ -10,12 +10,14 @@ from datetime import datetime
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+from pulserver._core import SequenceParams
 from pulserver._server._server import load_plugins
 from pulserver._server._server import parse_request
 from pulserver._server._server import setup_function_logger
 from pulserver._server._server import send_to_recon_server
 from pulserver._server._server import handle_client_connection
 from pulserver._server import start_server
+
 
 # Create a logger for the function (this is just to match the function's logging behavior)
 logger = logging.getLogger(__name__)
@@ -45,12 +47,30 @@ def plugin2():
         yield tempdir
 
 
+@pytest.fixture
+def params():
+    yield SequenceParams(
+        function_name="foo",
+        FOVx=256.0,
+        Nx=128,
+    ).to_bytes()
+
+
+@pytest.fixture
+def invalid_params():
+    yield SequenceParams(
+        function_name="non_existent_function",
+        FOVx=256.0,
+        Nx=128,
+    ).to_bytes()
+
+
 def test_load_plugins(create_mock_plugins, caplog):
     plugin_dir = create_mock_plugins
-    os.environ["PULSERVER_PLUGINS"] = plugin_dir
+    config = {"PLUGINSDIR": plugin_dir}
 
     with caplog.at_level(logging.DEBUG):
-        plugins = load_plugins(logger)
+        plugins = load_plugins(config, logger)
 
         # Check that the plugins are loaded correctly
         assert "plugin1" in plugins
@@ -76,44 +96,17 @@ def test_load_plugins(create_mock_plugins, caplog):
         )
 
 
-def test_parse_request_valid(caplog):
-    request = "foo 2 var1 var2"
+def test_parse_request_valid(caplog, params):
+    request = params
     with caplog.at_level(logging.DEBUG):
-        function_name, args = parse_request(request, logger)
+        function_name, kwargs = parse_request(request, logger)
 
     assert function_name == "foo"
-    assert args == ["var1", "var2"]
-    assert "Parsed request - Function: foo, Args: ['var1', 'var2']" in caplog.text
-
-
-def test_parse_request_invalid_format(caplog):
-    request = "foo two var1 var2"
-    with caplog.at_level(logging.ERROR):
-        function_name, args = parse_request(request, logger)
-
-    assert function_name is None
-    assert args is None
-    assert "Failed to parse request: invalid literal for int()" in caplog.text
-
-
-def test_parse_request_missing_args(caplog):
-    request = "foo 2 var1"
-    with caplog.at_level(logging.DEBUG):
-        function_name, args = parse_request(request, logger)
-
-    assert function_name == "foo"
-    assert args == ["var1"]
-    assert "Parsed request - Function: foo, Args: ['var1']" in caplog.text
-
-
-def test_parse_request_extra_args(caplog):
-    request = "foo 2 var1 var2 var3"
-    with caplog.at_level(logging.DEBUG):
-        function_name, args = parse_request(request, logger)
-
-    assert function_name == "foo"
-    assert args == ["var1", "var2"]
-    assert "Parsed request - Function: foo, Args: ['var1', 'var2']" in caplog.text
+    assert kwargs == {"FOVx": 256.0, "Nx": 128}
+    assert (
+        "Parsed request - Function: foo, Keyworded Args: {'FOVx': 256.0, 'Nx': 128}"
+        in caplog.text
+    )
 
 
 # The function to be tested
@@ -124,9 +117,6 @@ LOG_DIR = "/path/to/log/dir"  # Update with appropriate log directory for testin
 def temp_log_dir(tmp_path):
     # Create a temporary directory for logs
     log_dir = tmp_path / "logs"
-    log_dir.mkdir()
-    global LOG_DIR
-    LOG_DIR = str(log_dir)
     yield log_dir
 
 
@@ -139,7 +129,8 @@ def test_setup_function_logger(mock_datetime, temp_log_dir):
     mock_datetime.now.return_value = fixed_datetime
     mock_datetime.strftime = fixed_datetime.strftime  # Use the real strftime method
 
-    function_logger = setup_function_logger(function_name)
+    config = {"LOGDIR": temp_log_dir}
+    function_logger = setup_function_logger(config, function_name)
 
     # Use a general pattern for the filename instead of an exact match
     log_filename_pattern = f"{function_name}_"
@@ -179,10 +170,10 @@ RECON_SERVER_PORT = 23456
 @pytest.fixture
 def sample_config():
     return {
-        "scanner_address": MR_SCANNER_ADDRESS,
-        "scanner_port": MR_SCANNER_PORT,
-        "recon_server_address": RECON_SERVER_ADDRESS,
-        "recon_server_port": RECON_SERVER_PORT,
+        "SCANNER_ADDRESS": MR_SCANNER_ADDRESS,
+        "SCANNER_PORT": MR_SCANNER_PORT,
+        "RECON_SERVER_ADDRESS": RECON_SERVER_ADDRESS,
+        "RECON_SERVER_PORT": RECON_SERVER_PORT,
     }
 
 
@@ -316,7 +307,7 @@ def test_send_to_recon_server_with_no_buffer(mock_socket, sample_config):
 def plugins():
     # Mock plugins with example functions
     mock_function = MagicMock(return_value=(b"result_buffer", b"optional_buffer"))
-    return {"mock_function": mock_function}
+    return {"foo": mock_function}
 
 
 @pytest.fixture
@@ -334,6 +325,7 @@ def main_logger():
 def test_handle_client_connection_valid_function(
     mock_send_to_recon_server,
     mock_setup_function_logger,
+    params,
     sample_config,
     plugins,
     client_socket,
@@ -342,8 +334,8 @@ def test_handle_client_connection_valid_function(
     logger = main_logger
 
     # Mock request data
-    request = "mock_function 2 arg1 arg2"
-    client_socket.recv.return_value = request.encode("utf-8")
+    request = params
+    client_socket.recv.return_value = request
 
     # Mock function logger
     function_logger = MagicMock()
@@ -353,11 +345,11 @@ def test_handle_client_connection_valid_function(
     handle_client_connection(sample_config, client_socket, plugins, logger)
 
     # Check that the function was called correctly
-    plugins["mock_function"].assert_called_once_with("arg1", "arg2")
+    plugins["foo"].assert_called_once_with(FOVx=256.0, Nx=128)
 
     # Check that logging was done correctly
     logger.info.assert_called_once_with(
-        "Calling mock_function with args ['arg1', 'arg2']"
+        "Calling foo with args {'FOVx': 256.0, 'Nx': 128}"
     )
     function_logger.info.assert_called_once_with("Output buffer: b'result_buffer'")
 
@@ -373,6 +365,7 @@ def test_handle_client_connection_valid_function(
 def test_handle_client_connection_function_not_found(
     mock_send_to_recon_server,
     mock_setup_function_logger,
+    invalid_params,
     sample_config,
     plugins,
     client_socket,
@@ -381,8 +374,8 @@ def test_handle_client_connection_function_not_found(
     logger = main_logger
 
     # Mock request data for a non-existent function
-    request = "non_existent_function 2 arg1 arg2"
-    client_socket.recv.return_value = request.encode("utf-8")
+    request = invalid_params
+    client_socket.recv.return_value = request
 
     # Call the function
     handle_client_connection(sample_config, client_socket, plugins, logger)
@@ -401,6 +394,7 @@ def test_handle_client_connection_function_not_found(
 def test_handle_client_connection_no_optional_buffer(
     mock_send_to_recon_server,
     mock_setup_function_logger,
+    params,
     sample_config,
     plugins,
     client_socket,
@@ -409,14 +403,14 @@ def test_handle_client_connection_no_optional_buffer(
     logger = main_logger
 
     # Mock plugins with an example function that returns no optional buffer
-    def mock_plugin(*args):
+    def mock_plugin(**kwargs):
         return b"result_buffer", None
 
-    plugins["mock_function"] = MagicMock(side_effect=mock_plugin)
+    plugins["foo"] = MagicMock(side_effect=mock_plugin)
 
     # Mock request data
-    request = "mock_function 2 arg1 arg2"
-    client_socket.recv.return_value = request.encode("utf-8")
+    request = params
+    client_socket.recv.return_value = request
 
     # Mock function logger
     function_logger = MagicMock()
@@ -426,11 +420,11 @@ def test_handle_client_connection_no_optional_buffer(
     handle_client_connection(sample_config, client_socket, plugins, logger)
 
     # Check that the function was called correctly
-    plugins["mock_function"].assert_called_once_with("arg1", "arg2")
+    plugins["foo"].assert_called_once_with(FOVx=256.0, Nx=128)
 
     # Check that logging was done correctly
     logger.info.assert_called_once_with(
-        "Calling mock_function with args ['arg1', 'arg2']"
+        "Calling foo with args {'FOVx': 256.0, 'Nx': 128}"
     )
     function_logger.info.assert_called_once_with("Output buffer: b'result_buffer'")
 
@@ -441,7 +435,6 @@ def test_handle_client_connection_no_optional_buffer(
     mock_send_to_recon_server.assert_not_called()
 
 
-@patch("pulserver._server._server._get_config")
 @patch("pulserver._server._server.setup_main_logger")
 @patch("pulserver._server._server.load_plugins")
 @patch("pulserver._server._server.handle_client_connection")
@@ -451,11 +444,8 @@ def test_start_server(
     mock_handle_client_connection,
     mock_load_plugins,
     mock_setup_main_logger,
-    mock_get_config,
     sample_config,
 ):
-    # Mock the configuration
-    mock_get_config.return_value = sample_config
 
     # Mock the main logger
     mock_logger = MagicMock()
@@ -480,10 +470,7 @@ def test_start_server(
 
     # Call the start_server function
     with pytest.raises(KeyboardInterrupt):
-        start_server()
-
-    # Check that configuration was loaded
-    mock_get_config.assert_called_once()
+        start_server(sample_config)
 
     # Check that the main logger was set up
     mock_setup_main_logger.assert_called_once()

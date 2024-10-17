@@ -1,11 +1,9 @@
 """Ceq structure definition."""
 
-__all__ = ["Ceq", "PulseqBlock", "SequenceParams"]
+__all__ = ["Ceq", "PulseqBlock"]
 
 from dataclasses import dataclass
-from dataclasses import asdict as _asdict
 from types import SimpleNamespace
-from typing import Optional
 
 import struct
 import numpy as np
@@ -334,150 +332,6 @@ class Ceq:
             return self.to_bytes(endian=">")
         elif dformat == "file":
             return self.to_bytes(endian="<")
-
-
-@dataclass
-class SequenceParams:
-    """
-    Python representation of the C SequenceParams struct.
-
-    Attributes
-    ----------
-    FOVx : Optional[float]
-        Field of view in mm (x-direction).
-    FOVy : Optional[float]
-        Field of view in mm (y-direction).
-    Nx : Optional[int]
-        Matrix size (x-direction).
-    Ny : Optional[int]
-        Matrix size (y-direction).
-    Nslices : Optional[int]
-        Number of slices.
-    Nechoes : Optional[int]
-        Number of echoes.
-    Nphases : Optional[int]
-        Number of phases.
-    slice_thickness : Optional[float]
-        Thickness of each slice (mm).
-    slice_spacing : Optional[float]
-        Spacing between slices (mm).
-    Rplane : Optional[float]
-        In-plane undersampling factor.
-    Rplane2 : Optional[float]
-        Additional in-plane undersampling factor.
-    Rslice : Optional[float]
-        Through-plane undersampling factor.
-    PFplane : Optional[float]
-        In-plane partial fourier.
-    PFslice : Optional[float]
-        Through-plane partial fourier.
-    ETL : Optional[int]
-        Number of k-space shots per readout.
-    TE : Optional[float]
-        Echo time (ms).
-    TE0 : Optional[float]
-        First echo time (ms) for multiecho.
-    TR : Optional[float]
-        Repetition time (ms).
-    Tprep : Optional[float]
-        Preparation time (ms).
-    Trecovery : Optional[float]
-        Recovery time (ms).
-    flip : Optional[float]
-        Flip angle in degrees.
-    flip2 : Optional[float]
-        Second flip angle in degrees.
-    refoc_flip : Optional[float]
-        Refocusing flip angle in degrees.
-    freq_dir : Optional[int]
-        Frequency direction (0: A/P; 1: S/L).
-    freq_verse : Optional[int]
-        Frequency verse (1: normal; -1: swapped).
-    phase_verse : Optional[int]
-        Phase verse (1: normal; -1: swapped).
-    bipolar_echoes : Optional[int]
-        Bipolar echoes (0: false, 1: true).
-    dwell : Optional[float]
-        ADC dwell time (s).
-    raster : Optional[float]
-        Waveform raster time (s).
-    gmax : Optional[float]
-        Maximum gradient strength (mT/m).
-    smax : Optional[float]
-        Maximum gradient slew rate (T/m/s).
-    b1_max : Optional[float]
-        Maximum RF value (uT).
-    b0_field : Optional[float]
-        System field strength (T).
-    """
-
-    FOVx: float | None = None
-    FOVy: float | None = None
-    Nx: int | None = None
-    Ny: int | None = None
-    Nslices: int | None = None
-    Nechoes: int | None = None
-    Nphases: int | None = None
-    slice_thickness: float | None = None
-    slice_spacing: float | None = None
-    Rplane: float | None = None
-    Rplane2: float | None = None
-    Rslice: float | None = None
-    PFplane: float | None = None
-    PFslice: float | None = None
-    ETL: int | None = None
-    TE: float | None = None
-    TE0: float | None = None
-    TR: float | None = None
-    Tprep: float | None = None
-    Trecovery: float | None = None
-    flip: float | None = None
-    flip2: float | None = None
-    refoc_flip: float | None = None
-    freq_dir: int | None = None
-    freq_verse: int | None = None
-    phase_verse: int | None = None
-    bipolar_echoes: int | None = None
-    dwell: float | None = None
-    raster: float | None = None
-    gmax: float | None = None
-    smax: float | None = None
-    b1_max: float | None = None
-    b0_field: float | None = None
-
-    @classmethod
-    def from_bytes(cls, data: bytes) -> "SequenceParams":
-        """
-        Deserialize from a byte array into a SequenceParams object.
-
-        Parameters
-        ----------
-        data : bytes
-            A byte array representing a serialized SequenceParams object.
-
-        Returns
-        -------
-        SequenceParams
-            A SequenceParams instance with attributes filled.
-        """
-        format_string = "2f 5h 2f 5f h 5f 3f 3h h 6f"
-        unpacked = struct.unpack(format_string, data)
-
-        # Replace -1 values with None
-        unpacked = [None if x == -1 or x == -1.0 else x for x in unpacked]
-
-        return cls(*unpacked)
-
-    def asdict(self) -> dict:
-        """
-        Return a dictionary of the dataclass, excluding None values.
-
-        Returns
-        -------
-        dict
-            A dictionary of the dataclass fields, excluding None values.
-        """
-        return {k: v for k, v in _asdict(self).items() if v is not None}
 
 
 # %% local subroutines

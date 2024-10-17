@@ -26,20 +26,21 @@ def start(
     """
     Start sequence design server.
     """
-    if config_path is not None:
-        os.environ["PULSEFORGE_CONFIG"] = config_path
-    else:
-        if scanner_address is not None:
-            os.environ["PULSEFORGE_SCANNER_ADDRESS"] = scanner_address
-        if scanner_port is not None:
-            os.environ["PULSEFORGE_SCANNER_PORT"] = scanner_port
-        if recon_server_address is not None:
-            os.environ["PULSEFORGE_RECON_SERVER_ADDRESS"] = recon_server_address
-        if recon_server_port is not None:
-            os.environ["PULSEFORGE_RECON_SERVER_PORT"] = recon_server_port
+    # Get configuration
+    config = _server.load_config()
+
+    # Replace with provided arguments
+    if scanner_address is not None:
+        os.environ["SCANNER_ADDRESS"] = scanner_address
+    if scanner_port is not None:
+        os.environ["SCANNER_PORT"] = scanner_port
+    if recon_server_address is not None:
+        os.environ["RECON_SERVER_ADDRESS"] = recon_server_address
+    if recon_server_port is not None:
+        os.environ["RECON_SERVER_PORT"] = recon_server_port
 
     # start the server
-    _server.start_server()
+    _server.start_server(config)
 
 
 @click.command()
