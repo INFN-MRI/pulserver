@@ -117,11 +117,16 @@ class SequenceParams:
     smax: float | None = None
     b1_max: float | None = None
     b0_field: float | None = None
+    rf_dead_time: float | None = None
+    rf_ringdown_time: float | None = None
+    adc_dead_time: float | None = None
+    psd_rf_wait: float | None = None
+    psd_grd_wait: float | None = None
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "SequenceParams":
         """Deserialize from a byte array into a SequenceParams object."""
-        format_string = "2f 5h 7f h 8f 4h 6f"
+        format_string = "2f 5h 7f h 8f 4h 11f"
 
         # Unpack the function name
         function_name = struct.unpack("50s", data[:50])[0]
@@ -131,13 +136,13 @@ class SequenceParams:
         values = struct.unpack(format_string, data[50:])
         values = [None if x == -1 or x == -1.0 else x for x in values]
 
-        return cls(function_name, *values)
+        return SequenceParams(function_name, *values)
 
     def to_bytes(self) -> bytes:  # noqa
         """
         Serialize this dataclass to a byte array.
         """
-        format_string = "2f 5h 7f h 8f 4h 6f"
+        format_string = "2f 5h 7f h 8f 4h 11f"
         field_types = [field.type for field in fields(self.__class__)][1:]
 
         # Pack function name
