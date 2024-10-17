@@ -41,7 +41,6 @@ classifiers = [  # Optional
 ]
 
 dependencies = [
-"pyyaml",
 "numpy<2.0",
 "scipy<1.14",
 "numba",

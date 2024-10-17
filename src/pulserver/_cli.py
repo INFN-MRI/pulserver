@@ -8,7 +8,7 @@ from . import _server
 
 
 @click.group()
-def cli():
+def cli():  # noqa
     pass
 
 
@@ -22,7 +22,7 @@ def cli():
 @click.option("--recon-server-port", default=None, help="Reconstruction server port.")
 def start(
     config_path, scanner_address, scanner_port, recon_server_address, recon_server_port
-):
+):  # noqa
     """
     Start sequence design server.
     """
@@ -49,12 +49,15 @@ def start(
     default=None,
     help="Function whose docstring we want to see. If not provided, print list of available commands.",
 )
-def apps(name):
+def apps(name):  # noqa
     """
     Design function documentations
     """
+    # Get configuration
+    config = _server.load_config()
+
     # Load plugin list
-    plugins = _server.load_plugins()
+    plugins = _server.load_plugins(config)
     if name is None:
         for fun in plugins.values():
             name = fun.__name__
