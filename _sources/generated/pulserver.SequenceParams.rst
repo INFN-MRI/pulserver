@@ -19,6 +19,7 @@
       ~SequenceParams.__init__
       ~SequenceParams.asdict
       ~SequenceParams.from_bytes
+      ~SequenceParams.to_bytes
    
    
 
@@ -61,5 +62,6 @@
       ~SequenceParams.slice_spacing
       ~SequenceParams.slice_thickness
       ~SequenceParams.smax
+      ~SequenceParams.function_name
    
    
