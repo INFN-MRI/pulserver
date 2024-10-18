@@ -1,11 +1,61 @@
 """Sequence Parameters object."""
 
-__all__ = ["ParamsParser"]
+__all__ = ["BaseParams", "ParamsParser"]
 
 from dataclasses import dataclass, fields
 from dataclasses import asdict as _asdict
 
 import struct
+
+from .._opts import get_opts
+
+
+class BaseParams:
+    """
+    Base parameter parser class.
+
+    This is designed to convert data parsed by ParamsParser
+    to a format suitable for actual design routines.
+
+    """
+
+    def __init__(
+        self,
+        dwell: float | None = 4e-6,
+        raster: float | None = 2e-6,
+        gmax: float | None = None,
+        smax: float | None = None,
+        b0_field: float | None = None,
+        rf_dead_time: float | None = 100e-6,
+        rf_ringdown_time: float | None = 60e-6,
+        adc_dead_time: float | None = 40e-6,
+        psd_rf_wait: float | None = 0.0,
+    ):
+
+        # Build opts
+        if gmax is None:
+            raise ValueError("Please provide gmax")
+        if smax is None:
+            raise ValueError("Please provide smax")
+        if b0_field is None:
+            raise ValueError("Please provide b0_field")
+
+        _opts_dict = {
+            "B0": b0_field,
+            "max_grad": gmax,
+            "max_slew": smax,
+            "rf_raster_time": raster,
+            "grad_raster_time": raster,
+            "adc_raster_time": dwell,
+            "rf_dead_time": rf_dead_time,
+            "rf_ringdown_time": max(rf_ringdown_time, psd_rf_wait),
+            "adc_dead_time": adc_dead_time,
+        }
+
+        self.opts = get_opts(_opts_dict)
+
+    def asdict(self):
+        return vars(self)
 
 
 @dataclass

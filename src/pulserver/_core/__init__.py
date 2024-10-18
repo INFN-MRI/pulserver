@@ -8,4 +8,4 @@ __all__ = []
 
 from ._sequence import Sequence  # noqa
 
-__all__.extend(["Sequence"])
+__all__.append("Sequence")

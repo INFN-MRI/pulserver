@@ -132,7 +132,6 @@ class PulseqGrad:
 
     @classmethod
     def from_struct(cls, data: SimpleNamespace) -> "PulseqGrad":
-        print(data)
         if data.type == "trap":
             type = 1
             shape_obj = PulseqShapeTrap(
@@ -145,12 +144,10 @@ class PulseqGrad:
             dt = np.unique(np.diff(np.round(data.tt * 1e6))) / 1e6
 
             if len(dt) == 1:  # uniform raster -> arbitrary shape
-                print("arbitrary")
                 type = 2
                 raster = dt.item()
                 time = None
             else:  # non-uniform raster -> extended trapezoid
-                print("extended")
                 type = 3
                 raster = 0.0
                 time = data.tt

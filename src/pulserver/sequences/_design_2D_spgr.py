@@ -4,12 +4,13 @@ __all__ = ["design_2D_spgr"]
 
 from collections.abc import Iterable
 
+import warnings
 
 import numpy as np
-import pypulseq as pp
-
 
 from .._core import Sequence
+from .._opts import get_opts
+
 from .. import blocks
 from .. import plan
 
@@ -20,12 +21,9 @@ def design_2D_spgr(
     matrix_size: Iterable[int],
     n_slices: int,
     flip_angle: float,
-    R: int,
-    PF: float,
-    rectime: float,
-    max_grad: float,
-    max_slew: float,
-    raster_time: float,
+    R: int = 1,
+    PF: float = 1.0,
+    opts_dict: str | dict | None = None,
     slice_spacing: float = 0.0,
     platform: str = "pulseq",
 ):
@@ -51,14 +49,20 @@ def design_2D_spgr(
         Number of slices.
     flip_angle : float
         Flip angle in degrees.
-    rectime : float
-        Recovery time after spoiling in ms.
-    max_grad : float
-        Maximum gradient amplitude in mT/m.
-    max_slew : float
-        Maximum gradient slew rate in T/m/s.
-    raster_time : float
-        Waveform raster time in seconds (the time between successive gradient samples).
+    opts_dict : str | dict | None, optional
+        Either scanner identifier or a dictionary with the following keys:
+
+            * max_grad: maximum gradient strength in ``[mT/m]``.
+            * max_slew: maximum gradient slew rate in ``[T/m/s]``.
+            * rf_dead_time: initial RF delay time in ``[s]``.
+            * rf_ringdown_time: final RF wait time in ``[s]``.
+            * adc_dead_time: initial ADC delay time in ``[s]``.
+            * adc_raster_time: ADC raster time (i.e., signal dwell time) in ``[s]``.
+            * rf_raster_time: RF raster time in ``[s]``.
+            * grad_raster_time: gradient raster time in ``[s]``.
+            * B0: field strength in ``[T]``
+
+        If ``None``, use PyPulseq default Opts. The default is ``None``.
     slice_spacing : float, optional
         Additional slice spacing in mm. The default is 0.0 (contiguous slices).
     seqformat : str or bool, optional
@@ -80,14 +84,18 @@ def design_2D_spgr(
     Examples
     --------
     Generate a 2D SPGR sequence for a single 5 mm thick slice and 240x240 mm FOV, 256x256 matrix size,
-    15-degree flip angle, 5s recovery time and hardware limits 4mT/m, 150T/m/s, 4e-6 s raster time as:
+    15-degree flip angle and hardware limits 40 mT/m, 150 T/m/s, 4e-6 s raster time as:
 
-    >>> from pulseforge import SPGR2D
-    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, 5.0, 40, 150, 4e-6)
+    >>> from pulserver.sequences import design_2D_spgr
+    >>> opts_dict = {"max_grad": 40, "max_slew": 150, "grad_raster_time": 4e-6, , "rf_raster_time": 4e-6}
+
+    Actual design:
+
+    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict)
 
     Generate the same sequence and export it in GEHC format:
 
-    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, 5.0, 40, 150, 4e-6, platform='gehc')
+    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict, platform='gehc')
 
     """
     # Sequence Parameters
@@ -108,14 +116,10 @@ def design_2D_spgr(
         Nx, Ny = matrix_size[0], matrix_size[1]
 
     # initialize system limits
-    system_limits = pp.Opts(
-        max_grad=max_grad,
-        grad_unit="mT/m",
-        max_slew=max_slew,
-        slew_unit="T/m/s",
-        grad_raster_time=raster_time,
-        rf_raster_time=raster_time,
-    )
+    if opts_dict is None:
+        warnings.warn("opts_dict not provided - using PyPulseq defaults")
+
+    system_limits = get_opts(opts_dict)
 
     # initialize sequence object
     seq = Sequence(system=system_limits, platform=platform)

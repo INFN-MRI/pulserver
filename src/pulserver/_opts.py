@@ -87,7 +87,7 @@ def get_opts(input: str | dict | None = None) -> pp.Opts:
                 "Currently, we only support GEHC identifier. Please provide a dict"
             )
 
-    return pp.Opts(**input)
+    return pp.Opts(**input, grad_unit="mT/m", slew_unit="T/m/s")
 
 
 # %% local sub-routines

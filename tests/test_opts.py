@@ -28,7 +28,9 @@ def test_get_opts_valid_string_gehc_premier():
         "B0": 3.0,
     }
     assert isinstance(opts, pp.Opts)
-    assert vars(opts) == vars(pp.Opts(**expected_params))
+    assert vars(opts) == vars(
+        pp.Opts(**expected_params, grad_unit="mT/m", slew_unit="T/m/s")
+    )
 
 
 def test_get_opts_valid_string_gehc_magnus():
@@ -46,7 +48,9 @@ def test_get_opts_valid_string_gehc_magnus():
         "B0": 7.0,
     }
     assert isinstance(opts, pp.Opts)
-    assert vars(opts) == vars(pp.Opts(**expected_params))
+    assert vars(opts) == vars(
+        pp.Opts(**expected_params, grad_unit="mT/m", slew_unit="T/m/s")
+    )
 
 
 def test_get_opts_dict_input():
@@ -54,7 +58,9 @@ def test_get_opts_dict_input():
     input_dict = {"max_grad": 20.0, "max_slew": 60, "B0": 3.0}
     opts = get_opts(input_dict)
     assert isinstance(opts, pp.Opts)
-    assert vars(opts) == vars(pp.Opts(**input_dict))
+    assert vars(opts) == vars(
+        pp.Opts(**input_dict, grad_unit="mT/m", slew_unit="T/m/s")
+    )
 
 
 def test_get_opts_unsupported_vendor():

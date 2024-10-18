@@ -9,5 +9,8 @@ accordingly.
 __all__ = []
 
 from ._base import ParamsParser  # noqa
+from ._cartesian_params import Cartesian2DParams, Cartesian3DParams  # noqa
 
-__all__.extend(["ParamsParser"])
+
+__all__.append("ParamsParser")
+__all__.extend(["Cartesian2DParams", "Cartesian3DParams"])

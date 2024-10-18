@@ -3,8 +3,8 @@
 from pulserver._parsing import ParamsParser
 
 
-# Test case to verify correct creation and attribute assignment in SequenceParams
-def test_sequence_params_initialization():
+# Test case to verify correct creation and attribute assignment in ParamsParser
+def test_params_parser_initialization():
     params = ParamsParser(
         function_name="design_function_1",
         FOVx=256.0,
