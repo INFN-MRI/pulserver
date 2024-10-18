@@ -10,7 +10,6 @@ Core sequence representation.
    :nosignatures:
 
    pulserver.Sequence
-   pulserver.SequenceParams
    pulserver.Opts 
 
 Blocks
