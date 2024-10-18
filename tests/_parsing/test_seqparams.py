@@ -1,11 +1,11 @@
 """Test SequenceParams structure."""
 
-from pulserver._core import SequenceParams
+from pulserver._parsing import ParamsParser
 
 
 # Test case to verify correct creation and attribute assignment in SequenceParams
 def test_sequence_params_initialization():
-    params = SequenceParams(
+    params = ParamsParser(
         function_name="design_function_1",
         FOVx=256.0,
         FOVy=256.0,
@@ -52,7 +52,7 @@ def test_sequence_params_initialization():
 
 # Test dictionary conversion and field exclusion (asdict)
 def test_asdict_method():
-    params = SequenceParams(
+    params = ParamsParser(
         function_name="design_function_1",
         FOVx=256.0,
         FOVy=256.0,

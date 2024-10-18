@@ -11,7 +11,8 @@ from . import sequences  # noqa
 from . import _server  # noqa
 
 from ._core import Sequence  # noqa
-from ._core import SequenceParams  # noqa
+from ._opts import get_opts  # noqa
+from ._parsing import ParamsParser  # noqa
 
-__all__.append("Opts")
-__all__.extend(["Sequence", "SequenceParams"])
+__all__.extend(["Opts", "get_opts"])
+__all__.extend(["Sequence", "ParamsParser"])

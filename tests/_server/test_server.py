@@ -10,7 +10,7 @@ from datetime import datetime
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from pulserver._core import SequenceParams
+from pulserver._parsing import ParamsParser
 from pulserver._server._server import load_plugins
 from pulserver._server._server import parse_request
 from pulserver._server._server import setup_function_logger
@@ -49,7 +49,7 @@ def plugin2():
 
 @pytest.fixture
 def params():
-    yield SequenceParams(
+    yield ParamsParser(
         function_name="foo",
         FOVx=256.0,
         Nx=128,
@@ -58,7 +58,7 @@ def params():
 
 @pytest.fixture
 def invalid_params():
-    yield SequenceParams(
+    yield ParamsParser(
         function_name="non_existent_function",
         FOVx=256.0,
         Nx=128,

@@ -1,6 +1,6 @@
 """Sequence Parameters object."""
 
-__all__ = ["SequenceParams"]
+__all__ = ["ParamsParser"]
 
 from dataclasses import dataclass, fields
 from dataclasses import asdict as _asdict
@@ -9,7 +9,7 @@ import struct
 
 
 @dataclass
-class SequenceParams:
+class ParamsParser:
     """
     Python representation of the C SequenceParams struct.
 
@@ -124,7 +124,7 @@ class SequenceParams:
     psd_grd_wait: float | None = None
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "SequenceParams":
+    def from_bytes(cls, data: bytes) -> "ParamsParser":
         """Deserialize from a byte array into a SequenceParams object."""
         format_string = "2f 5h 7f h 8f 4h 11f"
 
@@ -136,7 +136,7 @@ class SequenceParams:
         values = struct.unpack(format_string, data[50:])
         values = [None if x == -1 or x == -1.0 else x for x in values]
 
-        return SequenceParams(function_name, *values)
+        return ParamsParser(function_name, *values)
 
     def to_bytes(self) -> bytes:  # noqa
         """

@@ -11,7 +11,7 @@ import socket
 
 from datetime import datetime
 
-from .._core import SequenceParams
+from .._parsing import ParamsParser
 
 # Location of home
 HOME_DIR = pathlib.Path.home()
@@ -203,7 +203,7 @@ def load_plugins(config, logger=None):  # noqa
 def parse_request(request, logger):
     try:
         # Example format: "funcname n var1 var2 ... varn"
-        params = SequenceParams.from_bytes(request)
+        params = ParamsParser.from_bytes(request)
         function_name = params.function_name
         kwargs = params.asdict()
         logger.debug(
@@ -227,9 +227,6 @@ def send_to_recon_server(optional_buffer, config):
 def handle_client_connection(config, client_socket, plugins, logger):
     request = client_socket.recv(1024)
     function_name, kwargs = parse_request(request, logger)
-    print(plugins)
-    print(function_name)
-    print(kwargs)
     if function_name in plugins:
         # Select function
         function = plugins[function_name]
