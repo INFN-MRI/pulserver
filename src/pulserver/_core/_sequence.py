@@ -11,6 +11,7 @@ import numpy as np
 import pypulseq as pp
 
 from ._ceq import Ceq, PulseqBlock
+from ._header import SequenceDefinition
 
 
 class Sequence:
@@ -24,7 +25,12 @@ class Sequence:
 
     """
 
-    def __init__(self, system: SimpleNamespace, platform: str):
+    def __init__(
+        self,
+        ndims: int,
+        system: SimpleNamespace,
+        platform: str,
+    ):
         self._system = system
 
         if platform == "pulseq":
@@ -50,6 +56,9 @@ class Sequence:
 
         self._section_labels = []
         self._sections_edges = []
+
+        # initialize header
+        self.header = SequenceDefinition(ndims)
 
     def register_block(  # noqa
         self,

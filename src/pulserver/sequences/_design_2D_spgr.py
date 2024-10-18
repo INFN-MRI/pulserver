@@ -122,7 +122,7 @@ def design_2D_spgr(
     system_limits = get_opts(opts_dict)
 
     # initialize sequence object
-    seq = Sequence(system=system_limits, platform=platform)
+    seq = Sequence(2, system=system_limits, platform=platform)
 
     # Define Blocks
     # -------------

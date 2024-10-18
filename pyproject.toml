@@ -47,7 +47,7 @@ dependencies = [
 "pypulseq",
 "pulpy",
 "mri-nufft",
-"ismrmrd",
+"mrd-python",
 "ipywidgets",
 ]
 

@@ -36,7 +36,7 @@ def pulseq_grad_trap():
 
 # Test for Sequence Initialization
 def test_sequence_initialization(system):
-    seq = Sequence(system, platform="pulseq")
+    seq = Sequence(2, system, platform="pulseq")
     assert seq._system == system
     assert seq._format == "siemens"
     assert seq._block_library == {"delay": {}}
@@ -44,7 +44,7 @@ def test_sequence_initialization(system):
 
 # Test event registration
 def test_register_block(system):
-    seq = Sequence(system, platform="pulseq")
+    seq = Sequence(2, system, platform="pulseq")
     seq.register_block(name="test_block", rf=sample_rf)
 
     assert "test_block" in seq._block_library
@@ -53,14 +53,14 @@ def test_register_block(system):
 
 # Test section creation
 def test_section(system):
-    seq = Sequence(system, platform="pulseq")
+    seq = Sequence(2, system, platform="pulseq")
     seq.section("section_1")
     assert seq._sections_edges == [0]  # No events added yet
 
 
 # Test block addition for pulseq format
 def test_add_block_pulseq(system):
-    seq = Sequence(system, platform="pulseq")
+    seq = Sequence(2, system, platform="pulseq")
     seq.register_block(name="test_block", rf=sample_rf)
     seq.add_block("test_block", rf_amp=1.5, rf_phase=0.1, rf_freq=50.0)
 
@@ -74,7 +74,7 @@ def test_add_block_pulseq(system):
 
 # Test block addition for custom format (non-pulseq)
 def test_add_block_custom_format(system):
-    seq = Sequence(system, platform="toppe")  # Non-pulseq format
+    seq = Sequence(2, system, platform="toppe")  # Non-pulseq format
     seq.register_block(name="test_block", rf=sample_rf)
     seq.add_block("test_block", rf_amp=1.5, rf_phase=0.1, rf_freq=50.0)
 
@@ -86,7 +86,7 @@ def test_add_block_custom_format(system):
 
 # Test block rotation in add_block
 def test_block_rotation(system):
-    seq = Sequence(system, platform="toppe")
+    seq = Sequence(2, system, platform="toppe")
     seq.register_block(name="test_block", gz=sample_grad_trap),
 
     rotation_matrix = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
@@ -100,14 +100,14 @@ def test_block_rotation(system):
 
 # Test sequence export in pulseq format
 def test_export_pulseq_format(system):
-    seq = Sequence(system, platform="pulseq")
+    seq = Sequence(2, system, platform="pulseq")
     result = seq.build()
     assert isinstance(result, pp.Sequence)  # Export should return a PyPulseq Sequence
 
 
 # Test sequence export in custom format
 def test_export_custom_format(system):
-    seq = Sequence(system, platform="toppe")  # Non-pulseq format
+    seq = Sequence(2, system, platform="toppe")  # Non-pulseq format
     seq.register_block(name="test_block", rf=sample_rf)
     seq.add_block("test_block")
     result = seq.build().export("bytes")
