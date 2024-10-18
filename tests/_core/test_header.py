@@ -1,67 +1,146 @@
-# """Test Sequence Definition."""
+"""Test Sequence Definition."""
 
-# import mrd
-# import pytest
+import mrd
+import pytest
 
-# from pulserver._core._header import SequenceDefinition
-
-
-# def test_initialization(mock_mrd):
-#     seq_def = SequenceDefinition(3)
-
-#     # Verify the correct number of dimensions is set
-#     assert seq_def._ndims == 3
-
-#     # Verify the user parameters are set correctly
-#     assert mock_mrd.UserParameterLongType.called
-#     mock_mrd.UserParameterLongType.assert_called_with(name="ndims", value=3)
+from pulserver._core._header import SequenceDefinition
 
 
-# def test_add_section(mock_mrd):
-#     seq_def = SequenceDefinition(3)
-#     seq_def.section("first_section")
-
-#     # Verify the section was added
-#     assert seq_def._current_section == 0
-#     assert "first_section" in seq_def._section_labels
+@pytest.fixture
+def seq_def_3d():
+    """Fixture to create a 3D sequence definition."""
+    return SequenceDefinition(3)
 
 
-# def test_add_second_section_inherits(mock_mrd):
-#     seq_def = SequenceDefinition(3)
-#     seq_def.section("first_section")
-
-#     # Define some fields in section 0
-#     mock_mrd.EncodingType().encoded_space = "encoded_space_value"
-#     mock_mrd.EncodingType().recon_space = "recon_space_value"
-#     mock_mrd.EncodingType().encoding_limits = "encoding_limits_value"
-#     mock_mrd.EncodingType().trajectory = "trajectory_value"
-
-#     seq_def.section("second_section")
-
-#     # Verify second section inherited the values from section 0
-#     assert seq_def._definition.encoding[1].encoded_space == "encoded_space_value"
-#     assert seq_def._definition.encoding[1].recon_space == "recon_space_value"
-#     assert seq_def._definition.encoding[1].encoding_limits == "encoding_limits_value"
-#     assert seq_def._definition.encoding[1].trajectory == "trajectory_value"
+@pytest.fixture
+def seq_def_2d():
+    """Fixture to create a 2D sequence definition."""
+    return SequenceDefinition(2)
 
 
-# def test_set_shape(mock_mrd):
-#     seq_def = SequenceDefinition(3)
-#     seq_def.set_definition("shape", 128, 128, 64)
+def test_initialization(seq_def_3d):
+    """Test that initialization correctly sets the ndims and other initial attributes."""
+    assert seq_def_3d._ndims == 3
+    assert len(seq_def_3d._definition.encoding) == 1
+    assert seq_def_3d._shape_set is False
+    assert seq_def_3d._current_section == 0
+    assert isinstance(seq_def_3d._definition.user_parameters, mrd.UserParametersType)
+    assert isinstance(
+        seq_def_3d._definition.sequence_parameters, mrd.SequenceParametersType
+    )
 
-#     # Check that the shape is correctly set for encoded and recon space
-#     mock_mrd.EncodingType().encoded_space.matrix_size.x = 128
-#     mock_mrd.EncodingType().encoded_space.matrix_size.y = 128
-#     mock_mrd.EncodingType().encoded_space.matrix_size.z = 64
-#     assert seq_def._shape_set is True
+
+def test_add_section(seq_def_3d):
+    """Test that a new section is added and labels are correctly updated."""
+    seq_def_3d.section("first_section")
+    assert "first_section" in seq_def_3d._section_labels
+    assert seq_def_3d._current_section == 0
+
+    # Add another section
+    seq_def_3d.section("second_section")
+    assert "second_section" in seq_def_3d._section_labels
+    assert seq_def_3d._current_section == 1
+    assert len(seq_def_3d._definition.encoding) == 2
 
 
-# def test_set_fov_3d(mock_mrd):
-#     seq_def = SequenceDefinition(3)
-#     seq_def.set_definition("fov", 240.0, 240.0, 240.0)
+def test_inheritance_from_section_0(seq_def_3d):
+    """Test that the second section correctly inherits values from section 0."""
+    seq_def_3d.section("first_section")
 
-#     # Check that the FOV is correctly set for encoded and recon space
-#     mock_mrd.EncodingType().encoded_space.field_of_view_mm.x = 240.0
-#     mock_mrd.EncodingType().encoded_space.field_of_view_mm.y = 240.0
-#     mock_mrd.EncodingType().encoded_space.field_of_view_mm.z = 240.0
-#     assert mock_mrd.EncodingType().recon_space.field_of_view_mm.x == 240.0
+    # Set shape and FOV in section 0
+    seq_def_3d.set_definition("shape", 128, 128, 64)
+    seq_def_3d.set_definition("fov", 240.0, 240.0, 240.0)
+
+    # Add a second section
+    seq_def_3d.section("second_section")
+
+    # Ensure fields are copied from section 0 to section 1
+    section_0 = seq_def_3d._definition.encoding[0]
+    section_1 = seq_def_3d._definition.encoding[1]
+
+    assert (
+        section_1.encoded_space.matrix_size.x == section_0.encoded_space.matrix_size.x
+    )
+    assert section_1.recon_space.matrix_size.x == section_0.recon_space.matrix_size.x
+    assert (
+        section_1.encoded_space.field_of_view_mm.x
+        == section_0.encoded_space.field_of_view_mm.x
+    )
+
+
+def test_set_shape_3d(seq_def_3d):
+    """Test setting the encoded and reconstruction space shape for 3D acquisition."""
+    seq_def_3d.set_definition("shape", 128, 128, 64)
+
+    # Verify that shape is correctly set
+    encoding = seq_def_3d._definition.encoding[0]
+    assert encoding.encoded_space.matrix_size.x == 128
+    assert encoding.encoded_space.matrix_size.y == 128
+    assert encoding.encoded_space.matrix_size.z == 64
+    assert encoding.recon_space.matrix_size.x == 128
+    assert encoding.recon_space.matrix_size.y == 128
+    assert encoding.recon_space.matrix_size.z == 64
+
+
+def test_set_fov_3d(seq_def_3d):
+    """Test setting the field of view for 3D acquisition."""
+    seq_def_3d.set_definition("fov", 240.0, 240.0, 240.0)
+
+    # Verify that FOV is correctly set
+    encoding = seq_def_3d._definition.encoding[0]
+    assert encoding.encoded_space.field_of_view_mm.x == 240.0
+    assert encoding.encoded_space.field_of_view_mm.y == 240.0
+    assert encoding.encoded_space.field_of_view_mm.z == 240.0
+    assert encoding.recon_space.field_of_view_mm.x == 240.0
+    assert encoding.recon_space.field_of_view_mm.y == 240.0
+    assert encoding.recon_space.field_of_view_mm.z == 240.0
+
+
+def test_set_fov_2d_before_shape_error(seq_def_2d):
+    """Test that setting FOV before shape in 2D raises an error."""
+    with pytest.raises(
+        KeyError, match="For 2D acquisitions, 'shape' must be set before 'fov'"
+    ):
+        seq_def_2d.set_definition("fov", 240.0, 240.0, 5.0)
+
+
+def test_set_fov_2d(seq_def_2d):
+    """Test setting the field of view for 2D acquisition."""
+    seq_def_2d.set_definition("shape", 128, 128, 1)
+    seq_def_2d.set_definition("fov", 240.0, 240.0, 5.0)
+
+    encoding = seq_def_2d._definition.encoding[0]
+    assert encoding.encoded_space.field_of_view_mm.x == 240.0
+    assert encoding.encoded_space.field_of_view_mm.y == 240.0
+    assert encoding.encoded_space.field_of_view_mm.z == 5.0
+    assert encoding.recon_space.field_of_view_mm.x == 240.0
+    assert encoding.recon_space.field_of_view_mm.y == 240.0
+    assert encoding.recon_space.field_of_view_mm.z == 5.0
+
+
+def test_set_limits(seq_def_3d):
+    """Test setting k-space encoding limits."""
+    seq_def_3d.set_definition(
+        "limits", n_views=128, n_slices=64, n_partitions=32, n_contrasts=1, n_frames=10
+    )
+
+    encoding = seq_def_3d._definition.encoding[0]
+
+    # Check the encoding limits for kspace_encoding_step_1 (views)
+    assert encoding.encoding_limits.kspace_encoding_step_1.maximum == 127
+    assert encoding.encoding_limits.kspace_encoding_step_1.center == 64
+
+    # Check the encoding limits for slice and partition
+    assert encoding.encoding_limits.slice.maximum == 63
+    assert encoding.encoding_limits.kspace_encoding_step_2.maximum == 31
+
+    # Check the encoding limits for repetition (frames)
+    assert encoding.encoding_limits.repetition.maximum == 9
+
+
+def test_set_trajectory(seq_def_3d):
+    """Test setting k-space trajectory type."""
+    seq_def_3d.set_definition("trajectory", "radial")
+
+    encoding = seq_def_3d._definition.encoding[0]
+    assert encoding.trajectory == mrd.Trajectory(2)

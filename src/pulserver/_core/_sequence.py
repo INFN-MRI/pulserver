@@ -58,7 +58,7 @@ class Sequence:
         self._sections_edges = []
 
         # initialize header
-        self.header = SequenceDefinition(ndims)
+        self._header = SequenceDefinition(ndims)
 
     def register_block(  # noqa
         self,
@@ -130,6 +130,9 @@ class Sequence:
         elif self._format == "gehc":
             _current_seqlength = len(self._loop)
         self._sections_edges.append(_current_seqlength)
+
+        # also update section for definition
+        self._header.section(name)
 
     def add_block(  # noqa
         self,
@@ -263,16 +266,37 @@ class Sequence:
                 )
             self._loop.append(loop_row)
 
-    def build(self):  # noqa
-        if self._format == "siemens":
-            return self._sequence
+    def set_definition(self, key: str, *args, **kwargs):
+        """
+        Set a specific sequence parameter in header.
 
-        # prepare Ceq structure
-        self._sequence = Ceq(
-            list(self._block_library.values()),
-            self._loop,
-            self._sections_edges,
-        )
+        Parameters
+        ----------
+        key : str
+            The parameter to be set. Valid keys are 'fov', 'shape', 'limits', and 'trajectory'.
+        *args :
+            Positional arguments for the specific parameter.
+        **kwargs :
+            Keyword arguments for the specific parameter.
+
+        Raises
+        ------
+        KeyError
+            If 'fov' is set before 'shape' in 2D acquisitions.
+        """
+        self._header.set_definition(key, *args, **kwargs)
+
+    def build(self, return_header: bool = False):  # noqa
+        if self._format != "siemens":
+            # prepare Ceq structure
+            self._sequence = Ceq(
+                list(self._block_library.values()),
+                self._loop,
+                self._sections_edges,
+            )
+
+        if return_header:
+            return self._sequence, self._header._definition
 
         return self._sequence
 

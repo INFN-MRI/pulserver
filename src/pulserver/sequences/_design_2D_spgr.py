@@ -212,4 +212,4 @@ def design_2D_spgr(
         seq.add_block("spoiling")
 
     # build the sequence
-    return seq.build()
+    return seq.build(True)

@@ -97,24 +97,24 @@ class SequenceDefinition:
         """
         if key.lower() == "fov" and self._ndims == 3:
             self._set_fov_3D(*args, **kwargs)
-        if key.lower() == "fov" and self._ndims == 2:
+        elif key.lower() == "fov" and self._ndims == 2:
             if self._shape_set is False:
                 raise KeyError("For 2D acquisitions, 'shape' must be set before 'fov'")
             self._set_fov_2D(*args, **kwargs)
-        if key.lower() == "shape":
+        elif key.lower() == "shape":
             self._set_shape(*args, **kwargs)
             self._shape_set = True
-        if key.lower() == "limits":
+        elif key.lower() == "limits":
             self._set_limits(*args, **kwargs)
-        if key.lower() == "trajectory":
+        elif key.lower() == "trajectory":
             self._set_trajectory(*args, **kwargs)
-        if key.lower() == "flip":
+        elif key.lower() == "flip":
             self._set_flip(*args, **kwargs)
-        if key.upper() == "TE":
+        elif key.upper() == "TE":
             self._set_echo_time(*args, **kwargs)
-        if key.upper() == "TR":
+        elif key.upper() == "TR":
             self._set_repetition_time(*args, **kwargs)
-        if key.upper() == "TI" or key.lower() == "prep_time":
+        elif key.upper() == "TI" or key.lower() == "prep_time":
             self._set_preparation_time(*args, **kwargs)
         else:
             self._set_parameter(key, args[0])
@@ -386,5 +386,4 @@ class SequenceDefinition:
         ]
 
         for field in fields_to_copy:
-            if getattr(current_encoding, field) is None:
-                setattr(current_encoding, field, getattr(section_0_encoding, field))
+            setattr(current_encoding, field, getattr(section_0_encoding, field))
