@@ -404,7 +404,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_sections_edges</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c1"># initialize header</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">SequenceDefinition</span><span class="p">(</span><span class="n">ndims</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span> <span class="o">=</span> <span class="n">SequenceDefinition</span><span class="p">(</span><span class="n">ndims</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">register_block</span><span class="p">(</span>  <span class="c1"># noqa</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -476,6 +476,9 @@ document.write(`
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;gehc&quot;</span><span class="p">:</span>
             <span class="n">_current_seqlength</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sections_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_current_seqlength</span><span class="p">)</span>
+
+        <span class="c1"># also update section for definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">section</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_block</span><span class="p">(</span>  <span class="c1"># noqa</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -609,16 +612,40 @@ document.write(`
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loop_row</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># noqa</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">==</span> <span class="s2">&quot;siemens&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span>
+<div class="viewcode-block" id="Sequence.set_definition">
+<a class="viewcode-back" href="../../../generated/pulserver.Sequence.html#pulserver.Sequence.set_definition">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a specific sequence parameter in header.</span>
 
-        <span class="c1"># prepare Ceq structure</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span> <span class="o">=</span> <span class="n">Ceq</span><span class="p">(</span>
-            <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_block_library</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_sections_edges</span><span class="p">,</span>
-        <span class="p">)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The parameter to be set. Valid keys are &#39;fov&#39;, &#39;shape&#39;, &#39;limits&#39;, and &#39;trajectory&#39;.</span>
+<span class="sd">        *args :</span>
+<span class="sd">            Positional arguments for the specific parameter.</span>
+<span class="sd">        **kwargs :</span>
+<span class="sd">            Keyword arguments for the specific parameter.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If &#39;fov&#39; is set before &#39;shape&#39; in 2D acquisitions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">set_definition</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_header</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>  <span class="c1"># noqa</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span> <span class="o">!=</span> <span class="s2">&quot;siemens&quot;</span><span class="p">:</span>
+            <span class="c1"># prepare Ceq structure</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span> <span class="o">=</span> <span class="n">Ceq</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_block_library</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sections_edges</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_header</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">_definition</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span></div>
 

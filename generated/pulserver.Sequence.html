@@ -405,7 +405,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -445,6 +448,9 @@ a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">section</span></code></p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.set_definition" title="pulserver.Sequence.set_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_definition</span></code></a></p></td>
+<td><p>Set a specific sequence parameter in header.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -457,6 +463,24 @@ a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.set_definition">
+<span class="sig-name descname"><span class="pre">set_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.set_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.set_definition" title="Link to this definition">#</a></dt>
+<dd><p>Set a specific sequence parameter in header.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The parameter to be set. Valid keys are ‘fov’, ‘shape’, ‘limits’, and ‘trajectory’.</p></li>
+<li><p><strong>*args</strong> – Positional arguments for the specific parameter.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for the specific parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If ‘fov’ is set before ‘shape’ in 2D acquisitions.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -506,7 +530,10 @@ a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
