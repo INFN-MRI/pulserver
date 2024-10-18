@@ -421,7 +421,7 @@ document.write(`
 <h1>Sequence<a class="headerlink" href="#sequence" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulserver.Sequence">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulserver.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulserver.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Pulseq Sequence intermediate representation.</p>
 <p>This is related to Pulceq PulseqBlock structure.</p>
@@ -451,6 +451,7 @@ a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ndims</strong> (<em>int</em>)</p></li>
 <li><p><strong>system</strong> (<em>SimpleNamespace</em>)</p></li>
 <li><p><strong>platform</strong> (<em>str</em>)</p></li>
 </ul>

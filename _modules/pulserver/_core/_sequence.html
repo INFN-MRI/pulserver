@@ -355,6 +355,7 @@ document.write(`
 <span class="kn">import</span> <span class="nn">pypulseq</span> <span class="k">as</span> <span class="nn">pp</span>
 
 <span class="kn">from</span> <span class="nn">._ceq</span> <span class="kn">import</span> <span class="n">Ceq</span><span class="p">,</span> <span class="n">PulseqBlock</span>
+<span class="kn">from</span> <span class="nn">._header</span> <span class="kn">import</span> <span class="n">SequenceDefinition</span>
 
 
 <div class="viewcode-block" id="Sequence">
@@ -370,7 +371,12 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">SimpleNamespace</span><span class="p">,</span> <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ndims</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">:</span> <span class="n">SimpleNamespace</span><span class="p">,</span>
+        <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
 
         <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;pulseq&quot;</span><span class="p">:</span>
@@ -396,6 +402,9 @@ document.write(`
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_section_labels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sections_edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># initialize header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">SequenceDefinition</span><span class="p">(</span><span class="n">ndims</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">register_block</span><span class="p">(</span>  <span class="c1"># noqa</span>
         <span class="bp">self</span><span class="p">,</span>
