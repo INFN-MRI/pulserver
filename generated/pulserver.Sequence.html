@@ -406,7 +406,19 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._system"><code class="docutils literal notranslate"><span class="pre">Sequence._system</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._format"><code class="docutils literal notranslate"><span class="pre">Sequence._format</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._sequence"><code class="docutils literal notranslate"><span class="pre">Sequence._sequence</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._block_library"><code class="docutils literal notranslate"><span class="pre">Sequence._block_library</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._header"><code class="docutils literal notranslate"><span class="pre">Sequence._header</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._section_labels"><code class="docutils literal notranslate"><span class="pre">Sequence._section_labels</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._sections_edges"><code class="docutils literal notranslate"><span class="pre">Sequence._sections_edges</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.initialize_header"><code class="docutils literal notranslate"><span class="pre">Sequence.initialize_header()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.register_block"><code class="docutils literal notranslate"><span class="pre">Sequence.register_block()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.section"><code class="docutils literal notranslate"><span class="pre">Sequence.section()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.add_block"><code class="docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.build"><code class="docutils literal notranslate"><span class="pre">Sequence.build()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -424,59 +436,238 @@ document.write(`
 <h1>Sequence<a class="headerlink" href="#sequence" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pulserver.Sequence">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulserver.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulserver.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Pulseq Sequence intermediate representation.</p>
-<p>This is related to Pulceq PulseqBlock structure.</p>
-<p>Each block is a collection of one or more PyPulseq events. For each PulseqBlock,
-a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.</p>
+<p>Intermediate representation of a Pulseq sequence.</p>
+<p>This class manages the creation and handling of Pulseq blocks, which consist of
+one or more PyPulseq events. A PulseqBlock allows for a maximum of one event for
+each board (rf, gx, gy, gz, adc, trig) to be executed at a time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<em>SimpleNamespace</em>) – The hardware system parameters for the sequence (e.g., gradient, RF limits).</p></li>
+<li><p><strong>platform</strong> (<em>str</em>) – The target platform for the sequence. Acceptable values are ‘pulseq’ (alias for ‘siemens’)
+and ‘toppe’ (alias for ‘gehc’).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._system">
+<span class="sig-name descname"><span class="pre">_system</span></span><a class="headerlink" href="#pulserver.Sequence._system" title="Link to this definition">#</a></dt>
+<dd><p>Holds the system configuration (e.g., gradient and RF settings).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SimpleNamespace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._format">
+<span class="sig-name descname"><span class="pre">_format</span></span><a class="headerlink" href="#pulserver.Sequence._format" title="Link to this definition">#</a></dt>
+<dd><p>Indicates the platform type (‘siemens’ or ‘gehc’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._sequence">
+<span class="sig-name descname"><span class="pre">_sequence</span></span><a class="headerlink" href="#pulserver.Sequence._sequence" title="Link to this definition">#</a></dt>
+<dd><p>PyPulseq sequence or Ceq structure depending on the format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pp.Sequence or Ceq</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._block_library">
+<span class="sig-name descname"><span class="pre">_block_library</span></span><a class="headerlink" href="#pulserver.Sequence._block_library" title="Link to this definition">#</a></dt>
+<dd><p>Stores all defined Pulseq blocks by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._header">
+<span class="sig-name descname"><span class="pre">_header</span></span><a class="headerlink" href="#pulserver.Sequence._header" title="Link to this definition">#</a></dt>
+<dd><p>Holds the sequence metadata, including parameters like FOV and shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SequenceDefinition</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._section_labels">
+<span class="sig-name descname"><span class="pre">_section_labels</span></span><a class="headerlink" href="#pulserver.Sequence._section_labels" title="Link to this definition">#</a></dt>
+<dd><p>List of section labels in the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulserver.Sequence._sections_edges">
+<span class="sig-name descname"><span class="pre">_sections_edges</span></span><a class="headerlink" href="#pulserver.Sequence._sections_edges" title="Link to this definition">#</a></dt>
+<dd><p>Sequence length markers for different sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Methods</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_block</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.add_block" title="pulserver.Sequence.add_block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_block</span></code></a></p></td>
+<td><p>Add a previously registered block to the sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulserver.Sequence.build" title="pulserver.Sequence.build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code></a></p></td>
+<td><p>Build the final sequence.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_block</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.initialize_header" title="pulserver.Sequence.initialize_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_header</span></code></a></p></td>
+<td><p>Initialize the header with sequence metadata.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">section</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulserver.Sequence.register_block" title="pulserver.Sequence.register_block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_block</span></code></a></p></td>
+<td><p>Register a Pulseq block with one or more events.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.set_definition" title="pulserver.Sequence.set_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_definition</span></code></a></p></td>
-<td><p>Set a specific sequence parameter in header.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.section" title="pulserver.Sequence.section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">section</span></code></a></p></td>
+<td><p>Define a new section within the sequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulserver.Sequence.set_definition" title="pulserver.Sequence.set_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_definition</span></code></a></p></td>
+<td><p>Set a specific sequence parameter in the header.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.initialize_header">
+<span class="sig-name descname"><span class="pre">initialize_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.initialize_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.initialize_header" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the header with sequence metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ndims</strong> (<em>int</em>) – The number of dimensions for the acquisition (e.g., 2D or 3D).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.register_block">
+<span class="sig-name descname"><span class="pre">register_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.register_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.register_block" title="Link to this definition">#</a></dt>
+<dd><p>Register a Pulseq block with one or more events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ndims</strong> (<em>int</em>)</p></li>
-<li><p><strong>system</strong> (<em>SimpleNamespace</em>)</p></li>
-<li><p><strong>platform</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – The block name to be registered.</p></li>
+<li><p><strong>rf</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>gx</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>gy</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>gz</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>adc</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>trig</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+<li><p><strong>delay</strong> (<em>SimpleNamespace</em><em> or </em><em>None</em>) – Individual components of the Pulseq block. These may include RF, gradients
+(gx, gy, gz), ADC event, trigger, or delay. If <cite>None</cite>, the event is ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the sequence format is already defined or if the block contains both
+    RF and ADC events.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.section">
+<span class="sig-name descname"><span class="pre">section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.section" title="Link to this definition">#</a></dt>
+<dd><p>Define a new section within the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – A unique name for the section.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the section name already exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.add_block">
+<span class="sig-name descname"><span class="pre">add_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gx_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gy_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gz_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rf_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.add_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.add_block" title="Link to this definition">#</a></dt>
+<dd><p>Add a previously registered block to the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the block to be added.</p></li>
+<li><p><strong>gx_amp</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factors for the x, y, and z gradients, respectively.</p></li>
+<li><p><strong>gy_amp</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factors for the x, y, and z gradients, respectively.</p></li>
+<li><p><strong>gz_amp</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factors for the x, y, and z gradients, respectively.</p></li>
+<li><p><strong>rf_amp</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factor for the RF pulse amplitude.</p></li>
+<li><p><strong>rf_phase</strong> (<em>float</em><em>, </em><em>optional</em>) – Phase and frequency modulation for the RF pulse.</p></li>
+<li><p><strong>rf_freq</strong> (<em>float</em><em>, </em><em>optional</em>) – Phase and frequency modulation for the RF pulse.</p></li>
+<li><p><strong>adc_phase</strong> (<em>float</em><em>, </em><em>optional</em>) – Phase modulation for the ADC event.</p></li>
+<li><p><strong>delay</strong> (<em>float</em><em>, </em><em>optional</em>) – Delay for pure delay blocks.</p></li>
+<li><p><strong>rotmat</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – 3x3 rotation matrix to apply to gradients.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>AssertionError</strong> – If the block is not registered or gradients have inconsistent lengths.</p></li>
+<li><p><strong>ValueError</strong> – If delay is missing for a pure delay block.</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pulserver.Sequence.set_definition">
 <span class="sig-name descname"><span class="pre">set_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.set_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.set_definition" title="Link to this definition">#</a></dt>
-<dd><p>Set a specific sequence parameter in header.</p>
+<dd><p>Set a specific sequence parameter in the header.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> (<em>str</em>) – The parameter to be set. Valid keys are ‘fov’, ‘shape’, ‘limits’, and ‘trajectory’.</p></li>
-<li><p><strong>*args</strong> – Positional arguments for the specific parameter.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword arguments for the specific parameter.</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – Parameter to be set, e.g., ‘fov’, ‘shape’, ‘limits’, or ‘trajectory’.</p></li>
+<li><p><strong>*args</strong> – Positional arguments for the parameter.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for the parameter.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>KeyError</strong> – If ‘fov’ is set before ‘shape’ in 2D acquisitions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.build" title="Link to this definition">#</a></dt>
+<dd><p>Build the final sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>sequence</strong> (<em>pp.Sequence or Ceq</em>) – The finalized sequence object.</p></li>
+<li><p><strong>header</strong> (<em>dict or None</em>) – Sequence metadata, if available.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -531,7 +722,19 @@ a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._system"><code class="docutils literal notranslate"><span class="pre">Sequence._system</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._format"><code class="docutils literal notranslate"><span class="pre">Sequence._format</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._sequence"><code class="docutils literal notranslate"><span class="pre">Sequence._sequence</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._block_library"><code class="docutils literal notranslate"><span class="pre">Sequence._block_library</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._header"><code class="docutils literal notranslate"><span class="pre">Sequence._header</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._section_labels"><code class="docutils literal notranslate"><span class="pre">Sequence._section_labels</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence._sections_edges"><code class="docutils literal notranslate"><span class="pre">Sequence._sections_edges</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.initialize_header"><code class="docutils literal notranslate"><span class="pre">Sequence.initialize_header()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.register_block"><code class="docutils literal notranslate"><span class="pre">Sequence.register_block()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.section"><code class="docutils literal notranslate"><span class="pre">Sequence.section()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.add_block"><code class="docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.build"><code class="docutils literal notranslate"><span class="pre">Sequence.build()</span></code></a></li>
 </ul>
 </li>
 </ul>

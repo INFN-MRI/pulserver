@@ -19,6 +19,7 @@
       ~Sequence.__init__
       ~Sequence.add_block
       ~Sequence.build
+      ~Sequence.initialize_header
       ~Sequence.register_block
       ~Sequence.section
       ~Sequence.set_definition
