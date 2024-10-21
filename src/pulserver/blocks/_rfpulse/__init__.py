@@ -12,8 +12,8 @@ from pypulseq import Opts as _Opts
 from pypulseq.sigpy_pulse_opts import SigpyPulseOpts as _SigpyPulseOpts
 
 from pypulseq import make_block_pulse as _make_block_pulse
-from pypulseq.make_sigpy_pulse import sigpy_n_seq as _make_sigpy_pulse
 
+from ._make_slr_pulse import pulpy_n_seq as _make_pulpy_pulse
 from ._make_spsp_pulse import make_spsp_pulse
 
 _USE_TABLE = {"excitation": "ex", "refocusing": "se", "inversion": "inv"}
@@ -197,7 +197,7 @@ def make_slr_pulse(
     _pulse_cfg["phs_0_pt"] = phs_0_pt
     pulse_cfg = _SigpyPulseOpts(**_pulse_cfg)
 
-    rf, gz, gzr, _ = _make_sigpy_pulse(
+    rf, gz, gzr, _ = _make_pulpy_pulse(
         _np.deg2rad(flip_angle),
         0,
         duration,

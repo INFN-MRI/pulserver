@@ -35,7 +35,8 @@ class PulseqShapeArbitrary:
 
         # determine amplitude and normalize waveform
         self.amplitude = abs(self.magnitude).max()
-        self.magnitude *= 32767 / self.amplitude
+        self.magnitude /= self.amplitude
+        self.magnitude *= 32767
 
     def to_bytes(self, endian=">") -> bytes:
         _bytes = struct.pack(endian + "i", self.n_samples) + struct.pack(
@@ -304,7 +305,7 @@ class Ceq:
         self.n_readouts = int(np.sum(loop[:, -2]))
         self.loop = loop[:, :-2]
 
-        # safety and scan duration info
+        # Safety, RF scaling and scan duration info
         self.max_b1 = _find_b1_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
 
@@ -388,7 +389,7 @@ def _calc_duration(segment_id, block_duration):
     block_duration = block_duration.sum()
 
     # total segment ringdown
-    n_seg_boundaries = (np.diff(segment_id) != 0).sum()
+    n_seg_boundaries = (np.diff(segment_id + 1) != 0).sum()
     seg_ringdown_duration = SEGMENT_RINGDOWN_TIME * n_seg_boundaries
 
     return block_duration + seg_ringdown_duration
