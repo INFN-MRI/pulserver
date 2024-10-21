@@ -55,7 +55,9 @@ def compute_max_energy(ceq, window_width=10.0, windows_stride=5.0):
         last_block = np.argmin(abs(block_ends - window_ends[n]))
 
         # get current blocks
-        current_blocks = block_id[first_block:last_block]
+        current_starts = block_starts[first_block:last_block][has_rf[first_block:last_block]]
+        current_ends = block_starts[first_block:last_block][has_rf[first_block:last_block]]
+        current_blocks = block_id[first_block:last_block][has_rf[first_block:last_block]]
 
 
 def compute_rf_energy_with_raster(
