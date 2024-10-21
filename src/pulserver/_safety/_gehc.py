@@ -181,9 +181,12 @@ def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
 
     # add phase
     if rf.wav.phase is not None:
-        waveform *= np.exp(1j * rf.wav.phase)
+        waveform = waveform * np.exp(1j * rf.wav.phase)
 
     # convert extended trapezoid to arbitrary
+    if rf.wav.time is None:
+        rf.wav.time = system.rf_raster_time * np.arange(waveform.shape[0])
+        
     if rf.type == 1:
         waveform, time = waveform, rf.wav.time + rf.delay
     elif rf.type == 2:

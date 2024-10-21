@@ -9,6 +9,8 @@ from types import SimpleNamespace
 import numpy as np
 import pypulseq as pp
 
+from .._safety import compute_max_energy
+
 from ._ceq import Ceq, PulseqBlock
 from ._header import SequenceDefinition
 
@@ -435,7 +437,9 @@ class Sequence:
                 self._loop,
                 self._sections_edges,
             )
-
+            P = compute_max_energy(self._sequence, self._system)
+            self._sequence.max_power = P
+            
         if self._header is not None:
             return self._sequence, self._header
 

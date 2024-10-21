@@ -306,6 +306,7 @@ class Ceq:
         self.loop = loop[:, :-2]
 
         # Safety, RF scaling and scan duration info
+        self.max_power = 0.0
         self.max_b1 = _find_b1_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
 
