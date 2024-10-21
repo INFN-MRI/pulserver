@@ -24,7 +24,7 @@ def design_2D_spgr(
     R: int = 1,
     PF: float = 1.0,
     opts_dict: str | dict | None = None,
-    slice_spacing: float = 0.0,
+    slice_gap: float = 0.0,
     platform: str = "pulseq",
 ):
     """
@@ -63,8 +63,8 @@ def design_2D_spgr(
             * B0: field strength in ``[T]``
 
         If ``None``, use PyPulseq default Opts. The default is ``None``.
-    slice_spacing : float, optional
-        Additional slice spacing in mm. The default is 0.0 (contiguous slices).
+    slice_gap : float, optional
+        Additional slice gap in mm. The default is 0.0 (contiguous slices).
     seqformat : str or bool, optional
         Output sequence format. If a string is provided, it specifies the desired output format (e.g., 'pulseq', 'bytes').
         If False, the sequence is returned as an internal object. Default is False.
@@ -103,7 +103,7 @@ def design_2D_spgr(
     rf_spoiling_inc = 117.0  # RF spoiling increment
 
     # initialize prescription
-    slice_spacing += slice_thickness
+    slice_spacing = slice_thickness + slice_gap
 
     if np.isscalar(fov):
         FOVx, FOVy = fov, fov
@@ -122,7 +122,7 @@ def design_2D_spgr(
     system_limits = get_opts(opts_dict)
 
     # initialize sequence object
-    seq = Sequence(2, system=system_limits, platform=platform)
+    seq = Sequence(system=system_limits, platform=platform)
 
     # Define Blocks
     # -------------
@@ -154,6 +154,17 @@ def design_2D_spgr(
     seq.register_block(name="dummy_readout", gx=readout_block["gx"])
     seq.register_block(name="phase_encoding", **phase_enc_block)
     seq.register_block(name="spoiling", **spoil_block)
+
+    # Prepare header
+    # --------------
+    seq.initialize_header(2)
+    seq.set_definition("shape", Nx, Ny, n_slices)
+    seq.set_definition("fov", FOVx, FOVy, slice_spacing)
+    seq.set_definition("limits", n_views=Ny, n_slices=n_slices)
+    seq.set_definition("flip", flip_angle)
+    seq.set_definition("dwell", system_limits.grad_raster_time)
+    seq.set_definition("spoiling_inc", 117.0)
+    seq.set_definition("ndummies", 10)
 
     # Define sequence plan
     # --------------------
@@ -201,7 +212,7 @@ def design_2D_spgr(
 
         # get dynamic sequence parameters
         rf_phase = rf_phases()
-        encoding, _ = encoding_plan()
+        encoding, label = encoding_plan()
 
         # update sequence loop
         seq.add_block("excitation", rf_phase=rf_phase, rf_freq=encoding.rf_freq)
@@ -211,5 +222,8 @@ def design_2D_spgr(
         seq.add_block("phase_encoding", gy_amp=-encoding.gy_amp)
         seq.add_block("spoiling")
 
+        # update data labeling
+        seq.set_label(iy=label.iy, islice=label.islice)
+
     # build the sequence
-    return seq.build(True)
+    return seq.build()

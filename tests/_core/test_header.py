@@ -138,9 +138,9 @@ def test_set_limits(seq_def_3d):
     assert encoding.encoding_limits.repetition.maximum == 9
 
 
-def test_set_trajectory(seq_def_3d):
+def test_set_trajectory_type(seq_def_3d):
     """Test setting k-space trajectory type."""
-    seq_def_3d.set_definition("trajectory", "radial")
+    seq_def_3d.set_definition("trajectory-type", "radial")
 
     encoding = seq_def_3d._definition.encoding[0]
     assert encoding.trajectory == mrd.Trajectory(2)

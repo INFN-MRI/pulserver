@@ -352,6 +352,72 @@ class Sequence:
         """
         self._header.set_definition(key, *args, **kwargs)
 
+    def set_label(
+        self,
+        iy: int = None,
+        iz: int = 0,
+        islice: int = None,
+        icontrast: int = 0,
+        iframe: int = 0,
+        ishot: int = None,
+    ):
+        """
+        Set the label for the current MRI acquisition by configuring encoding indices and trajectory data.
+
+        Parameters
+        ----------
+        iy : int, optional
+            Cartesian encoding step in the k-space (along the y-axis). Mutually exclusive with `ishot`.
+            Default is None.
+        iz : int, optional
+            Cartesian encoding step in the k-space (along the z-axis, for 3D acquisitions). Mutually
+            exclusive with `islice`. Default is 0.
+        islice : int, optional
+            Slice index for 2D multislice acquisitions. Mutually exclusive with `iz`. Default is None.
+        icontrast : int, optional
+            Contrast encoding index for multicontrast MRI acquisitions. Mutually exclusive with `iframe`.
+            Default is 0.
+        iframe : int, optional
+            Repetition or dynamic frame index for dynamic MRI acquisitions. Mutually exclusive with
+            `icontrast`. Default is 0.
+        ishot : int, optional
+            Non-Cartesian encoding step (shot number). Mutually exclusive with `iy`. Default is None.
+
+        Raises
+        ------
+        ValueError
+            If both `iy` and `ishot` are provided (Cartesian and Non-Cartesian are mutually exclusive).
+            If both `islice` and `iz` are provided (2D and 3D encoding are mutually exclusive).
+            If both `iframe` and `icontrast` are provided (dynamic and multicontrast MRI are mutually
+            exclusive).
+
+        Notes
+        -----
+        This function updates the MRI acquisition label by setting k-space encoding indices and, if
+        applicable, the corresponding trajectory from the `self._trajectory` attribute. The indices for
+        k-space encoding (`kspace_encode_step_1` for the y-axis, `kspace_encode_step_2` for the z-axis or
+        slice) and contrast or repetition are updated based on the provided parameters.
+
+        The acquisition trajectory is updated if `ishot` is provided, and it fetches the corresponding
+        trajectory point from the `self._trajectory` data. The function also appends the newly created
+        acquisition to `self._labels`.
+
+        Examples
+        --------
+        Set a Cartesian acquisition with y and z encoding steps:
+
+        >>> set_label(iy=10, iz=5)
+
+        Set a 2D multislice acquisition with slice index:
+
+        >>> set_label(islice=3)
+
+        Set a Non-Cartesian shot-based acquisition:
+
+        >>> set_label(ishot=7)
+        """
+        self._header.set_label(iy, iz, islice, icontrast, iframe, ishot)
+
     def build(self):
         """
         Build the final sequence.
@@ -371,7 +437,7 @@ class Sequence:
             )
 
         if self._header is not None:
-            return self._sequence, self._header._definition
+            return self._sequence, self._header
 
         return self._sequence
 

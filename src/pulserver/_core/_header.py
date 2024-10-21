@@ -32,6 +32,10 @@ class SequenceDefinition:
     def __init__(self, ndims):
         self._ndims = ndims
         self._definition = mrd.Header()
+        self._labels = []
+        self._trajectory = []
+        self._idx = []
+        self._dwell = 0.0
 
         # user parameters
         self._definition.user_parameters = mrd.UserParametersType()
@@ -51,6 +55,14 @@ class SequenceDefinition:
         self._definition.user_parameters.user_parameter_long.append(
             mrd.UserParameterLongType(name="ndims", value=ndims)
         )
+
+    @property
+    def definition(self):  # noqa
+        return self._definition
+
+    @property
+    def labels(self):  # noqa
+        return self._labels
 
     def section(self, name: str):
         """
@@ -106,6 +118,10 @@ class SequenceDefinition:
             self._shape_set = True
         elif key.lower() == "limits":
             self._set_limits(*args, **kwargs)
+        elif key.lower() == "dwell":
+            self._set_dwell(*args, **kwargs)
+        elif key.lower() == "trajectory-type":
+            self._set_trajectory_type(*args, **kwargs)
         elif key.lower() == "trajectory":
             self._set_trajectory(*args, **kwargs)
         elif key.lower() == "flip":
@@ -170,7 +186,7 @@ class SequenceDefinition:
         self._definition.encoding[idx].recon_space.field_of_view_mm.y = fov_y
         self._definition.encoding[idx].recon_space.field_of_view_mm.z = fov_z
 
-    def _set_fov_2D(self, fov_x, fov_y, slice_thickness, slice_spacing=0.0):
+    def _set_fov_2D(self, fov_x, fov_y, slice_spacing):
         """
         Set the Field of View (FOV) for 2D acquisitions.
 
@@ -180,28 +196,31 @@ class SequenceDefinition:
             FOV in the x-dimension.
         fov_y : float
             FOV in the y-dimension.
-        slice_thickness : float
-            The thickness of each slice.
-        slice_spacing : float, optional
-            The spacing between slices, default is 0.0.
+        slice_spacing : float
+            The spacing between slices.
+            This is equal to slice thickness + slice gap.
         """
         idx = self._current_section
-
-        # get effective spacing between slices
-        spacing = slice_thickness + slice_spacing
 
         # set encoded fov
         nz = self._definition.encoding[idx].encoded_space.matrix_size.z
         self._definition.encoding[idx].encoded_space.field_of_view_mm.x = fov_x
         self._definition.encoding[idx].encoded_space.field_of_view_mm.y = fov_y
-        self._definition.encoding[idx].encoded_space.field_of_view_mm.z = nz * spacing
+        self._definition.encoding[idx].encoded_space.field_of_view_mm.z = (
+            nz * slice_spacing
+        )
 
         # set recon fov (= encoded fov)
         nz = self._definition.encoding[idx].recon_space.matrix_size.z
 
         self._definition.encoding[idx].recon_space.field_of_view_mm.x = fov_x
         self._definition.encoding[idx].recon_space.field_of_view_mm.y = fov_y
-        self._definition.encoding[idx].recon_space.field_of_view_mm.z = nz * spacing
+        self._definition.encoding[idx].recon_space.field_of_view_mm.z = (
+            nz * slice_spacing
+        )
+
+    def _set_dwell(self, dwell: float):
+        self._dwell = dwell
 
     def _set_limits(
         self,
@@ -273,7 +292,7 @@ class SequenceDefinition:
             frame_limit.center = int(n_frames / 2)
             self._definition.encoding[idx].encoding_limits.repetition = frame_limit
 
-    def _set_trajectory(self, trajectory_type: str | None = None):
+    def _set_trajectory_type(self, trajectory_type: str | None = None):
         """
         Set the k-space trajectory type for the current section.
 
@@ -309,6 +328,44 @@ class SequenceDefinition:
         self._definition.encoding[idx].trajectory = mrd.Trajectory(
             _trajectory_map[trajectory_type]
         )
+
+    def _set_trajectory(
+        self,
+        trajectory: np.ndarray,
+        dcf: np.ndarray | None = None,
+        discard_pre: int = 0,
+        discard_post: int = 0,
+    ):
+        """
+        Set the k-space trajectory for the current section.
+
+        Parameters
+        ----------
+        trajectory : np.ndarray
+            K-space trajectory of shape ``(..., nsamples, ndims)``.
+            Order for leading axes (from outer to inner) is
+            ``"contrast/frames", "partitions", "shots"``.
+            Assume trajectory shape is unsqueezed.
+        dcf : np.ndarray, optional
+            Density compensation function of shape ``(..., nsamples)``.
+            Order for leading axes (from outer to inner) is
+            ``"contrast/frames", "partitions", "shots"``.
+            Assume trajectory shape is unsqueezed.
+            The default is ``None`` (no compensation).
+        discard_pre : int, optional
+            Number of samples to be discarded at beginning of readout.
+            The default is ``0``.
+        discard_post : int, optional
+            Number of samples to be discarded at the end of readout.
+            The default is ``0``.
+
+        """
+        # Put dcf in ndim+1 position along dims axis of trajectory
+        if dcf is not None:
+            trajectory = np.concatenate((trajectory, dcf[..., None]), axis=-1)
+
+        self._trajectory.append(trajectory)
+        self._idx.append((discard_pre, discard_post))
 
     def _set_flip(self, flip):
         flip = np.asarray(flip)
@@ -362,15 +419,15 @@ class SequenceDefinition:
         # add
         if dtype == str:
             for val in value:
-                el = mrd.UserParameterStringType(name, val)
+                el = mrd.UserParameterStringType(name=name, value=val)
                 self._definition.user_parameters.user_parameter_string.append(el)
         elif dtype in floating:
             for val in value:
-                el = mrd.UserParameterDoubleType(name, val)
+                el = mrd.UserParameterDoubleType(name=name, value=val)
                 self._definition.user_parameters.user_parameter_double.append(el)
         elif dtype in integers:
             for val in value:
-                el = mrd.UserParameterLongType(name, val)
+                el = mrd.UserParameterLongType(name=name, value=val)
                 self._definition.user_parameters.user_parameter_long.append(el)
 
     def _copy_from_section_0(self):
@@ -387,3 +444,123 @@ class SequenceDefinition:
 
         for field in fields_to_copy:
             setattr(current_encoding, field, getattr(section_0_encoding, field))
+
+        # copy trajectory and adc index
+        if self._trajectory:
+            self._trajectory.append(self._trajectory[0])
+
+        if self._idx:
+            self._idx.append(self._idx[0])
+
+    def set_label(
+        self,
+        iy: int = None,
+        iz: int = 0,
+        islice: int = 0,
+        icontrast: int = 0,
+        iframe: int = 0,
+        ishot: int = None,
+    ):
+        """
+        Set the label for the current MRI acquisition by configuring encoding indices and trajectory data.
+
+        Parameters
+        ----------
+        iy : int, optional
+            Cartesian encoding step in the k-space (along the y-axis). Mutually exclusive with `ishot`.
+            Default is None.
+        iz : int, optional
+            Cartesian encoding step in the k-space (along the z-axis, for 3D acquisitions). Mutually
+            exclusive with `islice`. Default is 0.
+        islice : int, optional
+            Slice index for 2D multislice acquisitions. Mutually exclusive with `iz`. Default is None.
+        icontrast : int, optional
+            Contrast encoding index for multicontrast MRI acquisitions. Mutually exclusive with `iframe`.
+            Default is 0.
+        iframe : int, optional
+            Repetition or dynamic frame index for dynamic MRI acquisitions. Mutually exclusive with
+            `icontrast`. Default is 0.
+        ishot : int, optional
+            Non-Cartesian encoding step (shot number). Mutually exclusive with `iy`. Default is None.
+
+        Raises
+        ------
+        ValueError
+            If both `iy` and `ishot` are provided (Cartesian and Non-Cartesian are mutually exclusive).
+            If both `islice` and `iz` are provided (2D and 3D encoding are mutually exclusive).
+            If both `iframe` and `icontrast` are provided (dynamic and multicontrast MRI are mutually
+            exclusive).
+
+        Notes
+        -----
+        This function updates the MRI acquisition label by setting k-space encoding indices and, if
+        applicable, the corresponding trajectory from the `self._trajectory` attribute. The indices for
+        k-space encoding (`kspace_encode_step_1` for the y-axis, `kspace_encode_step_2` for the z-axis or
+        slice) and contrast or repetition are updated based on the provided parameters.
+
+        The acquisition trajectory is updated if `ishot` is provided, and it fetches the corresponding
+        trajectory point from the `self._trajectory` data. The function also appends the newly created
+        acquisition to `self._labels`.
+
+        Examples
+        --------
+        Set a Cartesian acquisition with y and z encoding steps:
+
+        >>> set_label(iy=10, iz=5)
+
+        Set a 2D multislice acquisition with slice index:
+
+        >>> set_label(islice=3)
+
+        Set a Non-Cartesian shot-based acquisition:
+
+        >>> set_label(ishot=7)
+        """
+        idx = self._current_section
+        acq = mrd.Acquisition()
+        acq.encoding_space_ref = idx
+        acq.sample_time_us = self._dwell * 1e6
+
+        if self._idx:
+            acq.discard_pre, acq.discard_post = self._idx[idx]
+        else:
+            acq.discard_pre, acq.discard_post = 0, 0
+
+        if ishot is not None and iy is not None:
+            raise ValueError(
+                "Provide either iy (Cartesian) or ishot (Non Cartesian), not both"
+            )
+        elif ishot is not None:
+            acq.idx.kspace_encode_step_1 = ishot
+        elif iy is not None:
+            acq.idx.kspace_encode_step_1 = iy
+
+        if islice != 0 and iz != 0:
+            raise ValueError(
+                "Provide either islice (2D multislice) or iz (3D), not both"
+            )
+        elif iz != 0:
+            acq.idx.kspace_encode_step_2 = iz
+        elif islice != 0:
+            acq.idx.slice = islice
+
+        if iframe != 0 and icontrast != 0:
+            raise ValueError(
+                "Provide either icontrast (multicontrast MRI) or iframe (dynamic MRI), not both"
+            )
+        elif icontrast != 0:
+            acq.idx.contrast = icontrast
+        elif iframe != 0:
+            acq.idx.repetition = iframe
+
+        # update trajectory
+        if ishot is not None and self._trajectory:
+            ishot = min(ishot, self._trajectory[idx].shape[2])
+        if self._trajectory:
+            it = min(iframe, self._trajectory[idx].shape[0])
+            it = min(icontrast, self._trajectory[idx].shape[0])
+            iz = min(iz, self._trajectory[idx].shape[1])
+            acq.trajectory = self._trajectory[idx][it, iz, ishot]
+
+        # append acquisition
+        self._labels.append(mrd.StreamItem.Acquisition(acq))

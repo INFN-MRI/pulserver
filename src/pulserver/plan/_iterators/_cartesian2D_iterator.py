@@ -159,7 +159,7 @@ class Cartesian2DIterator:
             else:
                 _iy = self._iy[self.count % self.scanlength]
                 _iz = self._iz[self.count % self.scanlength]
-            head = SimpleNamespace(iy=_iy, iz=_iz)
+            head = SimpleNamespace(iy=_iy, islice=_iz)
 
         self.count += 1
 

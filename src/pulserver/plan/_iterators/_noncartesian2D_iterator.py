@@ -160,7 +160,7 @@ class NonCartesian2DIterator:
             else:
                 _irot = self._irot[self.count % self.scanlength]
                 _iz = self._iz[self.count % self.scanlength]
-            head = SimpleNamespace(irot=_irot, iz=_iz)
+            head = SimpleNamespace(irot=_irot, islice=_iz)
 
         self.count += 1
 
