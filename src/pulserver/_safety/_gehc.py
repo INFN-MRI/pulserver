@@ -128,7 +128,7 @@ def compute_max_energy(
         # calculate energies for second to last block
         _energies.extend(
             (
-                np.asarray(current_blocks[1:-1]) * np.asarray(current_powscale[1:-1])
+                np.asarray(rf_energy)[np.asarray(current_blocks[1:-1])] * np.asarray(current_powscale[1:-1])
             ).tolist()
         )
 
@@ -156,7 +156,7 @@ def compute_max_energy(
     ref_energy = 0.1174**2 * 1e-3  # energy for a 1ms 180° squared pulse
 
     # minimum tr for standard pulse is 10.634 s
-    tr_ref = 10.634
+    tr_ref = 10.634e-3
     tr_equiv = tr_ref * (ref_energy / max_energy)
 
     # Compute
