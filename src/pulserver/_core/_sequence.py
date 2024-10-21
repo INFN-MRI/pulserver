@@ -3,7 +3,6 @@
 __all__ = ["Sequence"]
 
 import warnings
-
 from copy import deepcopy
 from types import SimpleNamespace
 
@@ -16,21 +15,39 @@ from ._header import SequenceDefinition
 
 class Sequence:
     """
-    Pulseq Sequence intermediate representation.
+    Intermediate representation of a Pulseq sequence.
 
-    This is related to Pulceq PulseqBlock structure.
+    This class manages the creation and handling of Pulseq blocks, which consist of
+    one or more PyPulseq events. A PulseqBlock allows for a maximum of one event for
+    each board (rf, gx, gy, gz, adc, trig) to be executed at a time.
 
-    Each block is a collection of one or more PyPulseq events. For each PulseqBlock,
-    a maximum of 1 event for each board (rf, gx, gy, gz, adc, trig) can be executed.
+    Parameters
+    ----------
+    system : SimpleNamespace
+        The hardware system parameters for the sequence (e.g., gradient, RF limits).
+    platform : str
+        The target platform for the sequence. Acceptable values are 'pulseq' (alias for 'siemens')
+        and 'toppe' (alias for 'gehc').
 
+    Attributes
+    ----------
+    _system : SimpleNamespace
+        Holds the system configuration (e.g., gradient and RF settings).
+    _format : str
+        Indicates the platform type ('siemens' or 'gehc').
+    _sequence : pp.Sequence or Ceq
+        PyPulseq sequence or Ceq structure depending on the format.
+    _block_library : dict
+        Stores all defined Pulseq blocks by name.
+    _header : SequenceDefinition
+        Holds the sequence metadata, including parameters like FOV and shape.
+    _section_labels : list
+        List of section labels in the sequence.
+    _sections_edges : list
+        Sequence length markers for different sections.
     """
 
-    def __init__(
-        self,
-        ndims: int,
-        system: SimpleNamespace,
-        platform: str,
-    ):
+    def __init__(self, system: SimpleNamespace, platform: str):
         self._system = system
 
         if platform == "pulseq":
@@ -46,7 +63,7 @@ class Sequence:
             self._loop = []
         else:
             raise ValueError(
-                f"Accepted platforms are currently 'siemens'/'pulseq' and 'gehc'/'toppe' - found {platform}."
+                f"Accepted platforms are 'siemens'/'pulseq' and 'gehc'/'toppe', found '{platform}'."
             )
 
         if self._format == "siemens":
@@ -56,35 +73,61 @@ class Sequence:
 
         self._section_labels = []
         self._sections_edges = []
+        self._header = None
 
-        # initialize header
+    def initialize_header(self, ndims: int):
+        """
+        Initialize the header with sequence metadata.
+
+        Parameters
+        ----------
+        ndims : int
+            The number of dimensions for the acquisition (e.g., 2D or 3D).
+        """
         self._header = SequenceDefinition(ndims)
 
-    def register_block(  # noqa
+    def register_block(
         self,
         name: str,
-        rf: SimpleNamespace | None = None,
-        gx: SimpleNamespace | None = None,
-        gy: SimpleNamespace | None = None,
-        gz: SimpleNamespace | None = None,
-        adc: SimpleNamespace | None = None,
-        trig: SimpleNamespace | None = None,
-        delay: SimpleNamespace | None = None,
+        rf=None,
+        gx=None,
+        gy=None,
+        gz=None,
+        adc=None,
+        trig=None,
+        delay=None,
     ):
-        # sanity checks
+        """
+        Register a Pulseq block with one or more events.
+
+        Parameters
+        ----------
+        name : str
+            The block name to be registered.
+        rf, gx, gy, gz, adc, trig, delay : SimpleNamespace or None
+            Individual components of the Pulseq block. These may include RF, gradients
+            (gx, gy, gz), ADC event, trigger, or delay. If `None`, the event is ignored.
+
+        Raises
+        ------
+        AssertionError
+            If the sequence format is already defined or if the block contains both
+            RF and ADC events.
+        """
+        # Sanity checks
         if self._format == "siemens":
             assert (
                 len(self._sequence.block_events) == 0
-            ), "Please define all the events before building the loop."
+            ), "Define all events before building the loop."
         elif self._format == "gehc":
-            assert (
-                len(self._loop) == 0
-            ), "Please define all the events before building the loop."
+            assert len(self._loop) == 0, "Define all events before building the loop."
+
         if rf is not None and adc is not None:
             VALID_BLOCK = False
         else:
             VALID_BLOCK = True
-        assert VALID_BLOCK, "Error! A block cannot contain both a RF and ADC event."
+        assert VALID_BLOCK, "A block cannot contain both RF and ADC events."
+
         if gx is not None:
             assert (
                 gx.channel == "x"
@@ -98,94 +141,118 @@ class Sequence:
                 gz.channel == "z"
             ), f"z-gradient waveform is directed towards {gz.channel}"
 
-        # update block library
+        # Update block library
         if self._format == "siemens":
             self._block_library[name] = {}
-            if rf is not None:
-                self._block_library[name]["rf"] = deepcopy(rf)
-            if gx is not None:
-                self._block_library[name]["gx"] = deepcopy(gx)
-            if gy is not None:
-                self._block_library[name]["gy"] = deepcopy(gy)
-            if gz is not None:
-                self._block_library[name]["gz"] = deepcopy(gz)
-            if adc is not None:
-                self._block_library[name]["adc"] = deepcopy(adc)
-            if trig is not None:
-                self._block_library[name]["trig"] = deepcopy(trig)
-            if delay is not None:
-                self._block_library[name]["delay"] = deepcopy(delay)
+            for event, label in zip(
+                [rf, gx, gy, gz, adc, trig, delay],
+                ["rf", "gx", "gy", "gz", "adc", "trig", "delay"],
+            ):
+                if event is not None:
+                    self._block_library[name][label] = deepcopy(event)
         elif self._format == "gehc":
             ID = len(self._block_library)
             self._block_library[name] = PulseqBlock(
                 ID, rf, gx, gy, gz, adc, trig, delay
             )
 
-    def section(self, name: str):  # noqa
-        assert (
-            name not in self._section_labels
-        ), f"Section {name} already exists - please use another name."
+    def section(self, name: str):
+        """
+        Define a new section within the sequence.
+
+        Parameters
+        ----------
+        name : str
+            A unique name for the section.
+
+        Raises
+        ------
+        AssertionError
+            If the section name already exists.
+        """
+        assert name not in self._section_labels, f"Section '{name}' already exists."
+
         if self._format == "siemens":
             _current_seqlength = len(self._sequence.block_events)
         elif self._format == "gehc":
             _current_seqlength = len(self._loop)
+
         self._sections_edges.append(_current_seqlength)
 
-        # also update section for definition
-        self._header.section(name)
+        # Update header section
+        if self._header is not None:
+            self._header.section(name)
 
-    def add_block(  # noqa
+    def add_block(
         self,
         name: str,
-        gx_amp: float = 1.0,
-        gy_amp: float = 1.0,
-        gz_amp: float = 1.0,
-        rf_amp: float = 1.0,
-        rf_phase: float = 0.0,
-        rf_freq: float = 0.0,
-        adc_phase: float = 0.0,
-        delay: float | None = None,
-        rotmat: np.ndarray | None = None,
+        gx_amp=1.0,
+        gy_amp=1.0,
+        gz_amp=1.0,
+        rf_amp=1.0,
+        rf_phase=0.0,
+        rf_freq=0.0,
+        adc_phase=0.0,
+        delay=None,
+        rotmat=None,
     ):
-        assert name in self._block_library, f"Requested block {name} not found!"
+        """
+        Add a previously registered block to the sequence.
+
+        Parameters
+        ----------
+        name : str
+            The name of the block to be added.
+        gx_amp, gy_amp, gz_amp : float, optional
+            Scaling factors for the x, y, and z gradients, respectively.
+        rf_amp : float, optional
+            Scaling factor for the RF pulse amplitude.
+        rf_phase, rf_freq : float, optional
+            Phase and frequency modulation for the RF pulse.
+        adc_phase : float, optional
+            Phase modulation for the ADC event.
+        delay : float, optional
+            Delay for pure delay blocks.
+        rotmat : np.ndarray, optional
+            3x3 rotation matrix to apply to gradients.
+
+        Raises
+        ------
+        AssertionError
+            If the block is not registered or gradients have inconsistent lengths.
+        ValueError
+            If delay is missing for a pure delay block.
+        """
+        assert name in self._block_library, f"Requested block '{name}' not found!"
+
         if self._format == "siemens":
             if name == "delay":
                 if delay is None:
                     raise ValueError("Missing 'delay' input for pure delay block.")
                 self._sequence.add_block(pp.make_delay(delay))
             else:
-                if delay is not None:
-                    warnings.warn(
-                        "Dynamic delay not allowed except for pure delay blocks - ignoring the specified delay"
-                    )
-
                 current_block = deepcopy(self._block_library[name])
+                if delay is not None:
+                    warnings.warn("Dynamic delay is ignored for non-delay blocks.")
 
-                # scale RF pulse and apply phase modulation / frequency offset
+                # Apply RF modifications
                 if "rf" in current_block:
                     current_block["rf"].signal *= rf_amp
                     current_block["rf"].phase_offset = rf_phase
                     current_block["rf"].freq_offset += rf_freq
 
-                # apply phase modulation to ADC
+                # Apply ADC phase
                 if "adc" in current_block:
                     current_block["adc"].phase_offset = adc_phase
 
-                # scale gradients
-                if "gx" in current_block:
-                    current_block["gx"] = pp.scale_grad(
-                        grad=current_block["gx"], scale=gx_amp
-                    )
-                if "gy" in current_block:
-                    current_block["gy"] = pp.scale_grad(
-                        grad=current_block["gy"], scale=gy_amp
-                    )
-                if "gz" in current_block:
-                    current_block["gz"] = pp.scale_grad(
-                        grad=current_block["gz"], scale=gy_amp
-                    )
+                # Scale gradients
+                for ch, amp in zip(["gx", "gy", "gz"], [gx_amp, gy_amp, gz_amp]):
+                    if ch in current_block:
+                        current_block[ch] = pp.scale_grad(
+                            grad=current_block[ch], scale=amp
+                        )
 
-                # rotate gradients
+                # Rotate gradients
                 if rotmat is not None:
                     # extract gradient waveforms from current event
                     current_grad = {}
@@ -201,7 +268,6 @@ class Sequence:
                         if ch in current_block:
                             current_block[ch] = current_grad[ch]
 
-                # update sequence structure
                 self._sequence.add_block(*current_block.values())
 
         elif self._format == "gehc":
@@ -268,16 +334,16 @@ class Sequence:
 
     def set_definition(self, key: str, *args, **kwargs):
         """
-        Set a specific sequence parameter in header.
+        Set a specific sequence parameter in the header.
 
         Parameters
         ----------
         key : str
-            The parameter to be set. Valid keys are 'fov', 'shape', 'limits', and 'trajectory'.
+            Parameter to be set, e.g., 'fov', 'shape', 'limits', or 'trajectory'.
         *args :
-            Positional arguments for the specific parameter.
+            Positional arguments for the parameter.
         **kwargs :
-            Keyword arguments for the specific parameter.
+            Keyword arguments for the parameter.
 
         Raises
         ------
@@ -286,59 +352,63 @@ class Sequence:
         """
         self._header.set_definition(key, *args, **kwargs)
 
-    def build(self, return_header: bool = False):  # noqa
+    def build(self):
+        """
+        Build the final sequence.
+
+        Returns
+        -------
+        sequence : pp.Sequence or Ceq
+            The finalized sequence object.
+        header : dict or None
+            Sequence metadata, if available.
+        """
         if self._format != "siemens":
-            # prepare Ceq structure
             self._sequence = Ceq(
                 list(self._block_library.values()),
                 self._loop,
                 self._sections_edges,
             )
 
-        if return_header:
+        if self._header is not None:
             return self._sequence, self._header._definition
 
         return self._sequence
 
 
 def _pp_rotate(grad, rot_matrix):
+    """
+    Apply a rotation matrix to gradient waveforms.
+
+    Parameters
+    ----------
+    grad : dict
+        Dictionary containing the gradient events (gx, gy, gz).
+    rot_matrix : np.ndarray
+        3x3 rotation matrix.
+
+    Returns
+    -------
+    grad : dict
+        Updated gradient dictionary with rotated waveforms.
+    """
     grad_channels = ["gx", "gy", "gz"]
     grad = deepcopy(grad)
 
-    # get length of gradient waveforms
-    wave_length = []
-    for ch in grad_channels:
-        if ch in grad:
-            wave_length.append(len(grad[ch]))
-
+    wave_length = [len(grad[ch]) for ch in grad_channels if ch in grad]
     assert (
-        np.unique(wave_length) != 0
-    ).sum() == 1, "All the waveform along different channels must have the same length"
+        len(set(wave_length)) == 1
+    ), "All gradient waveforms must have the same length."
 
-    wave_length = np.unique(wave_length)
-    wave_length = wave_length[wave_length != 0].item()
-
-    # create zero-filled waveforms for empty gradient channels
-    for ch in grad_channels:
-        if ch in grad:
-            grad[ch] = grad[ch].squeeze()
-        else:
-            grad[ch] = np.zeros(wave_length)
-
-    # stack matrix
     grad_mat = np.stack(
-        (grad["gx"], grad["gy"], grad["gz"]), axis=0
-    )  # (3, wave_length)
-
-    # apply rotation
+        [grad.get(ch, np.zeros(wave_length[0])).squeeze() for ch in grad_channels],
+        axis=0,
+    )
     grad_mat = rot_matrix @ grad_mat
 
-    # put back in dictionary
-    for j in range(3):
-        ch = grad_channels[j]
+    for j, ch in enumerate(grad_channels):
         grad[ch] = grad_mat[j]
 
-    # remove all zero waveforms
     for ch in grad_channels:
         if np.allclose(grad[ch], 0.0):
             grad.pop(ch)
