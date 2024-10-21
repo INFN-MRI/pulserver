@@ -418,6 +418,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.section"><code class="docutils literal notranslate"><span class="pre">Sequence.section()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.add_block"><code class="docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_label"><code class="docutils literal notranslate"><span class="pre">Sequence.set_label()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.build"><code class="docutils literal notranslate"><span class="pre">Sequence.build()</span></code></a></li>
 </ul>
 </li>
@@ -552,6 +553,9 @@ and ‘toppe’ (alias for ‘gehc’).</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pulserver.Sequence.set_definition" title="pulserver.Sequence.set_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_definition</span></code></a></p></td>
 <td><p>Set a specific sequence parameter in the header.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulserver.Sequence.set_label" title="pulserver.Sequence.set_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_label</span></code></a></p></td>
+<td><p>Set the label for the current MRI acquisition by configuring encoding indices and trajectory data.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -658,6 +662,55 @@ and ‘toppe’ (alias for ‘gehc’).</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pulserver.Sequence.set_label">
+<span class="sig-name descname"><span class="pre">set_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">islice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icontrast</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iframe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ishot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.set_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.set_label" title="Link to this definition">#</a></dt>
+<dd><p>Set the label for the current MRI acquisition by configuring encoding indices and trajectory data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iy</strong> (<em>int</em><em>, </em><em>optional</em>) – Cartesian encoding step in the k-space (along the y-axis). Mutually exclusive with <cite>ishot</cite>.
+Default is None.</p></li>
+<li><p><strong>iz</strong> (<em>int</em><em>, </em><em>optional</em>) – Cartesian encoding step in the k-space (along the z-axis, for 3D acquisitions). Mutually
+exclusive with <cite>islice</cite>. Default is 0.</p></li>
+<li><p><strong>islice</strong> (<em>int</em><em>, </em><em>optional</em>) – Slice index for 2D multislice acquisitions. Mutually exclusive with <cite>iz</cite>. Default is None.</p></li>
+<li><p><strong>icontrast</strong> (<em>int</em><em>, </em><em>optional</em>) – Contrast encoding index for multicontrast MRI acquisitions. Mutually exclusive with <cite>iframe</cite>.
+Default is 0.</p></li>
+<li><p><strong>iframe</strong> (<em>int</em><em>, </em><em>optional</em>) – Repetition or dynamic frame index for dynamic MRI acquisitions. Mutually exclusive with
+<cite>icontrast</cite>. Default is 0.</p></li>
+<li><p><strong>ishot</strong> (<em>int</em><em>, </em><em>optional</em>) – Non-Cartesian encoding step (shot number). Mutually exclusive with <cite>iy</cite>. Default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If both <cite>iy</cite> and <cite>ishot</cite> are provided (Cartesian and Non-Cartesian are mutually exclusive).
+    If both <cite>islice</cite> and <cite>iz</cite> are provided (2D and 3D encoding are mutually exclusive).
+    If both <cite>iframe</cite> and <cite>icontrast</cite> are provided (dynamic and multicontrast MRI are mutually
+    exclusive).</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function updates the MRI acquisition label by setting k-space encoding indices and, if
+applicable, the corresponding trajectory from the <cite>self._trajectory</cite> attribute. The indices for
+k-space encoding (<cite>kspace_encode_step_1</cite> for the y-axis, <cite>kspace_encode_step_2</cite> for the z-axis or
+slice) and contrast or repetition are updated based on the provided parameters.</p>
+<p>The acquisition trajectory is updated if <cite>ishot</cite> is provided, and it fetches the corresponding
+trajectory point from the <cite>self._trajectory</cite> data. The function also appends the newly created
+acquisition to <cite>self._labels</cite>.</p>
+<p class="rubric">Examples</p>
+<p>Set a Cartesian acquisition with y and z encoding steps:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">set_label</span><span class="p">(</span><span class="n">iy</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">iz</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set a 2D multislice acquisition with slice index:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">set_label</span><span class="p">(</span><span class="n">islice</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set a Non-Cartesian shot-based acquisition:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">set_label</span><span class="p">(</span><span class="n">ishot</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pulserver.Sequence.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pulserver/_core/_sequence.html#Sequence.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulserver.Sequence.build" title="Link to this definition">#</a></dt>
 <dd><p>Build the final sequence.</p>
@@ -734,6 +787,7 @@ and ‘toppe’ (alias for ‘gehc’).</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.section"><code class="docutils literal notranslate"><span class="pre">Sequence.section()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.add_block"><code class="docutils literal notranslate"><span class="pre">Sequence.add_block()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_definition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_definition()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.set_label"><code class="docutils literal notranslate"><span class="pre">Sequence.set_label()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pulserver.Sequence.build"><code class="docutils literal notranslate"><span class="pre">Sequence.build()</span></code></a></li>
 </ul>
 </li>

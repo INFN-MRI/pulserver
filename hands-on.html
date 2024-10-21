@@ -753,22 +753,16 @@ B0: 1.5
 Gy amplitude (wrt to peak of gradient waveform): -0.5
 Phase encoding index: 0
 RF frequency offset: 0.0
-Slice index: 0
-RF phase: 0.03564023811504491 [rad]
-Gy amplitude (wrt to peak of gradient waveform): -0.49609375
-Phase encoding index: 1
-RF frequency offset: 0.0
-Slice index: 0
-RF phase: 0.10692071434513473 [rad]
-Gy amplitude (wrt to peak of gradient waveform): -0.4921875
-Phase encoding index: 2
-RF frequency offset: 0.0
-Slice index: 0
-RF phase: 0.21384142869026945 [rad]
-Gy amplitude (wrt to peak of gradient waveform): -0.48828125
-Phase encoding index: 3
-RF frequency offset: 0.0
-Slice index: 0
+</pre></div>
+</div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">line</span> <span class="mi">8</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Phase encoding index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF frequency offset: </span><span class="si">{</span><span class="n">encoding</span><span class="o">.</span><span class="n">rf_freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="ne">----&gt; </span><span class="mi">8</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slice index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iz</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="ne">AttributeError</span>: &#39;types.SimpleNamespace&#39; object has no attribute &#39;iz&#39;
 </pre></div>
 </div>
 </div>

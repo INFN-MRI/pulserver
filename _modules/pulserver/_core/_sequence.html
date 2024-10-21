@@ -713,6 +713,75 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">set_definition</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="Sequence.set_label">
+<a class="viewcode-back" href="../../../generated/pulserver.Sequence.html#pulserver.Sequence.set_label">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_label</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iy</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">iz</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">islice</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">icontrast</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">iframe</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">ishot</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the label for the current MRI acquisition by configuring encoding indices and trajectory data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        iy : int, optional</span>
+<span class="sd">            Cartesian encoding step in the k-space (along the y-axis). Mutually exclusive with `ishot`.</span>
+<span class="sd">            Default is None.</span>
+<span class="sd">        iz : int, optional</span>
+<span class="sd">            Cartesian encoding step in the k-space (along the z-axis, for 3D acquisitions). Mutually</span>
+<span class="sd">            exclusive with `islice`. Default is 0.</span>
+<span class="sd">        islice : int, optional</span>
+<span class="sd">            Slice index for 2D multislice acquisitions. Mutually exclusive with `iz`. Default is None.</span>
+<span class="sd">        icontrast : int, optional</span>
+<span class="sd">            Contrast encoding index for multicontrast MRI acquisitions. Mutually exclusive with `iframe`.</span>
+<span class="sd">            Default is 0.</span>
+<span class="sd">        iframe : int, optional</span>
+<span class="sd">            Repetition or dynamic frame index for dynamic MRI acquisitions. Mutually exclusive with</span>
+<span class="sd">            `icontrast`. Default is 0.</span>
+<span class="sd">        ishot : int, optional</span>
+<span class="sd">            Non-Cartesian encoding step (shot number). Mutually exclusive with `iy`. Default is None.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If both `iy` and `ishot` are provided (Cartesian and Non-Cartesian are mutually exclusive).</span>
+<span class="sd">            If both `islice` and `iz` are provided (2D and 3D encoding are mutually exclusive).</span>
+<span class="sd">            If both `iframe` and `icontrast` are provided (dynamic and multicontrast MRI are mutually</span>
+<span class="sd">            exclusive).</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This function updates the MRI acquisition label by setting k-space encoding indices and, if</span>
+<span class="sd">        applicable, the corresponding trajectory from the `self._trajectory` attribute. The indices for</span>
+<span class="sd">        k-space encoding (`kspace_encode_step_1` for the y-axis, `kspace_encode_step_2` for the z-axis or</span>
+<span class="sd">        slice) and contrast or repetition are updated based on the provided parameters.</span>
+
+<span class="sd">        The acquisition trajectory is updated if `ishot` is provided, and it fetches the corresponding</span>
+<span class="sd">        trajectory point from the `self._trajectory` data. The function also appends the newly created</span>
+<span class="sd">        acquisition to `self._labels`.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Set a Cartesian acquisition with y and z encoding steps:</span>
+
+<span class="sd">        &gt;&gt;&gt; set_label(iy=10, iz=5)</span>
+
+<span class="sd">        Set a 2D multislice acquisition with slice index:</span>
+
+<span class="sd">        &gt;&gt;&gt; set_label(islice=3)</span>
+
+<span class="sd">        Set a Non-Cartesian shot-based acquisition:</span>
+
+<span class="sd">        &gt;&gt;&gt; set_label(ishot=7)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">,</span> <span class="n">islice</span><span class="p">,</span> <span class="n">icontrast</span><span class="p">,</span> <span class="n">iframe</span><span class="p">,</span> <span class="n">ishot</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="Sequence.build">
 <a class="viewcode-back" href="../../../generated/pulserver.Sequence.html#pulserver.Sequence.build">[docs]</a>
     <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -734,7 +803,7 @@ document.write(`
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span><span class="o">.</span><span class="n">_definition</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span></div>
 </div>

@@ -23,6 +23,7 @@
       ~Sequence.register_block
       ~Sequence.section
       ~Sequence.set_definition
+      ~Sequence.set_label
    
    
 
