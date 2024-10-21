@@ -356,8 +356,8 @@ document.write(`
 <span class="kn">from</span> <span class="nn">pypulseq.sigpy_pulse_opts</span> <span class="kn">import</span> <span class="n">SigpyPulseOpts</span> <span class="k">as</span> <span class="n">_SigpyPulseOpts</span>
 
 <span class="kn">from</span> <span class="nn">pypulseq</span> <span class="kn">import</span> <span class="n">make_block_pulse</span> <span class="k">as</span> <span class="n">_make_block_pulse</span>
-<span class="kn">from</span> <span class="nn">pypulseq.make_sigpy_pulse</span> <span class="kn">import</span> <span class="n">sigpy_n_seq</span> <span class="k">as</span> <span class="n">_make_sigpy_pulse</span>
 
+<span class="kn">from</span> <span class="nn">._make_slr_pulse</span> <span class="kn">import</span> <span class="n">pulpy_n_seq</span> <span class="k">as</span> <span class="n">_make_pulpy_pulse</span>
 <span class="kn">from</span> <span class="nn">._make_spsp_pulse</span> <span class="kn">import</span> <span class="n">make_spsp_pulse</span>
 
 <span class="n">_USE_TABLE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;excitation&quot;</span><span class="p">:</span> <span class="s2">&quot;ex&quot;</span><span class="p">,</span> <span class="s2">&quot;refocusing&quot;</span><span class="p">:</span> <span class="s2">&quot;se&quot;</span><span class="p">,</span> <span class="s2">&quot;inversion&quot;</span><span class="p">:</span> <span class="s2">&quot;inv&quot;</span><span class="p">}</span>
@@ -546,7 +546,7 @@ document.write(`
     <span class="n">_pulse_cfg</span><span class="p">[</span><span class="s2">&quot;phs_0_pt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phs_0_pt</span>
     <span class="n">pulse_cfg</span> <span class="o">=</span> <span class="n">_SigpyPulseOpts</span><span class="p">(</span><span class="o">**</span><span class="n">_pulse_cfg</span><span class="p">)</span>
 
-    <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gzr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_make_sigpy_pulse</span><span class="p">(</span>
+    <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">gzr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_make_pulpy_pulse</span><span class="p">(</span>
         <span class="n">_np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle</span><span class="p">),</span>
         <span class="mi">0</span><span class="p">,</span>
         <span class="n">duration</span><span class="p">,</span>
