@@ -26,7 +26,7 @@ def compute_max_energy(ceq, window_width=10.0, windows_stride=5.0):
     has_rf = np.stack([block_id == idx for idx in _rf_blocks]).sum(axis=0).astype(bool)
 
     # get segment id
-    segment_id = np.ascontiguousarray(loop[:, 0])
+    segment_id = np.ascontiguousarray(ceq.loop[:, 0])
     seg_boundaries = np.diff(segment_id + 1) != 0
     seg_boundaries = np.concatenate((seg_boundaries, np.asarray([True])))
 
