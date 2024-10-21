@@ -1,7 +1,6 @@
-"""
-"""
+"""RF duty cycle and SAR evaluation for GEHC systems."""
 
-__all__ = []
+__all__ = ["compute_max_energy"]
 
 from types import SimpleNamespace
 
@@ -9,21 +8,60 @@ import numpy as np
 
 from pypulseq import Opts
 
-from .._core._ceq import PulseqRF, PulseqGrad, PulseqShapeTrap
+from .._core._ceq import PulseqRF, PulseqGrad, PulseqShapeTrap, Ceq
 
 SEGMENT_RINGDOWN_TIME = 116 * 1e-6  # TODO: doesn't have to be hardcoded
+GAMMA = 4.2575e3  # Hz/Gauss
 
 
-def compute_max_energy(ceq, window_width=10.0, windows_stride=5.0):
+def compute_max_energy(
+    ceq: Ceq, system: Opts, window_width: float = 10.0, windows_stride: float = 5.0
+) -> float:
+    """
+    Compute maximum 10s RF energy.
 
+    Parameters
+    ----------
+    ceq : Ceq
+        Ceq structure.
+    system : pypulseq.Opts
+        Structure containing system limits.
+    window_width : float, optional
+        Window width in ``[s]``. The default is 10.0.
+    windows_stride : TYPE, optional
+        Window stride in ``[s]``. The default is 5.0.
+
+    Returns
+    -------
+    P : float
+        Effective 10s RF power.
+        Must be compared with max power of standard pulse.
+
+    """
     # get block id
-    block_id = ceq.loop[:, 1].astype(int)
+    block_id = np.ascontiguousarray(ceq.loop[:, 1].astype(int))
 
     # get RF blocks
-    _rf_blocks = [
+    rf_blocks = [
         n for n in range(ceq.n_parent_blocks) if ceq.parent_blocks[n].rf is not None
     ]
-    has_rf = np.stack([block_id == idx for idx in _rf_blocks]).sum(axis=0).astype(bool)
+    has_rf = np.stack([block_id == idx for idx in rf_blocks]).sum(axis=0).astype(bool)
+
+    # get waveforms
+    rf_pulses = [
+        (
+            _rfstat(ceq.parent_blocks[n].rf, system)
+            if ceq.parent_blocks[n].rf is not None
+            else None
+        )
+        for n in range(ceq.n_parent_blocks)
+    ]
+
+    # calculate energy for full waveform
+    rf_energy = [_calc_rf_energy(rf) if rf is not None else None for rf in rf_pulses]
+
+    # get energy scalings (= rf_amp**2)
+    powscale = np.ascontiguousarray(ceq.loop[:, 2]) ** 2
 
     # get segment id
     segment_id = np.ascontiguousarray(ceq.loop[:, 0])
@@ -49,123 +87,90 @@ def compute_max_energy(ceq, window_width=10.0, windows_stride=5.0):
     window_ends[-1] = min(window_ends[-1], sequence_end)
 
     # loop over windows
+    energies = []
     n_windows = len(window_starts)
     for n in range(n_windows):
         first_block = np.argmin(abs(block_starts - window_starts[n]))
         last_block = np.argmin(abs(block_ends - window_ends[n]))
 
         # get current blocks
-        current_starts = block_starts[first_block:last_block][has_rf[first_block:last_block]]
-        current_ends = block_starts[first_block:last_block][has_rf[first_block:last_block]]
-        current_blocks = block_id[first_block:last_block][has_rf[first_block:last_block]]
+        current_starts = block_starts[first_block:last_block][
+            has_rf[first_block:last_block]
+        ]
+        current_ends = block_starts[first_block:last_block][
+            has_rf[first_block:last_block]
+        ]
+        current_blocks = block_id[first_block:last_block][
+            has_rf[first_block:last_block]
+        ]
+        current_powscale = powscale[first_block:last_block][
+            has_rf[first_block:last_block]
+        ]
+
+        _energies = []
+
+        # calculate energy for first element in block
+        if current_starts[0] < window_starts[n]:
+            first_rf_in_block = rf_pulses[current_blocks[0]]
+            first_rf_idx_in_block = np.argmin(
+                abs(first_rf_in_block.time + current_starts[0] - window_starts[n])
+            )
+            first_rf_in_block_energy = (
+                _calc_rf_energy(first_rf_in_block, start=first_rf_idx_in_block)
+                * current_powscale[0]
+            )
+        else:
+            first_rf_in_block_energy = (
+                rf_energy[current_blocks[0]] * current_powscale[0]
+            )
+        _energies.append(first_rf_in_block_energy)
+
+        # calculate energies for second to last block
+        _energies.extend(
+            (
+                np.asarray(current_blocks[1:-1]) * np.asarray(current_powscale[1:-1])
+            ).tolist()
+        )
+
+        # calculate energy for last element in block
+        if current_ends[-1] > window_ends[n]:
+            last_rf_in_block = rf_pulses[current_blocks[-1]]
+            last_rf_idx_in_block = np.argmin(
+                abs(last_rf_in_block.time + current_starts[-1] - window_ends[n])
+            )
+            last_rf_in_block_energy = (
+                _calc_rf_energy(last_rf_in_block, stop=last_rf_idx_in_block)
+                * current_powscale[-1]
+            )
+        else:
+            last_rf_in_block_energy = (
+                rf_energy[current_blocks[-1]] * current_powscale[-1]
+            )
+        _energies.append(last_rf_in_block_energy)
+
+        # update energies list
+        energies.append(np.sum(_energies))
+
+    # find max 10s energy
+    max_energy = np.max(energies)  # [G**2 * s]
+    ref_energy = 0.1174**2 * 1e-3  # energy for a 1ms 180° squared pulse
+
+    # minimum tr for standard pulse is 10.634 s
+    tr_ref = 10.634
+    tr_equiv = tr_ref * (ref_energy / max_energy)
+
+    # Compute
+    P = (
+        system.rf_raster_time * max_energy / tr_equiv
+    )  # RF power (Gauss^2) of the reference scan
+
+    return P
 
 
-def compute_rf_energy_with_raster(
-    rf_raster_time,
-    rf_blocks,
-    rf_waveforms,
-    scaling_factors,
-    block_starts,
-    window_size=10,
-    stride=5,
-):
-    """
-    Computes the maximum RF energy deposition in a sliding window of a given size with a specified stride,
-    using a known RF raster time and RF pulse waveforms for specific blocks. The scaling factor for each
-    RF execution is a scalar.
-
-    Parameters
-    ----------
-    rf_raster_time : float
-        The time resolution or sampling interval of the RF pulses (raster time).
-
-    rf_blocks : list of int
-        A list containing the block indices where RF pulses are present. Each index corresponds to a block with RF.
-
-    rf_waveforms : list of 1D numpy arrays
-        A list of RF pulse waveforms (amplitude envelopes) for each block in `rf_blocks`.
-
-    scaling_factors : list of floats
-        A list containing scalar scaling factors applied to each corresponding RF waveform.
-
-    block_starts : 1D numpy array
-        A 1D numpy array containing the start times of each block in the sequence.
-
-    window_size : float, optional, default=10
-        Size of the sliding window in seconds.
-
-    stride : float, optional, default=5
-        The stride or step size for the sliding window in seconds.
-
-    Returns
-    -------
-    max_energy : float
-        The maximum RF energy deposition in any sliding window.
-
-    window_energies : 1D numpy array
-        The RF energy deposition values for each sliding window.
-
-    window_starts : 1D numpy array
-        The starting times of each sliding window.
-
-    Notes
-    -----
-    - The RF energy deposition in each window is computed as the sum of the squared waveform amplitudes
-      (accounting for scalar scaling factors) integrated over time using the RF raster time.
-    - This function assumes the waveform is provided with an RF raster time, simplifying the time calculations.
-    """
-    # Step 1: Prepare a timeline covering the entire sequence duration
-    sequence_end = block_starts[-1] + (len(rf_waveforms[-1]) * rf_raster_time)
-
-    # Create sliding window start times
-    window_starts = np.arange(0, sequence_end - window_size + stride, stride)
-
-    # Initialize an array to store the energy in each window
-    window_energies = np.zeros_like(window_starts)
-
-    # Step 2: Calculate energy for each sliding window
-    for i, window_start in enumerate(window_starts):
-        window_end = window_start + window_size
-
-        # Initialize energy for this window
-        total_energy = 0.0
-
-        # Loop through RF blocks
-        for block_idx, waveform, scaling, block_start in zip(
-            rf_blocks, rf_waveforms, scaling_factors, block_starts[rf_blocks]
-        ):
-            block_duration = len(waveform) * rf_raster_time
-            block_end = block_start + block_duration
-
-            # Check if the block overlaps with the current window
-            if block_end <= window_start or block_start >= window_end:
-                continue  # Skip if block is outside the window
-
-            # Find the overlap between the block and the current window
-            overlap_start = max(block_start, window_start)
-            overlap_end = min(block_end, window_end)
-
-            # Compute indices corresponding to the overlap within the waveform
-            start_idx = int((overlap_start - block_start) / rf_raster_time)
-            end_idx = int((overlap_end - block_start) / rf_raster_time)
-
-            # Get the overlapping portion of the waveform
-            selected_waveform = waveform[start_idx:end_idx]
-
-            # Apply the scalar scaling factor to the waveform
-            scaled_waveform = scaling * selected_waveform
-
-            # Calculate energy as the sum of squared amplitude in the overlapping section
-            energy_contribution = np.sum(scaled_waveform**2) * rf_raster_time
-            total_energy += energy_contribution
-
-        # Store the total energy in this window
-        window_energies[i] = total_energy
-
-    # Step 3: Find the maximum energy deposition across all windows
-    max_energy = np.max(window_energies)
-
-    return max_energy, window_energies, window_starts
+def _calc_rf_energy(rf, start=0, stop=None):
+    if stop is None:
+        return sum(np.abs(rf.waveform[start:]) ** 2) * rf.raster
+    return sum(np.abs(rf.waveform[start:]) ** 2) * rf.raster
 
 
 def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
@@ -186,7 +191,9 @@ def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
             waveform, rf.wav.time, system.rf_raster_time, rf.delay
         )
 
-    return SimpleNamespace(waveform=waveform, time=time, raster=system.rf_raster_time)
+    return SimpleNamespace(
+        waveform=waveform / GAMMA, time=time, raster=system.rf_raster_time
+    )
 
 
 def _gradstat(grad: PulseqGrad, system: Opts):
