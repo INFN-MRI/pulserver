@@ -439,7 +439,7 @@ class Sequence:
             )
             P = compute_max_energy(self._sequence, self._system)
             self._sequence.max_power = P
-            
+
         if self._header is not None:
             return self._sequence, self._header
 

@@ -2,7 +2,6 @@
 
 __all__ = []
 
-from ._gehc import compute_max_energy # noqa
+from ._gehc import compute_max_energy  # noqa
 
 __all__.extend("compute_max_energy")
-

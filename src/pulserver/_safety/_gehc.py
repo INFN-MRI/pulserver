@@ -128,7 +128,8 @@ def compute_max_energy(
         # calculate energies for second to last block
         _energies.extend(
             (
-                np.asarray(rf_energy)[np.asarray(current_blocks[1:-1])] * np.asarray(current_powscale[1:-1])
+                np.asarray(rf_energy)[np.asarray(current_blocks[1:-1])]
+                * np.asarray(current_powscale[1:-1])
             ).tolist()
         )
 
@@ -153,21 +154,19 @@ def compute_max_energy(
 
     # find max 10s energy
     max_energy = np.max(energies)  # [G**2 * s]
-    ref_energy = 0.1174**2 * 1e-3  # energy for a 1ms 180° squared pulse
+    # ref_energy = 0.1174**2 * 1e-3  # energy for a 1ms 180° squared pulse
 
     # minimum tr for standard pulse is 10.634 s
-    tr_ref = 10.634e-3
-    tr_equiv = tr_ref * (ref_energy / max_energy)
+    # tr_ref = 10.634e-3
+    # p_ref = 0.1174**2 * 1e-3 / tr_ref
 
     # Compute
-    P = (
-        system.rf_raster_time * max_energy / tr_equiv
-    )  # RF power (Gauss^2) of the reference scan
+    P = max_energy / window_width
 
     return P
 
 
-def _calc_rf_energy(rf, start=0, stop=None):
+def _calc_rf_energy(rf: np.ndarray, start: int = 0, stop: int | None = None) -> float:
     if stop is None:
         return sum(np.abs(rf.waveform[start:]) ** 2) * rf.raster
     return sum(np.abs(rf.waveform[start:]) ** 2) * rf.raster
@@ -186,7 +185,7 @@ def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
     # convert extended trapezoid to arbitrary
     if rf.wav.time is None:
         rf.wav.time = system.rf_raster_time * np.arange(waveform.shape[0])
-        
+
     if rf.type == 1:
         waveform, time = waveform, rf.wav.time + rf.delay
     elif rf.type == 2:
@@ -199,7 +198,7 @@ def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
     )
 
 
-def _gradstat(grad: PulseqGrad, system: Opts):
+def _gradstat(grad: PulseqGrad, system: Opts) -> SimpleNamespace:
 
     # get waveform in physical units
     if grad.type == 1:
@@ -222,12 +221,14 @@ def _gradstat(grad: PulseqGrad, system: Opts):
 
 
 # %% local subroutines
-def _trap2arb(trap: PulseqShapeTrap, dt: float, delay: float) -> np.ndarray:
+def _trap2arb(
+    trap: PulseqShapeTrap, dt: float, delay: float
+) -> (np.ndarray, np.ndarray):
     waveform, time = _trap2extended(trap)
     return _extended2arb(waveform, time, dt, delay)
 
 
-def _trap2extended(trap):
+def _trap2extended(trap: PulseqShapeTrap) -> (np.ndarray, np.ndarray):
     if trap.flat_time > 0:
         waveform = np.asarray([0, 1, 1, 0]) * trap.amplitude
         time = np.asarray(
@@ -247,7 +248,7 @@ def _trap2extended(trap):
 
 def _extended2arb(
     waveform: np.ndarray, time: np.ndarray, dt: float, delay: float
-) -> np.ndarray:
+) -> (np.ndarray, np.ndarray):
 
     _waveform = waveform
     _time = delay + time
@@ -260,7 +261,7 @@ def _extended2arb(
     return np.interp(time, _time, _waveform, left=0, right=0), time
 
 
-def _arange(start, stop, step=1):
+def _arange(start: int, stop: int, step: int = 1) -> np.ndarray:
     if stop is None:
         stop = step
         step = 1
