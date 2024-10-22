@@ -83,6 +83,8 @@ def compute_max_energy(
     window_starts = np.arange(
         0, sequence_end - window_width + windows_stride, windows_stride
     )
+    if window_starts.size == 0:
+        window_starts = np.asarray([0])
     window_ends = window_starts + window_width
     window_ends[-1] = min(window_ends[-1], sequence_end)
 
@@ -92,6 +94,9 @@ def compute_max_energy(
     for n in range(n_windows):
         first_block = np.argmin(abs(block_starts - window_starts[n]))
         last_block = np.argmin(abs(block_ends - window_ends[n]))
+
+        if last_block == first_block:
+            last_block += 1
 
         # get current blocks
         current_starts = block_starts[first_block:last_block][
@@ -152,15 +157,8 @@ def compute_max_energy(
         # update energies list
         energies.append(np.sum(_energies))
 
-    # find max 10s energy
+    # find max 10s energy and corresponding power
     max_energy = np.max(energies)  # [G**2 * s]
-    # ref_energy = 0.1174**2 * 1e-3  # energy for a 1ms 180° squared pulse
-
-    # minimum tr for standard pulse is 10.634 s
-    # tr_ref = 10.634e-3
-    # p_ref = 0.1174**2 * 1e-3 / tr_ref
-
-    # Compute
     P = max_energy / window_width
 
     return P
