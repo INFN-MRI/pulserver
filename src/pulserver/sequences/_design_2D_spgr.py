@@ -193,7 +193,6 @@ def design_2D_spgr(
     # Steady state preparation
     seq.section(name="ss_prep")
     for n in range(dummy_scans):
-
         # get dynamic sequence parameters
         rf_phase = rf_phases()
         encoding, _ = encoding_plan()
@@ -209,7 +208,6 @@ def design_2D_spgr(
     # Actual sequence
     seq.section(name="scan_loop")
     for n in range(imaging_scans + calib_scans):
-
         # get dynamic sequence parameters
         rf_phase = rf_phases()
         encoding, label = encoding_plan()

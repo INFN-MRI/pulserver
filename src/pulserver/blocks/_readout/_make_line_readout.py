@@ -96,11 +96,11 @@ def make_line_readout(
 
     # k space density
     dk = 1 / fov
-    
+
     # get dwell
     if dwell is None:
         dwell = system.grad_raster_time
-    
+
     # calculate duration
     adc_duration = npix * dwell
 

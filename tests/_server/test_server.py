@@ -446,7 +446,6 @@ def test_start_server(
     mock_setup_main_logger,
     sample_config,
 ):
-
     # Mock the main logger
     mock_logger = MagicMock()
     mock_setup_main_logger.return_value = mock_logger

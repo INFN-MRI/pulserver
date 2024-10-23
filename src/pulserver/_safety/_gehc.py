@@ -171,7 +171,6 @@ def _calc_rf_energy(rf: np.ndarray, start: int = 0, stop: int | None = None) -> 
 
 
 def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
-
     # get waveform in physical units
     wave_max = abs(rf.wav.magnitude).max()
     waveform = rf.wav.amplitude * (rf.wav.magnitude / wave_max)
@@ -197,7 +196,6 @@ def _rfstat(rf: PulseqRF, system: Opts) -> SimpleNamespace:
 
 
 def _gradstat(grad: PulseqGrad, system: Opts) -> SimpleNamespace:
-
     # get waveform in physical units
     if grad.type == 1:
         waveform = grad.trap
@@ -247,7 +245,6 @@ def _trap2extended(trap: PulseqShapeTrap) -> (np.ndarray, np.ndarray):
 def _extended2arb(
     waveform: np.ndarray, time: np.ndarray, dt: float, delay: float
 ) -> (np.ndarray, np.ndarray):
-
     _waveform = waveform
     _time = delay + time
 

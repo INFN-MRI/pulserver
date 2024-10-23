@@ -31,7 +31,6 @@ class BaseParams:
         adc_dead_time: float | None = 40e-6,
         psd_rf_wait: float | None = 0.0,
     ):
-
         # Build opts
         if gmax is None:
             raise ValueError("Please provide gmax")

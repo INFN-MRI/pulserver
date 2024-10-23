@@ -316,7 +316,7 @@ class Ceq:
         bytes_data = struct.pack(endian + "h", self.n_parent_blocks)
         for block in self.parent_blocks:
             bytes_data += block.to_bytes(endian)
-        bytes_data +=  struct.pack(endian + "h", self.n_segments)
+        bytes_data += struct.pack(endian + "h", self.n_segments)
         for segment in self.segments:
             bytes_data += segment.to_bytes(endian)
         bytes_data += struct.pack(endian + "i", self.n_max)
@@ -389,13 +389,16 @@ def _find_b1_max(parent_blocks):
         [block.rf.wav.amplitude for block in parent_blocks if block.rf is not None]
     )
 
+
 # TODO: implement this
 def _find_grad_max(parent_blocks):
     return 0.0
 
+
 # TODO: implement this
 def _find_slew_max(parent_blocks):
     return 0.0
+
 
 def _calc_duration(segment_id, block_duration):
     block_duration = block_duration.sum()

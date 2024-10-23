@@ -40,7 +40,6 @@ class Cartesian2DParams(BaseParams):
         *args,
         **kwargs,
     ):  # noqa
-
         # Build FOV
         if FOVx is None:
             raise ValueError("Please provide FOVx")
@@ -130,7 +129,6 @@ class Cartesian3DParams(BaseParams):
         *args,
         **kwargs,
     ):  # noqa
-
         # Slice thickness and spacing
         if slice_thickness is None:
             raise ValueError("Please provide slice_thickness")
