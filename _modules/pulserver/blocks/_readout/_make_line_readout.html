@@ -423,11 +423,11 @@
 
     <span class="c1"># k space density</span>
     <span class="n">dk</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">fov</span>
-    
+
     <span class="c1"># get dwell</span>
     <span class="k">if</span> <span class="n">dwell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dwell</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
-    
+
     <span class="c1"># calculate duration</span>
     <span class="n">adc_duration</span> <span class="o">=</span> <span class="n">npix</span> <span class="o">*</span> <span class="n">dwell</span>
 
