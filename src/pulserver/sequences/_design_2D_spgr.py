@@ -87,15 +87,15 @@ def design_2D_spgr(
     15-degree flip angle and hardware limits 40 mT/m, 150 T/m/s, 4e-6 s raster time as:
 
     >>> from pulserver.sequences import design_2D_spgr
-    >>> opts_dict = {"max_grad": 40, "max_slew": 150, "grad_raster_time": 4e-6, , "rf_raster_time": 4e-6}
+    >>> opts_dict = {"max_grad": 40, "max_slew": 150, "grad_raster_time": 4e-6, "rf_raster_time": 4e-6}
 
     Actual design:
 
-    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict)
+    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict=opts_dict=opts_dict)
 
     Generate the same sequence and export it in GEHC format:
 
-    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict, platform='gehc')
+    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict=opts_dict=opts_dict, platform='gehc')
 
     """
     # Sequence Parameters

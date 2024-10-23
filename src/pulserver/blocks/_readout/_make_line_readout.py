@@ -2,6 +2,8 @@
 
 __all__ = ["make_line_readout"]
 
+
+import numpy as np
 import pypulseq as pp
 
 
@@ -11,8 +13,8 @@ def make_line_readout(
     npix: int,
     osf: float = 1.0,
     has_adc: bool = True,
-    adc_duration: float = 3.0e-3,
     flyback: bool = False,
+    dwell: float | None = None,
     ndim: int = 1,
 ) -> tuple[dict, dict] | tuple[dict, dict, dict]:
     """
@@ -32,8 +34,6 @@ def make_line_readout(
         If ``True``, ``read_block`` contains and ADC event.
         Otherwise, it does not (e.g., dummy shots for steady-state preparation).
         The default is ``True``.
-    adc_duration : float, optional
-        ADC window duration in ``[s]``. The default is '`3.0e-3``.
     flyback : bool, optional
         If ``True``, design a flyback gradient. The default is ``False``.
     ndim : int, optional
@@ -92,10 +92,17 @@ def make_line_readout(
     fov *= 1e-3
 
     # apply oversampling
-    npix = osf * npix
+    npix = int(np.ceil(osf * npix))
 
     # k space density
     dk = 1 / fov
+    
+    # get dwell
+    if dwell is None:
+        dwell = system.grad_raster_time
+    
+    # calculate duration
+    adc_duration = npix * dwell
 
     # frequency encoding gradients
     gread = pp.make_trapezoid(

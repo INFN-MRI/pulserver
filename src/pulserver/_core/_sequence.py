@@ -437,8 +437,8 @@ class Sequence:
                 self._loop,
                 self._sections_edges,
             )
-            P = compute_max_energy(self._sequence, self._system)
-            self._sequence.max_power = P
+            P = compute_max_energy(deepcopy(self._sequence), self._system)
+            self._sequence.max_rf_power = P
 
         if self._header is not None:
             return self._sequence, self._header

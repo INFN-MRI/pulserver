@@ -297,34 +297,38 @@ class Ceq:
 
         # build CEQ structure
         self.n_parent_blocks = len(parent_blocks)
-        self.n_segments = len(segments)
         self.parent_blocks = parent_blocks
+        self.n_segments = len(segments)
         self.segments = segments
         self.n_max = loop.shape[0]
         self.n_columns_in_loop_array = loop.shape[1] - 2  # discard "hasrot", "hasadc"
-        self.n_readouts = int(np.sum(loop[:, -2]))
         self.loop = loop[:, :-2]
 
         # Safety, RF scaling and scan duration info
-        self.max_power = 0.0
+        self.max_rf_power = 0.0
         self.max_b1 = _find_b1_max(parent_blocks)
+        self.max_grad = _find_grad_max(parent_blocks)
+        self.max_slew = _find_slew_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
+        self.n_readouts = int(np.sum(loop[:, -2]))
 
     def to_bytes(self, endian=">") -> bytes:  # noqa
-        bytes_data = struct.pack(endian + "h", self.n_parent_blocks) + struct.pack(
-            endian + "h", self.n_segments
-        )
+        bytes_data = struct.pack(endian + "h", self.n_parent_blocks)
         for block in self.parent_blocks:
             bytes_data += block.to_bytes(endian)
+        bytes_data +=  struct.pack(endian + "h", self.n_segments)
         for segment in self.segments:
             bytes_data += segment.to_bytes(endian)
         bytes_data += struct.pack(endian + "i", self.n_max)
         bytes_data += struct.pack(endian + "h", self.n_columns_in_loop_array)
-        bytes_data += struct.pack(endian + "i", self.n_readouts)
         bytes_data += self.loop.astype(endian + "f4").tobytes()
 
+        bytes_data += struct.pack(endian + "f", self.max_rf_power)
         bytes_data += struct.pack(endian + "f", self.max_b1)
+        bytes_data += struct.pack(endian + "f", self.max_grad)
+        bytes_data += struct.pack(endian + "f", self.max_slew)
         bytes_data += struct.pack(endian + "f", self.duration)
+        bytes_data += struct.pack(endian + "i", self.n_readouts)
 
         return bytes_data
 
@@ -385,6 +389,13 @@ def _find_b1_max(parent_blocks):
         [block.rf.wav.amplitude for block in parent_blocks if block.rf is not None]
     )
 
+# TODO: implement this
+def _find_grad_max(parent_blocks):
+    return 0.0
+
+# TODO: implement this
+def _find_slew_max(parent_blocks):
+    return 0.0
 
 def _calc_duration(segment_id, block_duration):
     block_duration = block_duration.sum()
