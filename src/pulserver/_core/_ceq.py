@@ -36,7 +36,6 @@ class PulseqShapeArbitrary:
         # determine amplitude and normalize waveform
         self.amplitude = abs(self.magnitude).max()
         self.magnitude /= self.amplitude
-        self.magnitude *= 32767
 
     def to_bytes(self, endian=">") -> bytes:
         _bytes = struct.pack(endian + "i", self.n_samples) + struct.pack(
@@ -79,6 +78,7 @@ class PulseqShapeTrap:
 @dataclass
 class PulseqRF:
     type: int
+    complexflag: int
     wav: PulseqShapeArbitrary
     duration: float
     delay: float
@@ -86,6 +86,7 @@ class PulseqRF:
     def to_bytes(self, endian=">") -> bytes:
         return (
             struct.pack(endian + "h", self.type)
+            + struct.pack(endian + "h", self.complexflag)
             + self.wav.to_bytes(endian)
             + struct.pack(endian + "f", self.duration)
             + struct.pack(endian + "f", self.delay)
@@ -107,11 +108,21 @@ class PulseqRF:
             raster = 0.0
             time = data.t
 
-        rho = np.abs(data.signal)
-        theta = np.angle(data.signal)
+        sum_rf_real = sum(abs(data.signal.real))
+        sum_rf_imag = sum(abs(data.signal.imag))
+
+        if sum_rf_real > 100 * sum_rf_imag:
+            complexflag = 0
+            rho = data.signal.real
+            theta = None
+        else:
+            complexflag = 1
+            rho = np.abs(data.signal)
+            theta = np.angle(data.signal)
 
         return cls(
             type=type,
+            complexflag=complexflag,
             wav=PulseqShapeArbitrary(n_samples, raster, time, rho, theta),
             duration=data.shape_dur,
             delay=data.delay,

@@ -47,18 +47,17 @@ def make_spoiler_gradient(
     if channel not in ["x", "y", "z"]:
         raise ValueError(f"Unrecognized channel {channel} - must be 'x', 'y', or 'z'.")
 
-    # # k space area
-    # dr = fov / npix
-
+    dr = voxel_size * 1e-3 # mm -> m
+    
     # prepare phase encoding gradient lobe
     if duration:
         return pp.make_trapezoid(
             channel=channel,
-            area=(ncycles * np.pi / voxel_size),
+            area=(ncycles * np.pi / dr),
             system=system,
             duration=duration,
         )
 
     return pp.make_trapezoid(
-        channel=channel, area=(ncycles * np.pi / voxel_size), system=system
+        channel=channel, area=(ncycles * np.pi / dr), system=system
     )
