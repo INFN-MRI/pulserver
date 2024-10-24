@@ -254,9 +254,9 @@ class SequenceDefinition:
             view_limit.minimum = 0
             view_limit.maximum = n_views - 1
             view_limit.center = int(n_views / 2)
-            self._definition.encoding[
-                idx
-            ].encoding_limits.kspace_encoding_step_1 = view_limit
+            self._definition.encoding[idx].encoding_limits.kspace_encoding_step_1 = (
+                view_limit
+            )
 
         # Assign partition limits
         if n_partitions is not None:
@@ -264,9 +264,9 @@ class SequenceDefinition:
             partition_limit.minimum = 0
             partition_limit.maximum = n_partitions - 1
             partition_limit.center = int(n_partitions / 2)
-            self._definition.encoding[
-                idx
-            ].encoding_limits.kspace_encoding_step_2 = partition_limit
+            self._definition.encoding[idx].encoding_limits.kspace_encoding_step_2 = (
+                partition_limit
+            )
 
         # Assign slice limits
         if n_slices is not None:
