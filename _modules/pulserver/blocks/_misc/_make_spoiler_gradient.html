@@ -374,8 +374,8 @@
     <span class="k">if</span> <span class="n">channel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unrecognized channel </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2"> - must be &#39;x&#39;, &#39;y&#39;, or &#39;z&#39;.&quot;</span><span class="p">)</span>
 
-    <span class="n">dr</span> <span class="o">=</span> <span class="n">voxel_size</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="c1"># mm -&gt; m</span>
-    
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">voxel_size</span> <span class="o">*</span> <span class="mf">1e-3</span>  <span class="c1"># mm -&gt; m</span>
+
     <span class="c1"># prepare phase encoding gradient lobe</span>
     <span class="k">if</span> <span class="n">duration</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
