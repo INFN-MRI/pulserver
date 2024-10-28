@@ -26,10 +26,11 @@ class BaseParams:
         gmax: float | None = None,
         smax: float | None = None,
         b0_field: float | None = None,
+        psd_rf_wait: float | None = 0.0,
+        psd_grd_wait: float | None = 0.0,
         rf_dead_time: float | None = 100e-6,
         rf_ringdown_time: float | None = 60e-6,
         adc_dead_time: float | None = 40e-6,
-        psd_rf_wait: float | None = 0.0,
     ):
         # Build opts
         if gmax is None:
@@ -164,25 +165,29 @@ class ParamsParser:
     raster: float | None = None
     gmax: float | None = None
     smax: float | None = None
-    b1_max: float | None = None
     b0_field: float | None = None
+    psd_rf_wait: float | None = None
+    psd_grd_wait: float | None = None
     rf_dead_time: float | None = None
     rf_ringdown_time: float | None = None
     adc_dead_time: float | None = None
-    psd_rf_wait: float | None = None
-    psd_grd_wait: float | None = None
 
+    @classmethod
+    def from_file(cls, filename: str) -> "ParamsParser":
+        with open(filename, "rb") as file:
+            return ParamsParser.from_bytes(file.read())
+        
     @classmethod
     def from_bytes(cls, data: bytes) -> "ParamsParser":
         """Deserialize from a byte array into a SequenceParams object."""
-        format_string = "2f 5h 7f h 8f 4h 11f"
+        format_string = "2f 5h 7f h 8f 4h 10f"
 
         # Unpack the function name
-        function_name = struct.unpack("50s", data[:50])[0]
+        function_name = struct.unpack("256s", data[:256])[0]
         function_name = function_name.decode("utf-8").rstrip("\x00")
 
         # Unpack values
-        values = struct.unpack(format_string, data[50:])
+        values = struct.unpack(format_string, data[256:])
         values = [None if x == -1 or x == -1.0 else x for x in values]
 
         return ParamsParser(function_name, *values)
@@ -191,11 +196,11 @@ class ParamsParser:
         """
         Serialize this dataclass to a byte array.
         """
-        format_string = "2f 5h 7f h 8f 4h 11f"
+        format_string = "2f 5h 7f h 8f 4h 10f"
         field_types = [field.type for field in fields(self.__class__)][1:]
 
         # Pack function name
-        function_name = struct.pack("50s", self.function_name.encode("utf-8"))
+        function_name = struct.pack("256s", self.function_name.encode("utf-8"))
 
         # Pack values
         values = list(self.asdict(filt=False).values())
