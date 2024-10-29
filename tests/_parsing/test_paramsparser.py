@@ -17,10 +17,9 @@ def test_params_parser_initialization():
         slice_thickness=1.0,
         slice_spacing=1.5,
         Rplane=2.0,
-        Rplane2=1.5,
+        R=1.5,
         Rslice=1.0,
-        PFplane=0.75,
-        PFslice=0.75,
+        PFfactor=0.75,
         ETL=64,
         TE=30.0,
         TE0=10.0,
@@ -38,7 +37,6 @@ def test_params_parser_initialization():
         raster=0.000004,
         gmax=40.0,
         smax=200.0,
-        b1_max=15.0,
         b0_field=3.0,
     )
 

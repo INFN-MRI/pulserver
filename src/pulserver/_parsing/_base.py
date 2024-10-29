@@ -6,6 +6,7 @@ from dataclasses import dataclass, fields
 from dataclasses import asdict as _asdict
 
 import struct
+import re
 
 from .._opts import get_opts
 
@@ -186,12 +187,12 @@ class ParamsParser:
     rf_dead_time: float | None = None
     rf_ringdown_time: float | None = None
     adc_dead_time: float | None = None
-    
+
     @classmethod
     def from_file(cls, filename: str) -> "ParamsParser":
         with open(filename, "rb") as file:
             return ParamsParser.from_bytes(file.read())
-        
+
     @classmethod
     def from_bytes(cls, data: bytes) -> "ParamsParser":
         """Deserialize from a byte array into a SequenceParams object."""
@@ -211,8 +212,7 @@ class ParamsParser:
         """
         Serialize this dataclass to a byte array.
         """
-        format_string = "2f 5h 7f h 8f 4h 10f"
-        field_types = [field.type for field in fields(self.__class__)][1:]
+        format_string = "2f 7h 6f 5h 8f 4h 10f"
 
         # Pack function name
         function_name = struct.pack("256s", self.function_name.encode("utf-8"))
@@ -220,7 +220,7 @@ class ParamsParser:
         # Pack values
         values = list(self.asdict(filt=False).values())
         values = [-1 if x is None else x for x in values]
-        values = [field_types[n].__args__[0](values[n]) for n in range(len(values))]
+        values = _convert_values_to_struct(values, format_string)
         values = struct.pack(format_string, *values)
 
         return function_name + values
@@ -241,3 +241,38 @@ class ParamsParser:
 
         out.pop("function_name")
         return out
+
+
+# %% local subroutines
+def _parse_format_string(format_string):
+    # Define a mapping from struct format characters to Python types
+    type_map = {
+        "f": float,  # 4-byte float
+        "h": int,  # 2-byte short, int is used in Python for struct compatibility
+    }
+
+    # Parse format string to get count and type
+    pattern = r"(\d*)([fh])"  # Regex to match numbers followed by 'f' or 'h'
+    parsed_format = []
+
+    for match in re.finditer(pattern, format_string):
+        count = (
+            int(match.group(1)) if match.group(1) else 1
+        )  # Default to 1 if no number
+        type_char = match.group(2)
+
+        if type_char in type_map:
+            parsed_format.extend([type_map[type_char]] * count)
+
+    return parsed_format
+
+
+def _convert_values_to_struct(values, format_string):
+    parsed_format = _parse_format_string(format_string)
+
+    if len(values) != len(parsed_format):
+        raise ValueError("Number of values does not match format string.")
+
+    # Convert values based on parsed format types
+    converted_values = [parsed_format[i](values[i]) for i in range(len(values))]
+    return converted_values
