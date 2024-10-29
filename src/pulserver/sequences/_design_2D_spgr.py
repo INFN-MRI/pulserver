@@ -25,6 +25,8 @@ def design_2D_spgr(
     PF: float = 1.0,
     opts_dict: str | dict | None = None,
     slice_gap: float = 0.0,
+    dummy_scans = 10,
+    calib_scans = 10,
     platform: str = "pulseq",
 ):
     """
@@ -65,6 +67,12 @@ def design_2D_spgr(
         If ``None``, use PyPulseq default Opts. The default is ``None``.
     slice_gap : float, optional
         Additional slice gap in mm. The default is 0.0 (contiguous slices).
+    dummy_scans : int, optional
+        Number of dummy scans (without ADC) to reach steady state. 
+        The default is ``10``.
+    calib_scans : int, optional
+        Number of scans (with ADC, without phase encoding) to calibrate transmit gain. 
+        The default is ``10``.
     seqformat : str or bool, optional
         Output sequence format. If a string is provided, it specifies the desired output format (e.g., 'pulseq', 'bytes').
         If False, the sequence is returned as an internal object. Default is False.
@@ -169,8 +177,6 @@ def design_2D_spgr(
     # Define sequence plan
     # --------------------
     # scan duration
-    dummy_scans = 10
-    calib_scans = 10
     imaging_scans = Ny * n_slices
 
     # generate rf phase schedule
@@ -204,7 +210,7 @@ def design_2D_spgr(
         seq.add_block("dummy_readout")
         seq.add_block("phase_encoding", gy_amp=-encoding.gy_amp)
         seq.add_block("spoiling")
-
+        
     # Actual sequence
     seq.section(name="scan_loop")
     for n in range(imaging_scans + calib_scans):
@@ -224,4 +230,4 @@ def design_2D_spgr(
         seq.set_label(iy=label.iy, islice=label.islice)
 
     # build the sequence
-    return seq.build()
+    return seq.build(ngain=calib_scans)

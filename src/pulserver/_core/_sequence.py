@@ -420,7 +420,7 @@ class Sequence:
         """
         self._header.set_label(iy, iz, islice, icontrast, iframe, ishot)
 
-    def build(self):
+    def build(self, ngain=0):
         """
         Build the final sequence.
 
@@ -439,6 +439,7 @@ class Sequence:
             )
             P = compute_max_energy(deepcopy(self._sequence), self._system)
             self._sequence.max_rf_power = P
+            self._sequence.n_gain = ngain
 
         if self._header is not None:
             return self._sequence, self._header

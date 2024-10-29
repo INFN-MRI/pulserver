@@ -79,22 +79,32 @@ class ParamsParser:
         Number of echoes.
     Nphases : Optional[int]
         Number of phases.
+    Ndummies : Optional[int]
+        Number of dummy scans to reach steady-state.
+    Ngain : Optional[int]
+        Number of transmit gain calibration scans.
     slice_thickness : Optional[float]
         Thickness of each slice (mm).
     slice_spacing : Optional[float]
         Spacing between slices (mm).
     Rplane : Optional[float]
         In-plane undersampling factor.
-    Rplane2 : Optional[float]
+    R : Optional[float]
         Additional in-plane undersampling factor.
     Rslice : Optional[float]
         Through-plane undersampling factor.
-    PFplane : Optional[float]
-        In-plane partial fourier.
-    PFslice : Optional[float]
-        Through-plane partial fourier.
+    Rshift : Optional[int]
+        CAIPIRINHA shift.
+    PFfactor : Optional[float]
+        Partial Fourier acceleration factor.
     ETL : Optional[int]
         Number of k-space shots per readout.
+    Nshots : Optional[int]
+        Number of k-space segments for EPI.
+    Cplane : Optional[float]
+        Number of phase encoding calibration lones.
+    Cslice : Optional[float]
+        Number of slice encoding calibration lones.
     TE : Optional[float]
         Echo time (ms).
     TE0 : Optional[float]
@@ -141,14 +151,19 @@ class ParamsParser:
     Nslices: int | None = None
     Nechoes: int | None = None
     Nphases: int | None = None
+    Ndummies: int | None = None
+    Ngain: int | None = None
     slice_thickness: float | None = None
     slice_spacing: float | None = None
     Rplane: float | None = None
-    Rplane2: float | None = None
+    R: float | None = None
     Rslice: float | None = None
-    PFplane: float | None = None
-    PFslice: float | None = None
+    PFfactor: float | None = None
+    Rshift: int | None = None
     ETL: int | None = None
+    Nshots: int | None = None
+    Cplane: float | None = None
+    Cslice: float | None = None
     TE: float | None = None
     TE0: float | None = None
     TR: float | None = None
@@ -171,7 +186,7 @@ class ParamsParser:
     rf_dead_time: float | None = None
     rf_ringdown_time: float | None = None
     adc_dead_time: float | None = None
-
+    
     @classmethod
     def from_file(cls, filename: str) -> "ParamsParser":
         with open(filename, "rb") as file:
@@ -180,7 +195,7 @@ class ParamsParser:
     @classmethod
     def from_bytes(cls, data: bytes) -> "ParamsParser":
         """Deserialize from a byte array into a SequenceParams object."""
-        format_string = "2f 5h 7f h 8f 4h 10f"
+        format_string = "2f 7h 6f 5h 8f 4h 10f"
 
         # Unpack the function name
         function_name = struct.unpack("256s", data[:256])[0]

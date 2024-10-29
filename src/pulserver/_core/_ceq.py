@@ -322,6 +322,7 @@ class Ceq:
         self.max_slew = _find_slew_max(parent_blocks)
         self.duration = _calc_duration(self.loop[:, 0], self.loop[:, 9])
         self.n_readouts = int(np.sum(loop[:, -2]))
+        self.n_gain = 0
 
     def to_bytes(self, endian=">") -> bytes:  # noqa
         bytes_data = struct.pack(endian + "h", self.n_parent_blocks)
@@ -340,6 +341,7 @@ class Ceq:
         bytes_data += struct.pack(endian + "f", self.max_slew)
         bytes_data += struct.pack(endian + "f", self.duration)
         bytes_data += struct.pack(endian + "i", self.n_readouts)
+        bytes_data += struct.pack(endian + "i", self.n_gain)
 
         return bytes_data
 
