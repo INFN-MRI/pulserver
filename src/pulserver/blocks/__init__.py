@@ -13,4 +13,5 @@ from ._readout import make_spiral_readout  # noqa
 from ._phaseenc import make_phase_encoding  # noqa
 
 # %% Miscellaneous
+from ._misc import calc_delay  # noqa
 from ._misc import make_spoiler_gradient  # noqa

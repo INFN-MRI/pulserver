@@ -14,7 +14,6 @@ def make_line_readout(
     osf: float = 1.0,
     has_adc: bool = True,
     flyback: bool = False,
-    dwell: float | None = None,
     ndim: int = 1,
 ) -> tuple[dict, dict] | tuple[dict, dict, dict]:
     """
@@ -98,8 +97,7 @@ def make_line_readout(
     dk = 1 / fov
 
     # get dwell
-    if dwell is None:
-        dwell = system.grad_raster_time
+    dwell = system.adc_raster_time
 
     # calculate duration
     adc_duration = npix * dwell

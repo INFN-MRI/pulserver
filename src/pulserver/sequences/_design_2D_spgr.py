@@ -7,6 +7,7 @@ from collections.abc import Iterable
 import warnings
 
 import numpy as np
+import pypulseq as pp
 
 from .._core import Sequence
 from .._opts import get_opts
@@ -21,6 +22,8 @@ def design_2D_spgr(
     matrix_size: Iterable[int],
     n_slices: int,
     flip_angle: float,
+    TE: float = 0.0,
+    TR: float = 0.0,
     R: int = 1,
     PF: float = 1.0,
     opts_dict: str | dict | None = None,
@@ -51,6 +54,16 @@ def design_2D_spgr(
         Number of slices.
     flip_angle : float
         Flip angle in degrees.
+    TE: float, optional
+        Target Echo Time in ``[s]``. It is automatically extended to minimum TE.
+        The default is ``0.0``
+    TR: float, optional
+        Target Repetition Time in ``[s]``. It is automatically extended to minimum TR.
+        The default is ``0.0``
+    R: int, optional
+        Parallel Imaging undersampling factor. The default is ``1`` (no undersampling).
+    PF: float, optional
+        Partial Fourier acceleration factor. The default is ``1.0`` (no acceleration).
     opts_dict : str | dict | None, optional
         Either scanner identifier or a dictionary with the following keys:
 
@@ -73,9 +86,9 @@ def design_2D_spgr(
     calib_scans : int, optional
         Number of scans (with ADC, without phase encoding) to calibrate transmit gain.
         The default is ``10``.
-    seqformat : str or bool, optional
-        Output sequence format. If a string is provided, it specifies the desired output format (e.g., 'pulseq', 'bytes').
-        If False, the sequence is returned as an internal object. Default is False.
+    platform : str, optional
+        The target platform for the sequence. Acceptable values are 'pulseq' (alias for 'siemens')
+        and 'toppe' (alias for 'gehc').
 
     Returns
     -------
@@ -103,7 +116,7 @@ def design_2D_spgr(
 
     Generate the same sequence and export it in GEHC format:
 
-    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict=opts_dict=opts_dict, platform='gehc')
+    >>> design_2D_spgr(240.0, 5.0, 256, 1, 15.0, opts_dict=opts_dict, platform='gehc')
 
     """
     # Sequence Parameters
@@ -155,13 +168,34 @@ def design_2D_spgr(
         )
     }
 
+    # Calculate timing
+    # ----------------
+    delay_TE, act_TE = blocks.calc_delay(
+        system_limits,
+        TE,
+        0.5 * exc_block["gz"].flat_time,
+        exc_block["gz"].fall_time,
+        slice_reph_block["gz"],
+        pp.calc_duration(*phase_enc_block.values()),
+        0.5 * pp.calc_duration(readout_block["gx"]),
+    )
+
+    delay_TR, act_TR = blocks.calc_delay(
+        system_limits,
+        TR,
+        act_TE,
+        0.5 * pp.calc_duration(readout_block["gx"]),
+        pp.calc_duration(*phase_enc_block.values()),
+        spoil_block["gz"],
+    )
+
     # register parent blocks
     seq.register_block(name="excitation", **exc_block)
-    seq.register_block(name="slice_rephasing", **slice_reph_block)
+    seq.register_block(name="slice_rephasing", **slice_reph_block, delay=delay_TE)
     seq.register_block(name="readout", **readout_block)
     seq.register_block(name="dummy_readout", gx=readout_block["gx"])
     seq.register_block(name="phase_encoding", **phase_enc_block)
-    seq.register_block(name="spoiling", **spoil_block)
+    seq.register_block(name="spoiling", **spoil_block, delay=delay_TR)
 
     # Prepare header
     # --------------
@@ -170,9 +204,11 @@ def design_2D_spgr(
     seq.set_definition("fov", FOVx, FOVy, slice_spacing)
     seq.set_definition("limits", n_views=Ny, n_slices=n_slices)
     seq.set_definition("flip", flip_angle)
-    seq.set_definition("dwell", system_limits.grad_raster_time)
+    seq.set_definition("TE", act_TE)
+    seq.set_definition("TR", act_TR)
+    seq.set_definition("dwell", system_limits.adc_raster_time)
     seq.set_definition("spoiling_inc", 117.0)
-    seq.set_definition("ndummies", 10)
+    seq.set_definition("ndummies", dummy_scans)
 
     # Define sequence plan
     # --------------------
