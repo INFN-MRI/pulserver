@@ -11,7 +11,7 @@ import socket
 
 from datetime import datetime
 
-from .._parsing import ParamsParser
+from ..parsing import ParamsParser
 
 # Location of home
 HOME_DIR = pathlib.Path.home()

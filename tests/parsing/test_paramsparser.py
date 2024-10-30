@@ -1,6 +1,6 @@
 """Test SequenceParams structure."""
 
-from pulserver._parsing import ParamsParser
+from pulserver.parsing import ParamsParser
 
 
 # Test case to verify correct creation and attribute assignment in ParamsParser

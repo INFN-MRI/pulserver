@@ -23,8 +23,8 @@ class Cartesian2DParams(BaseParams):
         Nslices: int | None = None,
         slice_thickness: float | None = None,
         slice_spacing: float | None = 0.0,
-        Rplane: float | None = 1,
-        PFplane: float | None = 1.0,
+        R: float | None = 1,
+        PF: float | None = 1.0,
         TE: float | None = 0.0,
         TR: float | None = 0.0,
         flip: float | None = None,
@@ -73,12 +73,12 @@ class Cartesian2DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        self.TE = TE
-        self.TR = TR
+        self.TE = TE * 1e-3
+        self.TR = TR * 1e-3
 
         # Accelerations
-        self.R = Rplane
-        self.PF = PFplane
+        self.R = R
+        self.PF = PF
 
         # Build opts
         super().__init__(
@@ -111,9 +111,11 @@ class Cartesian3DParams(BaseParams):
         Ny: int | None = None,
         Nslices: int | None = None,
         slice_thickness: float | None = None,
+        R: float | None = 1,
         Rplane: float | None = 1,
-        Rplane2: float | None = 1,
-        PFslice: float | None = 1.0,
+        Rslice: float | None = 1,
+        Rshift: float | None = 0,
+        PF: float | None = 1.0,
         TE: float | None = 0.0,
         TR: float | None = 0.0,
         flip: float | None = None,
@@ -159,13 +161,16 @@ class Cartesian3DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        self.TE = TE
-        self.TR = TR
+        self.TE = TE * 1e-3
+        self.TR = TR * 1e-3
 
         # Accelerations
-        self.Rpi = Rplane
-        self.Rcs = Rplane2
-        self.PF = PFslice
+        self.R = R
+        self.Rplane = Rplane
+        self.Rplane = Rplane
+        self.Rslice = Rslice
+        self.Rshift = Rshift
+        self.PF = PF
 
         # Build opts
         super().__init__(

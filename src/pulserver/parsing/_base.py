@@ -55,7 +55,7 @@ class BaseParams:
 
         self.opts = get_opts(_opts_dict)
 
-    def asdict(self):
+    def asdict(self):  # noqa
         return vars(self)
 
 
@@ -188,8 +188,29 @@ class ParamsParser:
     rf_ringdown_time: float | None = None
     adc_dead_time: float | None = None
 
+    def __post_init__(self):  # noqa
+
+        # rounding
+        if self.psd_rf_wait is not None:
+            self.psd_rf_wait *= 1e-6
+            self.psd_rf_wait = round(self.psd_rf_wait * 1e6) / 1e6
+        if self.psd_grd_wait is not None:
+            self.psd_grd_wait *= 1e-6
+            self.psd_grd_wait = round(self.psd_grd_wait * 1e6) / 1e6
+        if self.raster is not None:
+            self.raster = round(self.raster * 1e6) / 1e6
+        if self.dwell is not None:
+            # self.dwell = round(self.dwell * 1e6) / 1e6
+            self.dwell = 4e-6
+        if self.rf_dead_time is not None:
+            self.rf_dead_time = round(self.rf_dead_time * 1e6) / 1e6
+        if self.rf_ringdown_time is not None:
+            self.rf_ringdown_time = round(self.rf_ringdown_time * 1e6) / 1e6
+        if self.adc_dead_time is not None:
+            self.adc_dead_time = round(self.adc_dead_time * 1e6) / 1e6
+
     @classmethod
-    def from_file(cls, filename: str) -> "ParamsParser":
+    def from_file(cls, filename: str) -> "ParamsParser":  # noqa
         with open(filename, "rb") as file:
             return ParamsParser.from_bytes(file.read())
 

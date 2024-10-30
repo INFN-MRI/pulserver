@@ -10,7 +10,7 @@ from datetime import datetime
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from pulserver._parsing import ParamsParser
+from pulserver.parsing import ParamsParser
 from pulserver._server._server import load_plugins
 from pulserver._server._server import parse_request
 from pulserver._server._server import setup_function_logger
