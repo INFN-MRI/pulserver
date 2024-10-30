@@ -222,6 +222,7 @@ def send_to_recon_server(optional_buffer, config):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((RECON_SERVER_ADDRESS, RECON_SERVER_PORT))
             s.sendall(optional_buffer)
+            s.shutdown(socket.SHUT_WR)
 
 
 def handle_client_connection(config, client_socket, plugins, logger):
@@ -243,6 +244,9 @@ def handle_client_connection(config, client_socket, plugins, logger):
 
         # Send the result buffer to the client
         client_socket.sendall(result_buffer)
+
+        # Signal that no more data will be sent
+        client_socket.shutdown(socket.SHUT_WR)
 
         # Optionally send the reconstruction info to the secondary server
         if optional_buffer is not None:

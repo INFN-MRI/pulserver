@@ -37,6 +37,7 @@ class Cartesian2DParams(BaseParams):
         rf_ringdown_time: float | None = 60e-6,
         adc_dead_time: float | None = 40e-6,
         psd_rf_wait: float | None = 0.0,
+        fudge_factor: float | None = None,
         *args,
         **kwargs,
     ):  # noqa
@@ -73,12 +74,20 @@ class Cartesian2DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        self.TE = TE * 1e-3
-        self.TR = TR * 1e-3
+        if self.TE is not None:
+            self.TE = TE * 1e-3
+        if self.TR is not None:
+            self.TR = TR * 1e-3
 
         # Accelerations
         self.R = R
         self.PF = PF
+
+        # apply fudge
+        if fudge_factor is not None and gmax is not None:
+            gmax = fudge_factor * gmax
+        if fudge_factor is not None and smax is not None:
+            smax = fudge_factor * smax
 
         # Build opts
         super().__init__(
@@ -128,6 +137,7 @@ class Cartesian3DParams(BaseParams):
         rf_ringdown_time: float | None = 60e-6,
         adc_dead_time: float | None = 40e-6,
         psd_rf_wait: float | None = 0.0,
+        fudge_factor: float | None = None,
         *args,
         **kwargs,
     ):  # noqa
@@ -161,8 +171,10 @@ class Cartesian3DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        self.TE = TE * 1e-3
-        self.TR = TR * 1e-3
+        if self.TE is not None:
+            self.TE = TE * 1e-3
+        if self.TR is not None:
+            self.TR = TR * 1e-3
 
         # Accelerations
         self.R = R
@@ -171,6 +183,12 @@ class Cartesian3DParams(BaseParams):
         self.Rslice = Rslice
         self.Rshift = Rshift
         self.PF = PF
+
+        # apply fudge
+        if fudge_factor is not None and gmax is not None:
+            gmax = fudge_factor * gmax
+        if fudge_factor is not None and smax is not None:
+            smax = fudge_factor * smax
 
         # Build opts
         super().__init__(
