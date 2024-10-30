@@ -643,6 +643,40 @@ B0: 1.5
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AssertionError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">line</span> <span class="mi">8</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="c1"># create phase encoding gradient, readout pre-/re-winder and readout/adc blocks:</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="n">phase_enc</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span><span class="p">)</span>
+<span class="ne">----&gt; </span><span class="mi">8</span> <span class="n">readout_block</span><span class="p">,</span> <span class="n">readout_prewind_block</span> <span class="o">=</span> <span class="n">pulserver</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">make_line_readout</span><span class="p">(</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span>     <span class="n">system_limits</span><span class="p">,</span> <span class="n">fov</span><span class="p">,</span> <span class="n">matrix_size</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="c1"># create combined phase encoding + readout prewinder block</span>
+<span class="g g-Whitespace">     </span><span class="mi">13</span> <span class="n">phase_enc_block</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gy&quot;</span><span class="p">:</span> <span class="n">phase_enc</span><span class="p">,</span> <span class="o">**</span><span class="n">readout_prewind_block</span><span class="p">}</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.15/x64/lib/python3.10/site-packages/pulserver/blocks/_readout/_make_line_readout.py:106,</span> in <span class="ni">make_line_readout</span><span class="nt">(system, fov, npix, osf, has_adc, flyback, ndim)</span>
+<span class="g g-Whitespace">    </span><span class="mi">103</span> <span class="n">adc_duration</span> <span class="o">=</span> <span class="n">npix</span> <span class="o">*</span> <span class="n">dwell</span>
+<span class="g g-Whitespace">    </span><span class="mi">105</span> <span class="c1"># frequency encoding gradients</span>
+<span class="ne">--&gt; </span><span class="mi">106</span> <span class="n">gread</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">107</span>     <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">flat_area</span><span class="o">=</span><span class="n">npix</span> <span class="o">*</span> <span class="n">dk</span><span class="p">,</span> <span class="n">flat_time</span><span class="o">=</span><span class="n">adc_duration</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+<span class="g g-Whitespace">    </span><span class="mi">108</span> <span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">110</span> <span class="c1"># prepare prephaser/rephaser gradient lobe</span>
+<span class="g g-Whitespace">    </span><span class="mi">111</span> <span class="n">gphase</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="n">gread</span><span class="o">.</span><span class="n">area</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.15/x64/lib/python3.10/site-packages/pypulseq/make_trapezoid.py:209,</span> in <span class="ni">make_trapezoid</span><span class="nt">(channel, amplitude, area, delay, duration, fall_time, flat_area, flat_time, max_grad, max_slew, rise_time, system)</span>
+<span class="g g-Whitespace">    </span><span class="mi">205</span>     <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">206</span>         <span class="c1"># Find the shortest possible duration.           </span>
+<span class="g g-Whitespace">    </span><span class="mi">207</span>         <span class="n">amplitude2</span><span class="p">,</span> <span class="n">rise_time</span><span class="p">,</span> <span class="n">flat_time</span><span class="p">,</span> <span class="n">fall_time</span> <span class="o">=</span> <span class="n">calculate_shortest_params_for_area</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">max_slew</span><span class="p">,</span> <span class="n">max_grad</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">209</span> <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">amplitude2</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_grad</span><span class="p">,</span> <span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">210</span>     <span class="sa">f</span><span class="s2">&quot;Refined amplitude (</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">amplitude2</span><span class="p">)</span><span class="si">:</span><span class="s2">0.0f</span><span class="si">}</span><span class="s2"> Hz/m) is larger than max (</span><span class="si">{</span><span class="n">max_grad</span><span class="si">:</span><span class="s2">0.0f</span><span class="si">}</span><span class="s2"> Hz/m).&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">212</span> <span class="n">grad</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">()</span>
+<span class="g g-Whitespace">    </span><span class="mi">213</span> <span class="n">grad</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;trap&quot;</span>
+
+<span class="ne">AssertionError</span>: Refined amplitude (39062500 Hz/m) is larger than max (1490160 Hz/m).
+</pre></div>
+</div>
+</div>
 </div>
 <p>These blocks have to be registered by using <code class="docutils literal notranslate"><span class="pre">Sequence.register_block</span></code> method. Similarly to <code class="docutils literal notranslate"><span class="pre">Pypulseq.Sequence.register_*_event</span></code>, this is used to efficently re-use sequence blocks throughout the scan loop.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Sequence.register_block</span></code> method accepts the following arguments:</p>
@@ -734,16 +768,22 @@ B0: 1.5
 Gy amplitude (wrt to peak of gradient waveform): -0.5
 Phase encoding index: 0
 RF frequency offset: 0.0
-</pre></div>
-</div>
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">line</span> <span class="mi">8</span>
-<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Phase encoding index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RF frequency offset: </span><span class="si">{</span><span class="n">encoding</span><span class="o">.</span><span class="n">rf_freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="ne">----&gt; </span><span class="mi">8</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slice index: </span><span class="si">{</span><span class="n">header</span><span class="o">.</span><span class="n">iz</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="ne">AttributeError</span>: &#39;types.SimpleNamespace&#39; object has no attribute &#39;iz&#39;
+Slice index: 0
+RF phase: 0.03564023811504491 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.49609375
+Phase encoding index: 1
+RF frequency offset: 0.0
+Slice index: 0
+RF phase: 0.10692071434513473 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.4921875
+Phase encoding index: 2
+RF frequency offset: 0.0
+Slice index: 0
+RF phase: 0.21384142869026945 [rad]
+Gy amplitude (wrt to peak of gradient waveform): -0.48828125
+Phase encoding index: 3
+RF frequency offset: 0.0
+Slice index: 0
 </pre></div>
 </div>
 </div>
