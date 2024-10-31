@@ -200,8 +200,7 @@ class ParamsParser:
         if self.raster is not None:
             self.raster = round(self.raster * 1e6) / 1e6
         if self.dwell is not None:
-            # self.dwell = round(self.dwell * 1e6) / 1e6
-            self.dwell = 4e-6
+            self.dwell = round(self.dwell * 1e6) / 1e6
         if self.rf_dead_time is not None:
             self.rf_dead_time = round(self.rf_dead_time * 1e6) / 1e6
         if self.rf_ringdown_time is not None:
