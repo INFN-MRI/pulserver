@@ -226,7 +226,7 @@ def design_2D_spgr(
         g_slice_select=exc_block["gz"],
         slice_thickness=slice_thickness,
         slice_gap=slice_gap,
-        Ry=Ry,
+        Ry=int(Ry),
         calib=Cy,
         n_slices=n_slices,
         ny=Ny,

@@ -189,7 +189,6 @@ class ParamsParser:
     adc_dead_time: float | None = None
 
     def __post_init__(self):  # noqa
-
         # rounding
         if self.psd_rf_wait is not None:
             self.psd_rf_wait *= 1e-6
