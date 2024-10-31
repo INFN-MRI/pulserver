@@ -24,8 +24,8 @@ def design_2D_spgr(
     flip_angle: float,
     TE: float = 0.0,
     TR: float = 0.0,
-    R: int = 1,
-    PF: float = 1.0,
+    Ry: int = 1,
+    Cy: int | None = None,
     opts_dict: str | dict | None = None,
     slice_gap: float = 0.0,
     dummy_scans=10,
@@ -60,10 +60,10 @@ def design_2D_spgr(
     TR: float, optional
         Target Repetition Time in ``[s]``. It is automatically extended to minimum TR.
         The default is ``0.0``
-    R: int, optional
+    Ry: int, optional
         Parallel Imaging undersampling factor. The default is ``1`` (no undersampling).
-    PF: float, optional
-        Partial Fourier acceleration factor. The default is ``1.0`` (no acceleration).
+    Cy: int | None, optional
+        Parallel Imaging autocalibration lines. The default is ``None`` (external calibration).
     opts_dict : str | dict | None, optional
         Either scanner identifier or a dictionary with the following keys:
 
@@ -225,6 +225,9 @@ def design_2D_spgr(
     encoding_plan, _ = plan.cartesian2D(
         g_slice_select=exc_block["gz"],
         slice_thickness=slice_thickness,
+        slice_gap=slice_gap,
+        Ry=Ry,
+        calib=Cy,
         n_slices=n_slices,
         ny=Ny,
         dummy_shots=calib_scans + dummy_scans,

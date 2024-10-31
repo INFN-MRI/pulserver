@@ -23,8 +23,9 @@ class Cartesian2DParams(BaseParams):
         Nslices: int | None = None,
         slice_thickness: float | None = None,
         slice_spacing: float | None = 0.0,
-        R: float | None = 1,
-        PF: float | None = 1.0,
+        Rplane: float | None = 1,
+        Rslice: float | None = 1,
+        Cplane: float | None = None,
         TE: float | None = 0.0,
         TR: float | None = 0.0,
         flip: float | None = None,
@@ -53,7 +54,7 @@ class Cartesian2DParams(BaseParams):
         if slice_thickness is None:
             raise ValueError("Please provide slice_thickness")
         self.slice_thickness = slice_thickness
-        self.slice_spacing = slice_spacing
+        self.slice_gap = slice_spacing
 
         # Build matrix
         if Nx is None:
@@ -80,8 +81,10 @@ class Cartesian2DParams(BaseParams):
             self.TR = TR * 1e-3
 
         # Accelerations
-        self.R = R
-        self.PF = PF
+        if Rplane is not None:
+            self.Ry = Rplane
+        if Cplane is not None:
+            self.Cy = Cplane
 
         # apply fudge
         if fudge_factor is not None and gmax is not None:

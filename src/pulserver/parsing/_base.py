@@ -2,7 +2,7 @@
 
 __all__ = ["BaseParams", "ParamsParser"]
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from dataclasses import asdict as _asdict
 
 import struct
@@ -53,7 +53,7 @@ class BaseParams:
             "adc_dead_time": adc_dead_time,
         }
 
-        self.opts = get_opts(_opts_dict)
+        self.opts_dict = get_opts(_opts_dict)
 
     def asdict(self):  # noqa
         return vars(self)
