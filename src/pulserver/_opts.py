@@ -5,7 +5,7 @@ __all__ = ["get_opts"]
 import pypulseq as pp
 
 
-def get_opts(input: str | dict | None = None) -> pp.Opts:
+def get_opts(input: str | dict | pp.opts.Opts | None = None) -> pp.Opts:
     """
     Initialize system hardware specifications structure.
 
@@ -61,6 +61,9 @@ def get_opts(input: str | dict | None = None) -> pp.Opts:
     """
     if input is None:
         return pp.Opts.default
+
+    if isinstance(input, pp.opts.Opts):
+        return input
 
     # split
     if isinstance(input, str):
