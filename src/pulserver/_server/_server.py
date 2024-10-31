@@ -17,8 +17,9 @@ from ..parsing import ParamsParser
 HOME_DIR = pathlib.Path.home()
 
 # Define the default config file location
-DEFAULT_CONFIG_PATH = os.path.join(HOME_DIR, "pulserver_config.ini")
+DEFAULT_CONFIG_PATH = os.path.join(HOME_DIR, ".pulserver_config.ini")
 DEFAULT_LOGDIR = os.path.join(HOME_DIR, "pulserver_log")
+DEFAULT_PLUGINDIR = os.path.join(HOME_DIR, "pulserver_plugins")
 
 # Default configuration values
 DEFAULT_CONFIG = {
@@ -26,7 +27,7 @@ DEFAULT_CONFIG = {
     "SCANNER_PORT": 5000,
     "RECON_SEVER_ADDRESS": None,
     "RECON_SEVER_PORT": None,
-    "PLUGINSDIR": None,
+    "PLUGINSDIR": DEFAULT_PLUGINDIR,
     "LOGDIR": DEFAULT_LOGDIR,
 }
 
@@ -124,7 +125,7 @@ def _get_plugin_dir(config):
 
     # Add custom design functions
     CUSTOM_PLUGINS = config["PLUGINSDIR"]
-    if CUSTOM_PLUGINS:
+    if CUSTOM_PLUGINS and os.path.exists(CUSTOM_PLUGINS):
         PLUGIN_DIR.append(os.path.realpath(CUSTOM_PLUGINS))
 
     return PLUGIN_DIR
