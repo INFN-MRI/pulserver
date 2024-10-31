@@ -74,9 +74,9 @@ class Cartesian2DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        if self.TE is not None:
+        if TE is not None:
             self.TE = TE * 1e-3
-        if self.TR is not None:
+        if TR is not None:
             self.TR = TR * 1e-3
 
         # Accelerations
@@ -171,9 +171,9 @@ class Cartesian3DParams(BaseParams):
         self.flip_angle = flip
 
         # TE / TR
-        if self.TE is not None:
+        if TE is not None:
             self.TE = TE * 1e-3
-        if self.TR is not None:
+        if TR is not None:
             self.TR = TR * 1e-3
 
         # Accelerations
