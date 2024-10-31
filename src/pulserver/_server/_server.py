@@ -238,7 +238,7 @@ def handle_client_connection(config, client_socket, plugins, logger):
         logger.info(f"Calling {function_name} with args {kwargs}")
 
         # Run design function
-        result_buffer, optional_buffer = function(**kwargs)
+        result_buffer, optional_buffer = function(kwargs)
 
         # Log the output to the function-specific log file
         function_logger.info(f"Output buffer: {result_buffer}")

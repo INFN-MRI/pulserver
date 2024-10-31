@@ -345,7 +345,7 @@ def test_handle_client_connection_valid_function(
     handle_client_connection(sample_config, client_socket, plugins, logger)
 
     # Check that the function was called correctly
-    plugins["foo"].assert_called_once_with(FOVx=256.0, Nx=128)
+    plugins["foo"].assert_called_once_with({"FOVx": 256.0, "Nx": 128})
 
     # Check that logging was done correctly
     logger.info.assert_called_once_with(
@@ -403,7 +403,7 @@ def test_handle_client_connection_no_optional_buffer(
     logger = main_logger
 
     # Mock plugins with an example function that returns no optional buffer
-    def mock_plugin(**kwargs):
+    def mock_plugin(kwargs):
         return b"result_buffer", None
 
     plugins["foo"] = MagicMock(side_effect=mock_plugin)
@@ -420,7 +420,7 @@ def test_handle_client_connection_no_optional_buffer(
     handle_client_connection(sample_config, client_socket, plugins, logger)
 
     # Check that the function was called correctly
-    plugins["foo"].assert_called_once_with(FOVx=256.0, Nx=128)
+    plugins["foo"].assert_called_once_with({"FOVx": 256.0, "Nx": 128})
 
     # Check that logging was done correctly
     logger.info.assert_called_once_with(
