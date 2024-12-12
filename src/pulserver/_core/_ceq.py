@@ -416,14 +416,14 @@ def _build_segments(loop, sections_edges):
 
         # section starts
         _split_end = np.where(_rotchange.squeeze())[0]
-        _split_start = np.concatenate(([0], _split_end))
+        _split_start = np.concatenate(([0], _split_end+1))
 
         if _split_start.size == 0:
             splitted_segments.append(_seg_definition)
         else:
             _subsegments = []
             for m in range(len(_split_end)):
-                _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]])
+                _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]+1])
             _subsegments.append(_seg_definition[_split_start[-1] :])
             splitted_segments.extend(_subsegments)
 
@@ -440,14 +440,14 @@ def _build_segments(loop, sections_edges):
 
     # section starts
     _split_end = np.where(_rotchange.squeeze())[0]
-    _split_start = np.concatenate(([0], _split_end))
+    _split_start = np.concatenate(([0], _split_end+1))
 
     if _split_start.size == 0:
         splitted_segments.append(_seg_definition)
     else:
         _subsegments = []
         for m in range(len(_split_end)):
-            _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]])
+            _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]+1])
         _subsegments.append(_seg_definition[_split_start[-1] :])
         splitted_segments.extend(_subsegments)
 
