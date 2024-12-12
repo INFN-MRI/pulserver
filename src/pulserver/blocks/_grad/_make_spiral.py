@@ -23,6 +23,7 @@ def make_spiral(
     fs_npix: int = None,
     trans_dur: float = 0.5,
     spiral_type: str = "outward",
+    mirror: bool = False,
 ) -> tuple[SimpleNamespace, SimpleNamespace]:
     """
     Create a spiral gradient event.
@@ -65,10 +66,10 @@ def make_spiral(
 
         * ``"outward"``: center-to-periphery.
         * ``inward``: periphery-to-center.
-        * ``in-out``: inward followed by complementary outward spiral.
-        * ``out-in``: outward followed by complementary inward spiral.
 
         The default is ``outward``.
+    mirror : bool, optional
+        Mirror spiral. The default is ``False``.
 
     Returns
     -------
@@ -168,23 +169,15 @@ def make_spiral(
         )
 
     # compute adc points
-    if spiral_type == "outward" or spiral_type == "out-in":
-        npre, npost = 0, len(g) - len(g0)
     if spiral_type == "inward":
         npre, npost = len(g) - len(g0), 0
-    if spiral_type == "in-out":
-        npre, npost = len(g) - len(g0), len(g) - len(g0)
+    else:
+        npre, npost = 0, len(g) - len(g0)
 
     # handle spiral variant
     if spiral_type == "inward":
         g = np.flip(g, axis=0)
         k = np.flip(k, axis=0)
-    if spiral_type == "in-out":
-        g = np.concatenate((np.flip(g, axis=0), g), axis=0)
-        k = np.cumsum(g, axis=0)
-    if spiral_type == "out-in":
-        g = np.concatenate((g, np.flip(g, axis=0)), axis=0)
-        k = np.cumsum(g, axis=0)
 
     # convert gradient units
     g = g.T
@@ -194,11 +187,6 @@ def make_spiral(
     k = k.T
     kmax = ((k**2).sum(axis=0) ** 0.5).max()
     k = k / kmax / 2
-
-    # split trajectory for out-in
-    if spiral_type == "out-in":
-        npts = k.shape[-1]
-        k = (k[:, : npts // 2][:, :-npost], k[:, npts // 2 :][:, npost:])
 
     # make arbitrary
     gx = pp.make_arbitrary_grad("x", g[0], system=system)

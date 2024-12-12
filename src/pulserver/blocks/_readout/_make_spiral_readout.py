@@ -19,6 +19,7 @@ def make_spiral_readout(
     fs_npix: int = None,
     trans_dur: float = 0.5,
     spiral_type: str = "outward",
+    mirror: bool = False,
     has_adc: bool = True,
 ) -> tuple[dict, SimpleNamespace]:
     """
@@ -49,10 +50,10 @@ def make_spiral_readout(
 
         * ``"outward"``: center-to-periphery.
         * ``inward``: periphery-to-center.
-        * ``in-out``: inward followed by complementary outward spiral.
-        * ``out-in``: outward followed by complementary inward spiral.
 
         The default is ``outward``.
+    mirror : bool, optional
+        Mirror spiral. The default is ``False``.
     has_adc : bool, optional
         If ``True``, ``read_block`` contains and ADC event.
         Otherwise, it does not (e.g., dummy shots for steady-state preparation).
@@ -81,7 +82,7 @@ def make_spiral_readout(
     """
     # initialize spiral gradient
     gx_spiral, gy_spiral, hdr = make_spiral(
-        fov, npix, narms, 0, 0, 0, system, fs_npix, trans_dur, spiral_type
+        fov, npix, narms, 0, 0, 0, system, fs_npix, trans_dur, spiral_type, mirror
     )
 
     # adc event
