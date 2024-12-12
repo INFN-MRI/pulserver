@@ -65,7 +65,8 @@ def make_spiral(
 
         * ``"outward"``: center-to-periphery.
         * ``inward``: periphery-to-center.
-        * ``in-out``: inward followed by outward spiral.
+        * ``in-out``: inward followed by complementary outward spiral.
+        * ``out-in``: outward followed by complementary inward spiral.
 
         The default is ``outward``.
 
@@ -89,7 +90,7 @@ def make_spiral(
         grad_raster_time = system.grad_raster_time
 
     # adjust number of interleaves
-    if spiral_type == "in-out":
+    if spiral_type == "in-out" or spiral_type == "out-in":
         narms *= 2
 
     # convert to puply units
@@ -167,7 +168,7 @@ def make_spiral(
         )
 
     # compute adc points
-    if spiral_type == "outward":
+    if spiral_type == "outward" or spiral_type == "out-in":
         npre, npost = 0, len(g) - len(g0)
     if spiral_type == "inward":
         npre, npost = len(g) - len(g0), 0
@@ -180,7 +181,10 @@ def make_spiral(
         k = np.flip(k, axis=0)
     if spiral_type == "in-out":
         g = np.concatenate((np.flip(g, axis=0), g), axis=0)
-        k = np.concatenate((np.flip(k, axis=0), k), axis=0)
+        k = np.cumsum(g, axis=0)
+    if spiral_type == "out-in":
+        g = np.concatenate((g, np.flip(g, axis=0)), axis=0)
+        k = np.cumsum(g, axis=0)
 
     # convert gradient units
     g = g.T
@@ -190,6 +194,11 @@ def make_spiral(
     k = k.T
     kmax = ((k**2).sum(axis=0) ** 0.5).max()
     k = k / kmax / 2
+
+    # split trajectory for out-in
+    if spiral_type == "out-in":
+        npts = k.shape[-1]
+        k = (k[:, : npts // 2][:, :-npost], k[:, npts // 2 :][:, npost:])
 
     # make arbitrary
     gx = pp.make_arbitrary_grad("x", g[0], system=system)

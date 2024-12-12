@@ -49,7 +49,8 @@ def make_spiral_readout(
 
         * ``"outward"``: center-to-periphery.
         * ``inward``: periphery-to-center.
-        * ``in-out``: inward followed by outward spiral.
+        * ``in-out``: inward followed by complementary outward spiral.
+        * ``out-in``: outward followed by complementary inward spiral.
 
         The default is ``outward``.
     has_adc : bool, optional
