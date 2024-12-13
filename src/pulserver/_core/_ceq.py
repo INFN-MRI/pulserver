@@ -367,15 +367,8 @@ def _build_segments(loop, sections_edges):
     mapper[np.argsort(arr_ind)] = np.arange(len(arr_ind))
     rotlabel = mapper[arr_inv]
 
-    # reserve negative values for rotation labels
-    # rotlabel = -(rotlabel+1)
-
     # get parent block ids
     parent_block_id = np.ascontiguousarray(loop[:, 1]).astype(int)
-
-    # interleave rotation and parent blocks
-    # parent_block_id = np.stack((parent_block_id, rotlabel), axis=-1)
-    # parent_block_id = parent_block_id.ravel()
 
     # build section edges
     if not sections_edges:
@@ -401,13 +394,46 @@ def _build_segments(loop, sections_edges):
     seg_definitions.extend(_seg_definition)
 
     # split rotated segments (segment must be rotated as a whole, find discontinuities in rotations)
-    splitted_segments = []
-    for n in range(n_sections - 1):
-        section_start, section_end = sections_edges[n]
+    if (hasrot < 0).any():
 
-        _seg_definition = seg_definitions[n]
+        # initialize splitted segments
+        splitted_segments = []
+        for n in range(n_sections - 1):
+            section_start, section_end = sections_edges[n]
+
+            _seg_definition = seg_definitions[n]
+            _segment_size = len(_seg_definition)
+            _rotlabel = rotlabel[section_start:section_end]
+            _rotlabel = _rotlabel.reshape(
+                len(_rotlabel) // _segment_size, _segment_size
+            )
+            _rotchange = (np.diff(_rotlabel, axis=1) != 0).astype(int)
+            _rotchange = np.unique(_rotchange, axis=0)
+            if _rotchange.shape[0] != 1:
+                raise ValueError("Irregular rotation pattern!")
+
+            # section starts
+            _split_end = np.where(_rotchange.squeeze())[0]
+            _split_start = np.concatenate(([0], _split_end + 1))
+
+            # if _split_start.size == 0:
+            #     splitted_segments.append(_seg_definition)
+            # else:
+
+            # get sub-segments
+            _subsegments = []
+            for m in range(len(_split_end)):
+                _subsegments.append(
+                    _seg_definition[_split_start[m] : _split_end[m] + 1]
+                )
+            _subsegments.append(_seg_definition[_split_start[-1] :])
+            splitted_segments.extend(_subsegments)
+
+        # fill last section
+        section_start = sections_edges[-1][0]
+        _seg_definition = seg_definitions[-1]
         _segment_size = len(_seg_definition)
-        _rotlabel = rotlabel[section_start:section_end]
+        _rotlabel = rotlabel[section_start:]
         _rotlabel = _rotlabel.reshape(len(_rotlabel) // _segment_size, _segment_size)
         _rotchange = (np.diff(_rotlabel, axis=1) != 0).astype(int)
         _rotchange = np.unique(_rotchange, axis=0)
@@ -416,43 +442,23 @@ def _build_segments(loop, sections_edges):
 
         # section starts
         _split_end = np.where(_rotchange.squeeze())[0]
-        _split_start = np.concatenate(([0], _split_end+1))
+        _split_start = np.concatenate(([0], _split_end + 1))
 
-        if _split_start.size == 0:
-            splitted_segments.append(_seg_definition)
-        else:
-            _subsegments = []
-            for m in range(len(_split_end)):
-                _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]+1])
-            _subsegments.append(_seg_definition[_split_start[-1] :])
-            splitted_segments.extend(_subsegments)
-
-    # fill last section
-    section_start = sections_edges[-1][0]
-    _seg_definition = seg_definitions[-1]
-    _segment_size = len(_seg_definition)
-    _rotlabel = rotlabel[section_start:]
-    _rotlabel = _rotlabel.reshape(len(_rotlabel) // _segment_size, _segment_size)
-    _rotchange = (np.diff(_rotlabel, axis=1) != 0).astype(int)
-    _rotchange = np.unique(_rotchange, axis=0)
-    if _rotchange.shape[0] != 1:
-        raise ValueError("Irregular rotation pattern!")
-
-    # section starts
-    _split_end = np.where(_rotchange.squeeze())[0]
-    _split_start = np.concatenate(([0], _split_end+1))
-
-    if _split_start.size == 0:
-        splitted_segments.append(_seg_definition)
-    else:
+        # if _split_start.size == 0:
+        #     splitted_segments.append(_seg_definition)
+        # else:
+        # get sub-segments
         _subsegments = []
         for m in range(len(_split_end)):
-            _subsegments.append(_seg_definition[_split_start[m] : _split_end[m]+1])
+            _subsegments.append(_seg_definition[_split_start[m] : _split_end[m] + 1])
         _subsegments.append(_seg_definition[_split_start[-1] :])
         splitted_segments.extend(_subsegments)
 
-    # update
-    seg_definitions = splitted_segments
+        # update
+        seg_definitions = splitted_segments
+
+    # remove duplicated segments
+    seg_definitions = np.unique(np.asarray(seg_definitions, dtype=object)).tolist()
 
     # for each block, find the segment it belongs to
     for n in range(len(seg_definitions)):
