@@ -26,7 +26,7 @@ Ny = [4, 5]
 Nz = [4, 5]
 
 
-def gre(balanced, ny, nz, ndummy):
+def gre(balanced, ny, nz):
     # build single readout
     if balanced:
         segment = np.asarray(
@@ -64,12 +64,12 @@ def gre(balanced, ny, nz, ndummy):
     return main_loop
 
 
-def ir_gre(balanced, ny, nz, dummy):
+def ir_gre(balanced, ny, nz):
     # build prep
     prep_segment = np.asarray([prep, crush])
 
     # build readout
-    read_block = gre(balanced, 1, nz, 0)
+    read_block = gre(balanced, 1, nz)
 
     # build main loop
     main_block = np.concatenate([prep_segment, read_block])
@@ -79,7 +79,7 @@ def ir_gre(balanced, ny, nz, dummy):
 
 
 def ssfp_mrf():
-    seq = ir_gre(False, 2, 2, False)
+    seq = ir_gre(False, 2, 2)
     seq[seq == freq_enc] *= -1  # rotate readout
     seq[seq == read_adc] *= -1
     return seq
@@ -97,7 +97,7 @@ def _calc_segment_idx(loop, segments):
 @pytest.mark.parametrize("isbal, Ny, Nz", list(itertools.product(*[isbal, Ny, Nz])))
 def test_find_segment_definitions(isbal, Ny, Nz):
     # case 1: 3D GRE
-    loop = gre(isbal, Ny, Nz, 0)
+    loop = gre(isbal, Ny, Nz)
     segments = _autoseg.find_segment_definitions(loop)
 
     assert len(segments) == 1
@@ -134,7 +134,7 @@ def test_find_segment_definitions(isbal, Ny, Nz):
         )
 
     # case 2: 3D IR GRE
-    loop = ir_gre(isbal, Ny, Nz, False)
+    loop = ir_gre(isbal, Ny, Nz)
     segments = _autoseg.find_segment_definitions(loop)
 
     assert len(segments) == 1
@@ -189,7 +189,7 @@ def test_split_rotated_segments():
 @pytest.mark.parametrize("isbal, Ny, Nz", list(itertools.product(*[isbal, Ny, Nz])))
 def test_find_segments(isbal, Ny, Nz):
     # case 1: 3D GRE
-    loop = gre(isbal, Ny, Nz, 0)
+    loop = gre(isbal, Ny, Nz)
     segments = _autoseg.find_segment_definitions(loop)
     segments_idx = _calc_segment_idx(loop, segments)
 
@@ -197,7 +197,7 @@ def test_find_segments(isbal, Ny, Nz):
     npt.assert_allclose(segments_idx, expected)
 
     # case 2: 3D IR GRE
-    loop = ir_gre(isbal, Ny, Nz, False)
+    loop = ir_gre(isbal, Ny, Nz)
     segments = _autoseg.find_segment_definitions(loop)
     segments_idx = _calc_segment_idx(loop, segments)
 

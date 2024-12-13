@@ -390,8 +390,11 @@ def _build_segments(loop, sections_edges):
 
     # fill last section
     section_start = sections_edges[-1][0]
-    _seg_definition = _autoseg.find_segment_definitions(parent_block_id[section_start:])
-    seg_definitions.extend(_seg_definition)
+    if parent_block_id[section_start:].size != 0:
+        _seg_definition = _autoseg.find_segment_definitions(
+            parent_block_id[section_start:]
+        )
+        seg_definitions.extend(_seg_definition)
 
     # split rotated segments (segment must be rotated as a whole, find discontinuities in rotations)
     if (hasrot < 0).any():
@@ -412,15 +415,9 @@ def _build_segments(loop, sections_edges):
             if _rotchange.shape[0] != 1:
                 raise ValueError("Irregular rotation pattern!")
 
-            # section starts
+            # get sub-segments
             _split_end = np.where(_rotchange.squeeze())[0]
             _split_start = np.concatenate(([0], _split_end + 1))
-
-            # if _split_start.size == 0:
-            #     splitted_segments.append(_seg_definition)
-            # else:
-
-            # get sub-segments
             _subsegments = []
             for m in range(len(_split_end)):
                 _subsegments.append(
@@ -440,14 +437,9 @@ def _build_segments(loop, sections_edges):
         if _rotchange.shape[0] != 1:
             raise ValueError("Irregular rotation pattern!")
 
-        # section starts
+        # get sub-segments
         _split_end = np.where(_rotchange.squeeze())[0]
         _split_start = np.concatenate(([0], _split_end + 1))
-
-        # if _split_start.size == 0:
-        #     splitted_segments.append(_seg_definition)
-        # else:
-        # get sub-segments
         _subsegments = []
         for m in range(len(_split_end)):
             _subsegments.append(_seg_definition[_split_start[m] : _split_end[m] + 1])
@@ -459,6 +451,8 @@ def _build_segments(loop, sections_edges):
 
     # remove duplicated segments
     seg_definitions = np.unique(np.asarray(seg_definitions, dtype=object)).tolist()
+    if isinstance(seg_definitions[0], list) is False:
+        seg_definitions = [seg_definitions]
 
     # for each block, find the segment it belongs to
     for n in range(len(seg_definitions)):
