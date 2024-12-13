@@ -12,26 +12,17 @@ def find_segment_definitions(arr):
     # scans are performed at the beginning of the sequence,
     # then we have a long periodic main loop. We want to find the beginning
     # of the main loop
-    main_loop, dummy_loop = _find_periodic_pattern(arr.astype(int))
+    main_loop, rem = _find_periodic_pattern(arr.astype(int))
 
-    if len(dummy_loop) > 0:  # TODO: make this recursive?
-        # here, we make the (reasonable?) assumption
-        # that all the "prescan", dummy / syncronization / calibration
-        # scans are also periodic
-        dummy_loop, rem = _find_periodic_pattern(dummy_loop.astype(int))
+    # hopefully rem is empty; if it is not, append at the beginning
+    if len(rem) > 0 and len(main_loop) == 0:
+        main_loop = [rem.tolist()]
+    elif len(rem) > 0:
+        main_loop = [rem.tolist() + main_loop.tolist()]
+    else:
+        main_loop = [main_loop.tolist()]
 
-        # hopefully rem is empty; if it is not, append at the beginning
-        if len(rem) > 0 and len(dummy_loop) == 0:
-            dummy_loop = [rem.tolist()]
-        elif len(rem) > 0:
-            dummy_loop = [rem.tolist() + dummy_loop.tolist()]
-        else:
-            dummy_loop = [dummy_loop.tolist()]
-        if len(main_loop) > 0:
-            return dummy_loop + [main_loop.tolist()]
-        return dummy_loop
-
-    return [main_loop.tolist()]
+    return main_loop
 
 
 def find_segments(array, subarray):
@@ -89,6 +80,7 @@ def _find_periodic_pattern(arr):
     else:
         loop = np.frombuffer(arr, dtype=int)
         remainder = np.asarray([], dtype=int)
+
     return loop, remainder
 
 
