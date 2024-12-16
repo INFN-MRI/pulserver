@@ -376,7 +376,6 @@ def _build_segments(loop, sections_edges):
     sections_edges = np.stack((sections_edges, sections_edges[1:] + [-1]), axis=-1)
 
     # loop over sections and find segment definitions
-    segment_id = np.zeros(loop.shape[0], dtype=np.float32)
     seg_definitions = []
 
     # fill sections from 0 to n-1
@@ -455,6 +454,7 @@ def _build_segments(loop, sections_edges):
         seg_definitions = [seg_definitions]
 
     # for each block, find the segment it belongs to
+    segment_id = np.zeros(loop.shape[0], dtype=np.float32)
     for n in range(len(seg_definitions)):
         idx = _autoseg.find_segments(parent_block_id, seg_definitions[n])
         segment_id[idx] = n

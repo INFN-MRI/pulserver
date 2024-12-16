@@ -11,7 +11,6 @@ import pulpy.grad as pg
 
 fufa = 0.9
 
-
 def make_spiral(
     fov: float,
     npix: int,
@@ -178,6 +177,9 @@ def make_spiral(
     if spiral_type == "inward":
         g = np.flip(g, axis=0)
         k = np.flip(k, axis=0)
+    if mirror:
+        g = -g
+        k = -k
 
     # convert gradient units
     g = g.T
