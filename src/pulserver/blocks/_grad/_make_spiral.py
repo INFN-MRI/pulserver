@@ -181,13 +181,12 @@ def make_spiral(
         g = -g
         k = -k
         
-    # if spiral out, add at least two samples at the beginning to be discarded
-    if mirror is False:
-        g = np.pad(g, ((16, 0), (0, 0)))
-        npre += 16
-    else:
+    if spiral_type == "inward":
         g = np.pad(g, ((0, 16), (0, 0)))
         npost += 16
+    else:
+        g = np.pad(g, ((16, 0), (0, 0)))
+        npre += 16
         
     # convert gradient units
     g = g.T
