@@ -180,7 +180,12 @@ def make_spiral(
     if mirror:
         g = -g
         k = -k
-
+        
+    # if spiral out, add at least two samples at the beginning to be discarded
+    if mirror is False:
+        g = np.pad(g, ((2, 0), (0, 0)))
+        npre += 2
+        
     # convert gradient units
     g = g.T
     g = pp.convert.convert(10 * g, from_unit="mT/m", gamma=system.gamma)  # [Hz / m]
@@ -189,7 +194,7 @@ def make_spiral(
     k = k.T
     kmax = ((k**2).sum(axis=0) ** 0.5).max()
     k = k / kmax / 2
-
+    
     # make arbitrary
     gx = pp.make_arbitrary_grad("x", g[0], system=system)
     gy = pp.make_arbitrary_grad("y", g[1], system=system)
