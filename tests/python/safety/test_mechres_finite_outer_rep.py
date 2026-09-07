@@ -98,9 +98,9 @@ def _amps(seq_path: Path, expected_m: int):
 
 
 def test_repetitions_add_to_the_reading_until_the_memory_is_full(tmp_path):
-    """A 1.6 ms repetition under a 20 ms memory: one repetition reads its own
+    """A repetition much shorter than the memory: one repetition reads its own
     transform over the memory, four read four times more, and once the window
-    holds every copy it can (sixteen and beyond) the reading stops changing."""
+    holds every copy it can the reading stops changing."""
     amps_m1 = _amps(_build_two_block_seq(tmp_path, 1), expected_m=1)
     amps_m4 = _amps(_build_two_block_seq(tmp_path, 4), expected_m=4)
     amps_m16 = _amps(_build_two_block_seq(tmp_path, 16), expected_m=16)
@@ -138,9 +138,9 @@ def test_the_candidates_cover_the_guarded_band_at_the_fine_spacing(tmp_path):
 
 def test_the_periodic_reading_is_the_whole_scans_reading(tmp_path):
     """With nothing varying, the TR tiled into the memory reads what the
-    windows slid over every event of the real scan read, at the same 20 ms
-    memory: the two regimes are one criterion, and the Bernstein factor on
-    the grid is the whole difference."""
+    windows slid over every event of the real scan read, at the same memory:
+    the two regimes are one criterion, and the Bernstein factor on the grid is
+    the whole difference."""
     seq_path = _build_two_block_seq(tmp_path, 8)
     rd = _candidates(seq_path, expected_m=8)
     freqs = list(rd["candidate_freqs"])
@@ -159,7 +159,9 @@ def test_the_periodic_reading_is_the_whole_scans_reading(tmp_path):
         for f in range(1500, 2100, 100)
     ]
     grids = [(float(freqs[i]), 0.0, 1) for i in picks]
-    probe = _mech_scan_window_probe(collection, grids, 20000.0, 0, 0)
+    probe = _mech_scan_window_probe(
+        collection, grids, collection.mech_memory * 1e6, 0, 0
+    )
     for k, i in enumerate(picks):
         for axis in "xyz":
             periodic = rd[f"candidate_amps_g{axis}"][i]

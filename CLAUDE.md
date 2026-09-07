@@ -91,6 +91,48 @@ write a test instead.
 Deleting an outdated comment is always correct; rewriting one to describe the
 change is not.
 
+## Prose documentation
+
+`docs/explanations/` is written for MR scientists, in the vocabulary of pulse
+sequences and physics. These rules are about how a page is built, not what it
+claims.
+
+**Section titles are the reader's index.** Each states, in plain
+pulse-sequence vocabulary, what is in that section: a noun phrase, not a
+question, not a rhetorical frame ("What X does to Y", "Why X cannot be
+avoided"), and with no trailing filler ("..., and why"). A reader scanning the
+titles alone must know what the page contains. Prefer a title that reuses a
+term the page has already introduced, so the contents map onto the argument. A
+title agreed with the user is used verbatim — never substitute a
+better-sounding one while drafting the body under it.
+
+**Do not over-fragment.** A heading is for a section a reader would look for
+on its own. Material that flows from the section's own subject stays in it,
+unheaded, and cases that vary one parameter of the same mechanism — shorter
+than the window and longer than it — belong in one section, not one each. If
+a section has grown six subsections, most of them are paragraphs.
+
+**Figures lead, text follows.** Prefer a figure to a table and a table to a
+paragraph whenever the subject is a shape, a position, a timeline or a
+comparison. Author every figure as a function in `docs/_bench/`, so it is
+regenerated from the current code, and write the prose around it rather than
+illustrating prose after the fact.
+
+**Do not restate what a figure carries.** Exact readings live in the figure,
+where a rebuild updates them; the prose claims only ratios and orders of
+magnitude that survive a redesign. The same applies to constants: name the
+symbol, not the number.
+
+**Vendor material stays out of published prose.** Lockout file names, gradient
+coil names, band edges and stated tolerances are not ours to publish and are
+of no use to a reader outside that vendor. Describe the mechanism — a family,
+its locked parameter, what the table can and cannot express — and keep the
+values in the calibration scripts that read them.
+
+**Write a page with the user, not for them.** Agree a crude skeleton first —
+every title with one sentence of intent — then draft one section at a time,
+printed in the conversation for comment before anything is written to disk.
+
 ## Tests
 
 - **Name the invariant.** `test_the_worst_case_tr_bounds_every_instance_it_stands_for`,

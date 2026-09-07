@@ -7,7 +7,7 @@
  * violation. The acoustic analysis is structural rather than simulated: it
  * derives the canonical TR's gradient spectrum analytically and evaluates
  * A_eq at guarded in-band harmonics -- see
- * docs/explanations/mechanical_resonance_safety.md for the model.
+ * docs/explanations/safety/mechanical_resonance.md for the model.
  *
  * PNS is delegated to a caller-supplied pulseg_pns_model, so no vendor
  * nerve-stimulation formula lives here. RF/SAR safety is deliberately out of
@@ -150,7 +150,7 @@ void pulseg_mech_resonances_spectra_free(pulseg_mech_resonances_spectra *s)
 #define SA_MAX_PWL_VERTICES 16
 
 /* --- Equivalent-sustained-drive (A_eq) mechanical-resonance criterion ---
- * (docs/explanations/mechanical_resonance_safety.md).  Sharp-line model: the sequence drive is the
+ * (docs/explanations/safety/mechanical_resonance.md).  Sharp-line model: the sequence drive is the
  * Fourier series of the canonical (outer) TR, sampled at the TR harmonics
  * k / T_TR that fall inside a guarded forbidden band.  The per-axis
  * equivalent-sustained amplitude of a spectral line is
@@ -182,6 +182,12 @@ void pulseg_mech_resonances_spectra_free(pulseg_mech_resonances_spectra *s)
  *  it, the loudest half a mT/m under. The one tolerance a table states
  *  converts to 13 in these units. docs/_bench/mechres_calibration.py prints
  *  the bracket. */
+/* The resonance memory a reading is taken over when the scanner
+ * configuration supplies none, in microseconds. Calibrated against the
+ * product prescriptions a lockout table refuses and accepts; see
+ * docs/explanations/safety/mechanical_resonance.md. */
+#define PULSEG__MECH_MEMORY_US 20000.0
+
 #define SA_ZERO_BAND_SINUSOID_MT_PER_M 10.0f
 
 /** Proton gyromagnetic ratio, for the plotting API when no opts are supplied. */
@@ -331,7 +337,7 @@ typedef struct
 } sa_axis_events;
 
 /**
- * W_k(f) memoization (docs/explanations/mechanical_resonance_safety.md, "Stage 4"): caches
+ * W_k(f) memoization (docs/explanations/safety/mechanical_resonance.md): caches
  * sa_eval_event_transform()'s result -- the base-waveform Fourier response,
  * a pure function of (base waveform, frequency) -- keyed by w_key, for
  * the duration of ONE sa_eval_axis_spectrum() call (which is itself already
@@ -2995,7 +3001,7 @@ static void sa_eval_axis_spectrum(
     sa_transform_cache_entry *cache_entries = NULL;
 
     /* One call = one fixed frequency, so def_id alone is a sufficient
-     * memo key (docs/explanations/mechanical_resonance_safety.md, "Stage 4") -- events
+     * memo key (docs/explanations/safety/mechanical_resonance.md) -- events
      * sharing a def_id (the common case: a handful of unique gradient
      * shapes reused across many materialized occurrences) skip the
      * O(vertices) sa_eval_pwl_transform integral after the first hit.
@@ -3600,7 +3606,7 @@ static void sa_eval_varying_bound(
 /* ================================================================== */
 
 /**
- * A_eq mechanical-resonance verdict (docs/explanations/mechanical_resonance_safety.md).
+ * A_eq mechanical-resonance verdict (docs/explanations/safety/mechanical_resonance.md).
  *
  *   1. Build the event model of the canonical (outer) TR — every gradient
  *      instance materialised at its time within the TR (inner periodicities
@@ -3639,8 +3645,7 @@ static float sa_eps_for_band(const pulseg_forbidden_band *band, float gamma_hz_p
 }
 
 /**
- * Finite-outer-rep Dirichlet ratio (docs/explanations/mechanical_resonance_safety.md
- * §1): |D_M(x)| / M, where D_M(x) = sin(M*pi*x) / sin(pi*x) is the
+ * Finite-outer-rep Dirichlet ratio (docs/explanations/safety/mechanical_resonance.md): |D_M(x)| / M, where D_M(x) = sin(M*pi*x) / sin(pi*x) is the
  * Dirichlet kernel for M coherent repeats of period T_TR, and
  * x = f * T_TR (dimensionless: integer x = exact TR harmonics, fractional
  * x = the sidelobes between them that only exist for finite M).
@@ -4240,7 +4245,8 @@ static int sa_check_structural_violations(
          * exact reading, so no refusal rests on the bound alone. */
         {
             int v, outlasts = 0;
-            double memory = (mech_memory_us > 0.0f) ? (double)mech_memory_us : 20000.0;
+            double memory =
+                (mech_memory_us > 0.0f) ? (double)mech_memory_us : PULSEG__MECH_MEMORY_US;
             for (v = 0; v < se.num_varying; ++v)
                 if (se.varying[v].duration_us > memory)
                     outlasts = 1;
@@ -4888,7 +4894,7 @@ static int pulseg_calc_mech_resonances_body(
                 desc,
                 &request->bands,
                 (opts && opts->gamma_hz_per_t > 0.0f) ? opts->gamma_hz_per_t : SA_GAMMA_1H_HZ_PER_T,
-                opts ? (double)opts->mech_memory_us : 20000.0,
+                opts ? (double)opts->mech_memory_us : PULSEG__MECH_MEMORY_US,
                 pulseg__opts_par_fn(opts),
                 pulseg__opts_par_ctx(opts),
                 1);
@@ -4946,7 +4952,7 @@ static int pulseg_calc_mech_resonances_body(
         bound_over_instances,
         pulseg__opts_par_fn(opts),
         pulseg__opts_par_ctx(opts),
-        opts ? opts->mech_memory_us : 20000.0f);
+        opts ? opts->mech_memory_us : (float)PULSEG__MECH_MEMORY_US);
     pulseg_check_plan_destroy(owned);
     return rc;
 }
@@ -5530,14 +5536,6 @@ int pulseg_calc_pns_at(
                 diag,
                 "worst case past %d shape groups: repetition %d, the one holding the scan's "
                 "peak, played as it stands",
-                PULSEG__MAX_SHAPE_GROUPS,
-                witness);
-            amplitude_mode = PULSEG_AMP_ACTUAL;
-            result->worst_group = witness;
-            pulseg__diag_printf(
-                diag,
-                "worst case past %d shape groups: repetition %d, the one the occurrence "
-                "score prices highest, played as it stands",
                 PULSEG__MAX_SHAPE_GROUPS,
                 witness);
         }
@@ -6215,17 +6213,16 @@ static int mech_resonance_verdict(
  * over the scan sums the terms of the events that start inside it,
  * from its start up to but not including its end:
  *
- *     A_W(f) = (2 / span) | sum_{t_m in window} a_m T_m(f) e^{-i 2 pi f t_m} |
+ *     A_W(f) = (2 / W) | sum_{t_m in window} a_m T_m(f) e^{-i 2 pi f t_m} |
  *
- * span being the run those events actually cover, never less than W --
  * the amplitude of a sinusoid at f that would carry the same Fourier
- * content over that run. With every repetition the same and W a multiple
+ * content over the window. With every repetition the same and W a multiple
  * of the TR, this is the periodic line amplitude (2 / T_TR) |S_TR(f)|
  * exactly; with distinct repetitions it carries the cancellation between
- * them that a bound over instances would discard. W is the mode's memory,
- * 1 / (band width), never shorter than the longest event on the axis, so a
- * readout longer than the memory is priced by its own transform over its
- * own duration.
+ * them that a bound over instances would discard. W is the coil's memory,
+ * pulseg_opts.mech_memory_us; an event longer than it is cut into pieces of
+ * an eighth of it, so the window reads its loudest stretch rather than an
+ * average over the whole event.
  *
  * The transform of a long arbitrary waveform comes from one real FFT of
  * its samples, zero-padded to at least twice their count: the waveform is
@@ -8274,7 +8271,7 @@ static int sa_window_candidates(
     /* The resonance memory is the window for every band; its own width,
      * 1/W, is the half-width a mode answers over, so no band is widened. */
     if (memory_us <= 0.0)
-        memory_us = 20000.0;
+        memory_us = PULSEG__MECH_MEMORY_US;
     ng = 0;
     for (b = 0; b < bands->count; ++b)
     {
@@ -8667,7 +8664,7 @@ static int sa_scan_window_check(
     c.desc = desc;
     c.par_fn = par_fn;
     c.par_ctx = par_ctx;
-    c.memory_us = (memory_us > 0.0) ? memory_us : 20000.0;
+    c.memory_us = (memory_us > 0.0) ? memory_us : PULSEG__MECH_MEMORY_US;
     c.session = NULL;
     rc = sa_window_candidates(
         spectra,
