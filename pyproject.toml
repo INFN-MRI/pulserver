@@ -22,8 +22,8 @@ dependencies = [
   # The NUFFT comes from MRI-NUFFT rather than a second implementation here;
   # FINUFFT is the portable CPU backend. See the `cuda` extra for GPU.
   "mri-nufft[finufft]",
-  "torch>=2.13.0",
-  "deepinv>=0.4.1",
+  "torch>=2.14.0",
+  "deepinv>=0.4.2",
   "ptwt",
   "PyWavelets",
   "ismrmrd>=1.15.0",
